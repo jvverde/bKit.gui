@@ -114,8 +114,9 @@ Menu.setApplicationMenu(menu)
 // ------------------------------
 
 app.on('ready', () => {
+  const fs = require('fs')
 
-  if(!config.bkit) {
+  if(!config.bkit || !fs.existsSync(config.bkit)) {
     const bkitdir = dialog.showOpenDialogSync({
       title: 'Where is bkit Client?',
       multiSelections: false,
