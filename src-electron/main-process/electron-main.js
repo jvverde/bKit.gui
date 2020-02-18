@@ -1,4 +1,10 @@
 import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu } from 'electron'
+const log = require('electron-log')
+const { autoUpdater } = require("electron-updater")
+
+autoUpdater.logger = log
+autoUpdater.logger.transports.file.level = 'info'
+log.info('App starting...')
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
