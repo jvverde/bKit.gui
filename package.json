@@ -1,6 +1,6 @@
 {
   "name": "bkit-gui",
-  "version": "1.0.62",
+  "version": "1.0.63",
   "description": "A bKit Client App",
   "productName": "bKit-gui",
   "cordovaId": "org.cordova.quasar.app",
