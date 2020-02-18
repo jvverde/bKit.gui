@@ -180,6 +180,7 @@ module.exports = function (ctx) {
         nsis: {
           // oneClick: false,
           // allowToChangeInstallationDirectory: true,
+          artifactName: '${productName}-${version}.${ext}',
           perMachine: true
         }
       },

@@ -61,7 +61,19 @@ function createWindow () {
 // from https://www.tutorialspoint.com/electron/electron_menus.htm
 const template = [
   {
-    role: 'fileMenu'
+    role: 'fileMenu',
+    submenu: [
+      {
+        role: 'quit'
+      },
+      {
+        label: 'Upgrade',
+        click: async () => {
+          log.info('Check for updates...')
+          await autoUpdater.checkForUpdates()
+        }
+      }
+    ]
   },{
     label: 'Edit',
     submenu: [{
@@ -134,7 +146,6 @@ app.on('ready', () => {
   }
 
   createWindow()
-  autoUpdater.checkForUpdates()
 })
 
 app.on('window-all-closed', () => {
@@ -201,15 +212,12 @@ autoUpdater.on('update-not-available', (ev, info) => {
 autoUpdater.on('error', (ev, err) => {
   sendStatusToWindow('Error in auto-updater.')
 })
-autoUpdater.on('download-progress', (ev, progressObj) => {
-  sendStatusToWindow('Download progress...');
-})
 autoUpdater.on('update-downloaded', (ev, info) => {
   sendStatusToWindow('Update downloaded; will install in 5 seconds')
 })
 autoUpdater.on('update-downloaded', (ev, info) => {
   sendStatusToWindow('Update downloaded!!!')
   setTimeout(function() {
-    autoUpdater.quitAndInstall();  
+    autoUpdater.quitAndInstall() 
   }, 5000)
 })
