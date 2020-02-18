@@ -169,6 +169,7 @@ module.exports = function (ctx) {
         // https://www.electron.build/configuration/configuration
 
         appId: 'gui.bkit.pt',
+        generateUpdatesFilesForAllChannels: true,
         publish: [
           {
             provider: 'generic',
