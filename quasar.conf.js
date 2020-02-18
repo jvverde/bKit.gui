@@ -177,9 +177,9 @@ module.exports = function (ctx) {
         ],
         productName: 'bKit-gui',
         nsis: {
-          oneClick: false,
-          perMachine: true,
-          allowToChangeInstallationDirectory: true
+          // oneClick: false,
+          // allowToChangeInstallationDirectory: true,
+          perMachine: true
         }
       },
 
