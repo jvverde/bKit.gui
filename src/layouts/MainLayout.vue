@@ -77,6 +77,11 @@
 const platform = process.platform
 const { ipcRenderer, remote: { app } } = require('electron')
 
+ipcRenderer.on('message', (event, text) => {
+  console.log('Event:', event)
+  console.log('Message:', text)
+})
+
 import * as bkit from 'src/helpers/bkit'
 
 export default {

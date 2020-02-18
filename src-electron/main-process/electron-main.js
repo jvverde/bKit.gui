@@ -134,6 +134,7 @@ app.on('ready', () => {
   }
 
   createWindow()
+  autoUpdater.checkForUpdates()
 })
 
 app.on('window-all-closed', () => {
@@ -180,4 +181,35 @@ app.once('before-quit', () => {
   // Workaround to close all processes / sub-processes after closing the app
   // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
   window.removeAllListeners('close')
+})
+
+// Auto updater section
+
+function sendStatusToWindow(text) {
+  log.info(text)
+  mainWindow.webContents.send('message', text)
+}
+autoUpdater.on('checking-for-update', () => {
+  sendStatusToWindow('Checking for update...')
+})
+autoUpdater.on('update-available', (ev, info) => {
+  sendStatusToWindow('Update available.')
+})
+autoUpdater.on('update-not-available', (ev, info) => {
+  sendStatusToWindow('Update not available.')
+})
+autoUpdater.on('error', (ev, err) => {
+  sendStatusToWindow('Error in auto-updater.')
+})
+autoUpdater.on('download-progress', (ev, progressObj) => {
+  sendStatusToWindow('Download progress...');
+})
+autoUpdater.on('update-downloaded', (ev, info) => {
+  sendStatusToWindow('Update downloaded; will install in 5 seconds')
+})
+autoUpdater.on('update-downloaded', (ev, info) => {
+  sendStatusToWindow('Update downloaded!!!')
+  setTimeout(function() {
+    autoUpdater.quitAndInstall();  
+  }, 5000)
 })

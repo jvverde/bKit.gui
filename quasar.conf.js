@@ -169,6 +169,12 @@ module.exports = function (ctx) {
         // https://www.electron.build/configuration/configuration
 
         appId: 'gui.bkit.pt',
+        publish: [
+          {
+            provider: 'generic',
+            url: 'http://gui.bkit.pt/download/'
+          }
+        ],
         productName: 'bKit-gui',
         nsis: {
           oneClick: false,
