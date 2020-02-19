@@ -72,8 +72,8 @@ function check4updates () {
     log.info(info)
     if (Notification.isSupported()) {
       const notify = new Notification({
-        title: 'Update',
-        body: `A new update is available [version: ${info.version}]`
+        title: 'Updated version',
+        body: `A new version ${info.version} is available`
       })
       notify.show()
     }
