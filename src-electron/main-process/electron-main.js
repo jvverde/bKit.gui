@@ -73,14 +73,14 @@ function check4updates () {
     if (Notification.isSupported()) {
       const notify = new Notification({
         title: 'Update',
-        body: `A new update is available ${info.version}`
+        body: `A new update is available [version: ${info.version}]`
       })
       notify.show()
     }
   })
   autoUpdater.autoInstallOnAppQuit = false
   autoUpdater.autoDownload = false
-  log.info(`Check for updates available...`)
+  log.info(`Check for updates...`)
   autoUpdater.checkForUpdatesAndNotify()
 }
 
