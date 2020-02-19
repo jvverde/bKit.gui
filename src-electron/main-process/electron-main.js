@@ -52,6 +52,42 @@ function createWindow () {
   mainWindowState.manage(mainWindow)
   console.log('createWindow')
 }
+
+function check4updates () {
+  autoUpdater.on('update-available', (info) => {
+    sendStatusToWindow(info)
+    log.info(info)
+    if (Notification.isSupported()) {
+      const notify = new Notification({
+        title: 'Updated version',
+        body: `A new version ${info.version} is available`
+      })
+      notify.show()
+    }
+  })
+  autoUpdater.autoInstallOnAppQuit = false
+  autoUpdater.autoDownload = false
+  log.info(`Check for updates...`)
+  autoUpdater.checkForUpdatesAndNotify()
+}
+
+function getUpdates(channel = 'latest') {
+  autoUpdater.channel = channel
+  autoUpdater.on('update-not-available', (info) => {
+    dialog.showMessageBox({
+      title: 'No Updates',
+      message: 'Current version is up-to-date.'
+    })
+  })
+  autoUpdater.on('update-downloaded', (info) => {
+    setImmediate(() => autoUpdater.quitAndInstall())
+  })
+  autoUpdater.autoInstallOnAppQuit = true
+  autoUpdater.autoDownload = true
+  log.info(`Check and get updates on channel ${channel}`)
+  return autoUpdater.checkForUpdates()
+}
+
 // from https://www.tutorialspoint.com/electron/electron_menus.htm
 const template = [
   {
