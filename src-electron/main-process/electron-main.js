@@ -1,17 +1,4 @@
-import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu, Notification } from 'electron'
-const log = require('electron-log')
-const { autoUpdater } = require("electron-updater")
-
-autoUpdater.logger = log
-autoUpdater.allowDowngrade = true
-autoUpdater.autoInstallOnAppQuit = false
-autoUpdater.autoDownload = false
-autoUpdater.logger.transports.file.level = 'info'
-autoUpdater.on('error', (err) => {
-  log.erro(err)
-})
-
-log.info('App starting...', autoUpdater.currentVersion )
+import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu } from 'electron'
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
@@ -65,67 +52,10 @@ function createWindow () {
   mainWindowState.manage(mainWindow)
   console.log('createWindow')
 }
-
-function check4updates () {
-  autoUpdater.on('update-available', (info) => {
-    sendStatusToWindow(info)
-    log.info(info)
-    if (Notification.isSupported()) {
-      const notify = new Notification({
-        title: 'Update',
-        body: `A new update is available [version: ${info.version}]`
-      })
-      notify.show()
-    }
-  })
-  autoUpdater.autoInstallOnAppQuit = false
-  autoUpdater.autoDownload = false
-  log.info(`Check for updates...`)
-  autoUpdater.checkForUpdatesAndNotify()
-}
-
-function getUpdates(channel = 'latest') {
-  autoUpdater.channel = channel
-  autoUpdater.on('update-not-available', (info) => {
-    dialog.showMessageBox({
-      title: 'No Updates',
-      message: 'Current version is up-to-date.'
-    })
-  })
-  autoUpdater.on('update-downloaded', (info) => {
-    setImmediate(() => autoUpdater.quitAndInstall())
-  })
-  autoUpdater.autoInstallOnAppQuit = true
-  autoUpdater.autoDownload = true
-  log.info(`Check and get updates on channel ${channel}`)
-  return autoUpdater.checkForUpdates()
-}
-
 // from https://www.tutorialspoint.com/electron/electron_menus.htm
 const template = [
   {
-    role: 'fileMenu',
-    submenu: [
-      {
-        role: 'quit'
-      },
-      {
-        label: 'Upgrade',
-        submenu: [
-          {
-            label: 'Beta',
-            click: async () => {
-              await getUpdates('beta')
-            }
-          },{
-            label: 'Stable',
-            click: async () => {
-              await getUpdates('latest')
-            }
-          }
-        ]
-      }
-    ]
+    role: 'fileMenu'
   },{
     label: 'Edit',
     submenu: [{
@@ -184,9 +114,8 @@ Menu.setApplicationMenu(menu)
 // ------------------------------
 
 app.on('ready', () => {
-  const fs = require('fs')
 
-  if(!config.bkit || !fs.existsSync(config.bkit)) {
+  if(!config.bkit) {
     const bkitdir = dialog.showOpenDialogSync({
       title: 'Where is bkit Client?',
       multiSelections: false,
@@ -196,8 +125,8 @@ app.on('ready', () => {
     console.log('bkitdir=', bkitdir)
     if (bkitdir) config.bkit = bkitdir[0]
   }
+
   createWindow()
-  check4updates()
 })
 
 app.on('window-all-closed', () => {
@@ -230,9 +159,7 @@ ipcMain.on('getbKitPath', (event) => {
   console.log('getbKitPath')
   event.returnValue = config.bkit
 })
-ipcMain.on('app_version', (event) => {
-  event.returnValue = app.getVersion()
-})
+
 // Workaround to close all processes / sub-processes after closing the app
 // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
 app.once('window-all-closed', app.quit)
@@ -245,11 +172,3 @@ app.once('before-quit', () => {
   // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
   window.removeAllListeners('close')
 })
-
-// Auto updater section
-
-function sendStatusToWindow(text) {
-  log.info(text)
-  mainWindow.webContents.send('message', text)
-}
-
