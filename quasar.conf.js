@@ -177,10 +177,10 @@ module.exports = function (ctx) {
           }
         ],
         productName: 'bKit',
+        artifactName: '${productName}-${os}-${arch}-${version}.${ext}',
         nsis: {
           // oneClick: false,
           // allowToChangeInstallationDirectory: true,
-          artifactName: '${productName}-${os}-${arch}-${version}.${ext}',
           perMachine: true
         }
       },
