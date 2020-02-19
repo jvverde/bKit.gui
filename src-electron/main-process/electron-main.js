@@ -1,10 +1,11 @@
-import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu } from 'electron'
+import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu, Notification } from 'electron'
 const log = require('electron-log')
 const { autoUpdater } = require("electron-updater")
 
 autoUpdater.logger = log
+autoUpdater.allowDowngrade = true
 autoUpdater.logger.transports.file.level = 'info'
-log.info('App starting...')
+log.info('App starting...', autoUpdater.currentVersion )
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
@@ -68,10 +69,23 @@ const template = [
       },
       {
         label: 'Upgrade',
-        click: async () => {
-          log.info('Check for updates...')
-          await autoUpdater.checkForUpdates()
-        }
+        submenu: [
+          {
+            label: 'Beta',
+            click: async () => {
+              autoUpdater.channel = "beta"
+              log.info('Check for beta updates...')
+              await autoUpdater.checkForUpdates()
+            }
+          },{
+            label: 'Stable',
+            click: async () => {
+              autoUpdater.channel = "latest"
+              log.info('Check for stable updates...')
+              await autoUpdater.checkForUpdates()
+            }
+          }
+        ]
       }
     ]
   },{
@@ -144,8 +158,8 @@ app.on('ready', () => {
     console.log('bkitdir=', bkitdir)
     if (bkitdir) config.bkit = bkitdir[0]
   }
-
   createWindow()
+  autoUpdater.checkForUpdatesAndNotify()
 })
 
 app.on('window-all-closed', () => {
@@ -205,6 +219,15 @@ autoUpdater.on('checking-for-update', () => {
 })
 autoUpdater.on('update-available', (ev, info) => {
   sendStatusToWindow('Update available.')
+  console.log(info)
+  if (Notification.isSupported()) {
+    const notify = new Notification({
+      title: 'Teste',
+      body: 'this is a message'
+    })
+    notify.show()
+  }
+
 })
 autoUpdater.on('update-not-available', (ev, info) => {
   sendStatusToWindow('Update not available.')

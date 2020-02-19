@@ -176,11 +176,11 @@ module.exports = function (ctx) {
             url: 'http://gui.bkit.pt/download/'
           }
         ],
-        productName: 'bKit-gui',
+        productName: 'bKit',
         nsis: {
           // oneClick: false,
           // allowToChangeInstallationDirectory: true,
-          artifactName: '${productName}-${version}.${ext}',
+          artifactName: '${productName}-${os}-${arch}-${version}.${ext}',
           perMachine: true
         }
       },
