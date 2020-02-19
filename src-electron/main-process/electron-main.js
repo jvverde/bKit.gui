@@ -4,7 +4,13 @@ const { autoUpdater } = require("electron-updater")
 
 autoUpdater.logger = log
 autoUpdater.allowDowngrade = true
+autoUpdater.autoInstallOnAppQuit = false
+autoUpdater.autoDownload = false
 autoUpdater.logger.transports.file.level = 'info'
+autoUpdater.on('error', (err) => {
+  log.erro(err)
+})
+
 log.info('App starting...', autoUpdater.currentVersion )
 
 try {
@@ -59,6 +65,42 @@ function createWindow () {
   mainWindowState.manage(mainWindow)
   console.log('createWindow')
 }
+
+function check4updates () {
+  autoUpdater.on('update-available', (info) => {
+    sendStatusToWindow(info)
+    log.info(info)
+    if (Notification.isSupported()) {
+      const notify = new Notification({
+        title: 'Update',
+        body: `A new update is available ${info.version}`
+      })
+      notify.show()
+    }
+  })
+  autoUpdater.autoInstallOnAppQuit = false
+  autoUpdater.autoDownload = false
+  log.info(`Check for updates available...`)
+  autoUpdater.checkForUpdatesAndNotify()
+}
+
+function getUpdates(channel = 'latest') {
+  autoUpdater.channel = channel
+  autoUpdater.on('update-not-available', (info) => {
+    dialog.showMessageBox({
+      title: 'No Updates',
+      message: 'Current version is up-to-date.'
+    })
+  })
+  autoUpdater.on('update-downloaded', (info) => {
+    setImmediate(() => autoUpdater.quitAndInstall())
+  })
+  autoUpdater.autoInstallOnAppQuit = true
+  autoUpdater.autoDownload = true
+  log.info(`Check and get updates on channel ${channel}`)
+  return autoUpdater.checkForUpdates()
+}
+
 // from https://www.tutorialspoint.com/electron/electron_menus.htm
 const template = [
   {
@@ -73,16 +115,12 @@ const template = [
           {
             label: 'Beta',
             click: async () => {
-              autoUpdater.channel = "beta"
-              log.info('Check for beta updates...')
-              await autoUpdater.checkForUpdates()
+              await getUpdates('beta')
             }
           },{
             label: 'Stable',
             click: async () => {
-              autoUpdater.channel = "latest"
-              log.info('Check for stable updates...')
-              await autoUpdater.checkForUpdates()
+              await getUpdates('latest')
             }
           }
         ]
@@ -159,7 +197,7 @@ app.on('ready', () => {
     if (bkitdir) config.bkit = bkitdir[0]
   }
   createWindow()
-  autoUpdater.checkForUpdatesAndNotify()
+  check4updates()
 })
 
 app.on('window-all-closed', () => {
@@ -214,33 +252,4 @@ function sendStatusToWindow(text) {
   log.info(text)
   mainWindow.webContents.send('message', text)
 }
-autoUpdater.on('checking-for-update', () => {
-  sendStatusToWindow('Checking for update...')
-})
-autoUpdater.on('update-available', (ev, info) => {
-  sendStatusToWindow('Update available.')
-  console.log(info)
-  if (Notification.isSupported()) {
-    const notify = new Notification({
-      title: 'Teste',
-      body: 'this is a message'
-    })
-    notify.show()
-  }
 
-})
-autoUpdater.on('update-not-available', (ev, info) => {
-  sendStatusToWindow('Update not available.')
-})
-autoUpdater.on('error', (ev, err) => {
-  sendStatusToWindow('Error in auto-updater.')
-})
-autoUpdater.on('update-downloaded', (ev, info) => {
-  sendStatusToWindow('Update downloaded; will install in 5 seconds')
-})
-autoUpdater.on('update-downloaded', (ev, info) => {
-  sendStatusToWindow('Update downloaded!!!')
-  setTimeout(function() {
-    autoUpdater.quitAndInstall() 
-  }, 5000)
-})
