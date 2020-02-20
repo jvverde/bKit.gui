@@ -15,8 +15,7 @@
           bKit at {{server}}
         </q-toolbar-title>
 
-        <div>User: {{user}}</div>
-        <div class="q-ml-sm">v {{version}} on {{platform}}</div>
+        <div>{{user}}@{{hostname}} | v{{version}}</div>
       </q-toolbar>
     </q-header>
 
@@ -74,7 +73,7 @@
 
 <script>
 
-const platform = process.platform
+const os = require('os')
 const { ipcRenderer, remote: { app } } = require('electron')
 
 ipcRenderer.on('message', (event, text) => {
@@ -92,7 +91,7 @@ export default {
       leftDrawerOpen: false,
       user: bkit.user(),
       version: app.getVersion(),
-      platform: platform,
+      hostname: os.hostname(),
       server: ''
     }
   },
