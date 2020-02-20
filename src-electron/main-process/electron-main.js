@@ -11,7 +11,7 @@ autoUpdater.on('error', (err) => {
   log.erro(err)
 })
 
-log.info('App starting...', autoUpdater.currentVersion )
+log.info('Bkit starting...')
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
@@ -29,7 +29,6 @@ if (process.env.PROD) {
 
 let mainWindow
 
-console.log('Electron Init')
 function createWindow () {
   /**
    * Initial window options
@@ -63,7 +62,6 @@ function createWindow () {
     mainWindow = null
   })
   mainWindowState.manage(mainWindow)
-  console.log('createWindow')
 }
 
 function check4updates () {

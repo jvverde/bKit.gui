@@ -18,19 +18,7 @@
         <div>{{user}}@{{hostname}} | v{{version}}</div>
       </q-toolbar>
     </q-header>
------ BEGIN LICENSE -----
-Serprest, Lda
-Single User License
-EA7E-1138123
-130F5808 F27A5A64 43629D2A 9E8FA653
-7C4F9154 A7403111 26A1E9D5 F7309C05
-DBF9E96F CD1D222E AFB91127 39932DDA
-C5CDEF0E 9BA52E07 94B311A3 F892E9E3
-4D44F00B 23588D05 7804C1E0 70559F3D
-F1E05784 DD763FCF 5410473F D3A210C4
-940D6C1E 9A474745 72463945 9FE18505
-5C81DBBF CEC61721 F8AD4DB0 78E1E26C
------- END LICENSE ------
+
     <q-drawer
       v-model="leftDrawerOpen"
       overlay
@@ -41,7 +29,7 @@ F1E05784 DD763FCF 5410473F D3A210C4
         <q-item-label header>Menu</q-item-label>
         <q-item clickable>
           <q-item-section avatar>
-            <q-icon name="home" />
+            <q-icon color="primary" name="home" />
           </q-item-section>
           <q-item-section>
             <q-item-label>
@@ -53,7 +41,7 @@ F1E05784 DD763FCF 5410473F D3A210C4
         </q-item>
         <q-item clickable>
           <q-item-section avatar>
-            <q-icon name="backup" />
+            <q-icon color="primary" name="restore" />
           </q-item-section>
           <q-item-section>
             <q-item-label>
@@ -61,11 +49,21 @@ F1E05784 DD763FCF 5410473F D3A210C4
                 Restore
               </router-link>
             </q-item-label>
+            <q-item-label caption>Browse backups</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-item clickable @click="terminal">
+          <q-item-section avatar>
+            <q-icon color="primary" name="fas fa-terminal" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>Console</q-item-label>
+            <q-item-label caption>Open a terminal</q-item-label>
           </q-item-section>
         </q-item>
         <q-item clickable @click="debug">
           <q-item-section avatar>
-            <q-icon name="build" />
+            <q-icon color="primary" name="build" />
           </q-item-section>
           <q-item-section>
             <q-item-label>DevTools</q-item-label>
@@ -87,13 +85,12 @@ F1E05784 DD763FCF 5410473F D3A210C4
 
 const os = require('os')
 const { ipcRenderer, remote: { app } } = require('electron')
+import * as bkit from 'src/helpers/bkit'
 
 ipcRenderer.on('message', (event, text) => {
   console.log('Event:', event)
   console.log('Message:', text)
 })
-
-import * as bkit from 'src/helpers/bkit'
 
 export default {
   name: 'MainLayout',
@@ -121,6 +118,9 @@ export default {
     })
   },
   methods: {
+    terminal () {
+      bkit.shell()
+    },
     debug () {
       console.log('open debug window')
       ipcRenderer.send('debug', 'on')

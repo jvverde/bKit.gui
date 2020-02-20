@@ -42,6 +42,15 @@ function invoke (script, done) {
   fd.stderr.on('data', script.onerror)
 }
 
+export function shell () {
+  const fd = spawn(
+    BASH,
+    [],
+    { cwd: bKitPath, windowsHide: false, detached: true, stdio: 'ignore' }
+  )
+  fd.unref()
+}
+
 const invokequeue = queue(invoke)
 
 export function bash (scriptname, args, {
