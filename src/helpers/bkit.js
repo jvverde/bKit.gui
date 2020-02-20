@@ -1,5 +1,5 @@
 // let wsList = {}
-let BASH = 'bash'
+let [BASH, TERM] = ['bash', 'xterm']
 let username = require('os').userInfo().username
 const { spawn, execSync } = require('child_process')
 const readline = require('readline')
@@ -14,11 +14,11 @@ if (process.platform === 'win32') {
   } catch {
     BASH = 'bash.bat'
   }
+  TERM = BASH // for windows user bash as a terminal
 }
 
 const bKitPath = ipcRenderer.sendSync('getbKitPath')
-console.log('bKitPath:', bKitPath)
-console.log('bash:', BASH)
+
 import { Notify } from 'quasar'
 
 export function user () {
@@ -44,7 +44,7 @@ function invoke (script, done) {
 
 export function shell () {
   const fd = spawn(
-    BASH,
+    TERM,
     [],
     { cwd: bKitPath, windowsHide: false, detached: true, stdio: 'ignore' }
   )

@@ -44,12 +44,10 @@
             <q-icon color="primary" name="restore" />
           </q-item-section>
           <q-item-section>
-            <q-item-label>
-              <router-link tag="span" to="/restore">
-                Restore
-              </router-link>
-            </q-item-label>
-            <q-item-label caption>Browse backups</q-item-label>
+            <router-link tag="span" to="/restore">
+              <q-item-label>Restore</q-item-label>
+              <q-item-label caption>Browse backups</q-item-label>
+            </router-link>
           </q-item-section>
         </q-item>
         <q-item clickable @click="terminal">
@@ -119,6 +117,7 @@ export default {
   },
   methods: {
     terminal () {
+      console.log('open a shell')
       bkit.shell()
     },
     debug () {
