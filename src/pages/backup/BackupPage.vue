@@ -12,12 +12,11 @@
         active-bg-color="grey-2"
         active-color="primary">
         <q-tab
-          v-for="(disk,index) in disks"
-          :key="disk.rvid"
-          :name="disk.rvid"
+          v-for="disk in disks"
+          :key="disk"
+          :name="disk"
           icon="far fa-hdd"
-          :alert="disk.present ? false : 'red'"
-          :label="disk.name"
+          :label="disk"
           @click="select(index)">
         </q-tab>
       </q-tabs>
@@ -32,9 +31,9 @@
         <q-tab-panels v-model="disktab" animated keep-alive class="bkit-panels">
           <q-tab-panel
             class="bkit-panel"
-            :name="disk.rvid"
+            :name="disk"
             v-for="disk in disks"
-            :key="disk.rvid">
+            :key="disk">{{disk}}
               <!-- <fileexplorer :disk="disk" @restore="restore"/> -->
           </q-tab-panel>
         </q-tab-panels>
@@ -59,7 +58,7 @@
 <script>
 // import fileexplorer from './components/fileExplorer'
 // import restore from './components/Restore'
-// import * as bkit from 'src/helpers/bkit'
+import * as bkit from 'src/helpers/bkit'
 export default {
   name: 'Backup',
   data () {
@@ -72,8 +71,18 @@ export default {
     }
   },
   mounted () {
-    const drivelist = require('drivelist')
-    drivelist.list()
+    bkit.bash('./lib/local/listdisks.sh', [], {
+      onclose: (code) => {
+        this.$nextTick(() => {
+          this.loading = false
+          // if (this.disks.length === 1) this.select(0)
+        })
+      },
+      onreadline: (drive) => {
+        console.log('list local disks:', drive)
+        this.disks.push(drive)
+      }
+    })
   }
 }
 </script>
