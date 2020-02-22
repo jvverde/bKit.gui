@@ -17,9 +17,6 @@
 
     <q-splitter
       class="bkit-splitter"
-      v-for="snap in snaps"
-      :key="snap"
-      v-show="currentsnap && currentsnap === snap"
       :limits="[0, 80]"
       v-model="splitterModel">
 
@@ -28,7 +25,7 @@
           <q-tree
             :ref="snap"
             accordion
-            :nodes="rootsof[snap]"
+            :nodes="root"
             node-key="path"
             label-key="name"
             color="secondary"
@@ -119,23 +116,15 @@
   </div>
 </template>
 <script>
-const moment = require('moment')
-moment.locale('en')
-const regexpSize = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
-import snaps from './Snaps'
-import askuser from './Askuser'
+
 import * as bkit from 'src/helpers/bkit'
 export default {
-  name: 'fileexplorer',
-  components: {
-    snaps,
-    askuser
-  },
+  name: 'localexplorer',
   data () {
     return {
       splitterModel: 30,
       selected: '.',
-      rootsof: {},
+      root: [],
       selectedof: {},
       snaps: [],
       currentsnap: null,
@@ -143,103 +132,17 @@ export default {
     }
   },
   props: {
-    disk: {
-      type: Object,
+    name: {
+      type: String,
       required: true
     }
   },
-  computed: {
-    dirs: function () {
-      return this.currentnodes.filter(node => node.isdir)
-    },
-    files: function () {
-      return this.currentnodes.filter(node => !node.isdir)
-    },
-    steps: function () {
-      return this.selected.split('/')
-    }
-  },
   methods: {
-    stepto (index) {
-      const keypath = this.steps.slice(0, index).join('/')
-      console.log('keypath=', keypath)
-      this.selectdir(keypath)
-    },
-    usesnap (snap) {
-      if (!this.snaps.includes(snap)) this.snaps.push(snap)
-      this.selectedof[this.currentsnap] = this.selected
-      this.currentsnap = snap
-      if (!this.rootsof[snap]) {
-        this.rootsof[snap] = [{
-          name: `${this.disk.mountpoint}`,
-          path: '.',
-          lazy: true
-        }]
-        this.$nextTick(() => {
-          this.selectdir('.')
-        })
-      } else {
-        this.selectdir(this.selectedof[snap] || '.')
-      }
-    },
-    selectdir (key) {
-      if (!key) return
-      this.selected = key
-      const tree = this.$refs[this.currentsnap][0]
-      const node = tree.getNodeByKey(key)
-      this.currentnodes = node.nodes || []
-      tree.setExpanded(key, true)
-    },
-    restore (...args) {
-      this.$emit('restore', ...args)
-    },
-    lazy_load ({ node, key, done, fail }) {
-      console.log('lazy_load:', key)
-      const dirs = []
-      const nodes = []
-      function compare (a, b) {
-        if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
-        if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
-        return 0
-      }
-      bkit.bash('./listdirs.sh', [
-        `--rvid=${this.disk.rvid}`,
-        `--snap=${this.currentsnap}`,
-        `${key}/`
-      ], {
-        onclose: () => {
-          dirs.sort(compare)
-          nodes.sort(compare)
-          node.nodes = nodes
-          done(dirs)
-          this.$nextTick(() => {
-            if (this.selected === key) this.currentnodes = node.nodes
-          })
-        },
-        onreadline: (data) => {
-          const match = data.match(regexpSize)
-          if (!match) return
-          if (match[5] === '.') return // omitt . directory
-          const entry = {
-            isdir: match[1].match(/^d/) !== null,
-            isregular: match[1].match(/^-/) !== null,
-            path: `${key}/${match[5]}`,
-            name: match[5],
-            date: `${match[3]} ${match[4]}`,
-            size: match[2]
-          }
-          if (entry.isdir) {
-            dirs.push(Object.assign({}, entry, { icon: 'folder', lazy: true, body: '' }))
-          }
-          nodes.push(entry)
-        }
-      })
-    }
   },
   mounted () {
-    this.snaps[this.disk.snap] = [{
-      name: '/',
-      path: '.',
+    this.root = [{
+      name: this.name,
+      path: this.name,
       icon: 'folder',
       lazy: true
     }]
