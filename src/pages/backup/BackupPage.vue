@@ -61,11 +61,11 @@
 </template>
 
 <script>
-import fileexplorer from './components/fileExplorer'
+// import fileexplorer from './components/fileExplorer'
 // import restore from './components/Restore'
 import * as bkit from 'src/helpers/bkit'
 export default {
-  name: 'Server',
+  name: 'Backup',
   data () {
     return {
       loading: true,
