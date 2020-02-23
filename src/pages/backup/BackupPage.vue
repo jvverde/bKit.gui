@@ -2,7 +2,7 @@
   <q-page padding class="bkit-page row no-wrap">
     <div style="flex-shrink: 0" class="column no-wrap items-center">
       <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px">
-      <span class="text-center">Disks</span>
+      <span class="text-center">Local Disks</span>
       <q-tabs
         v-model="disktab"
         align="left"
@@ -16,8 +16,7 @@
           :key="disk"
           :name="disk"
           icon="far fa-hdd"
-          :label="disk"
-          @click="select(index)">
+          :label="disk">
         </q-tab>
       </q-tabs>
     </div>
@@ -33,8 +32,8 @@
             class="bkit-panel"
             :name="disk"
             v-for="disk in disks"
-            :key="disk">{{disk}}
-              <!-- <fileexplorer :disk="disk" @restore="restore"/> -->
+            :key="disk">
+              <localexplorer :name="disk" @backup="backup"/>
           </q-tab-panel>
         </q-tab-panels>
         <q-inner-loading :showing="loading">
@@ -58,6 +57,7 @@
 <script>
 // import fileexplorer from './components/fileExplorer'
 // import restore from './components/Restore'
+import localexplorer from './components/localExplorer'
 import * as bkit from 'src/helpers/bkit'
 export default {
   name: 'Backup',
@@ -68,6 +68,14 @@ export default {
       disktab: '',
       disks: [],
       currentdisk: {}
+    }
+  },
+  components: {
+    localexplorer
+  },
+  methods: {
+    backup () {
+      console.log('dobackup')
     }
   },
   mounted () {

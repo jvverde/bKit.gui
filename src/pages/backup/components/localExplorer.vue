@@ -1,20 +1,5 @@
 <template>
   <div class="bkit-explorer">
-    <q-toolbar class="bkit-toolbar">
-      <keep-alive>
-        <snaps :disk="disk" v-on:usesnap="usesnap"></snaps>
-      </keep-alive>
-    </q-toolbar>
-    <q-toolbar inset>
-      <q-breadcrumbs gutter="xs">
-        <q-breadcrumbs-el
-          style="cursor:pointer"
-          v-for="(step, index) in steps" :key="index"
-          @click="stepto(1 + index)"
-          :label="step"/>
-      </q-breadcrumbs>
-    </q-toolbar>
-
     <q-splitter
       class="bkit-splitter"
       :limits="[0, 80]"
@@ -23,7 +8,6 @@
       <template v-slot:before>
         <div class="q-pa-md">
           <q-tree
-            :ref="snap"
             accordion
             :nodes="root"
             node-key="path"
@@ -38,16 +22,10 @@
               <div class="row items-center" style="width:100%">
                 <q-icon class="q-mr-xs" name="folder" color="amber" size="xs"/>
                 <span class="ellipsis">{{ prop.node.name }}</span>
-                <askuser
-                  :entry="prop.node"
-                  :disk="disk"
-                  :snap="currentsnap"
-                  @restore="restore"
-                  style="margin-left:auto"/>
               </div>
             </template>
             <template v-slot:body-recovering="prop">
-              <span>Recovering:</span> {{ prop.node.path }}
+              <span>Recovering:</span> {{ prop.node.name}}
             </template>
           </q-tree>
         </div>
@@ -55,7 +33,7 @@
 
       <template v-slot:after>
         <div class="q-pa-md">
-          <q-list dense v-if="currentnodes.length > 0">
+<!--           <q-list dense v-if="currentnodes.length > 0">
 
             <q-item clickable v-ripple v-for="dir in dirs" :key="dir.path" @click="selectdir(dir.path)">
               <q-item-section side>
@@ -79,7 +57,7 @@
                   :entry="dir"
                   :disk="disk"
                   :snap="currentsnap"
-                  @restore="restore"/>
+                  @backup="backup"/>
               </q-item-section>
             </q-item>
 
@@ -105,11 +83,11 @@
                   :entry="file"
                   :disk="disk"
                   :snap="currentsnap"
-                  @restore="restore"/>
+                  @backup="backup"/>
               </q-item-section>
             </q-item>
 
-          </q-list>
+          </q-list> -->
         </div>
       </template>
     </q-splitter>
@@ -117,7 +95,11 @@
 </template>
 <script>
 
-import * as bkit from 'src/helpers/bkit'
+// import { warn } from 'src/helpers/notify'
+// import * as bkit from 'src/helpers/bkit'
+const path = require('path')
+import fs from 'fs-extra'
+
 export default {
   name: 'localexplorer',
   data () {
@@ -138,6 +120,33 @@ export default {
     }
   },
   methods: {
+    selectdir () {
+      console.log('selecdir')
+    },
+    async lazy_load ({ node, key, done, fail }) {
+      console.log('lazy load:', node)
+      console.log('key', key)
+      const entries = await fs.readdir(key)
+      console.log('entries:', entries)
+      const dirs = []
+      for (const entry of entries) {
+        const fullpath = path.join(key, entry)
+        const stat = await fs.stat(fullpath)
+        console.log('stat', stat)
+        const isDirectory = stat.isDirectory()
+        const child = {
+          isdir: isDirectory,
+          isregular: !isDirectory,
+          path: fullpath,
+          name: entry,
+          icon: 'folder',
+          lazy: true
+        }
+        dirs.push(child)
+      }
+      done(dirs)
+      console.log('done entries')
+    }
   },
   mounted () {
     this.root = [{
