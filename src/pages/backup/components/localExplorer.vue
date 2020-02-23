@@ -13,14 +13,14 @@
             node-key="path"
             label-key="name"
             color="secondary"
+            tickStrategy="leaf"
             selected-color="positive"
-            :selected.sync="selected"
+            :ticked.sync="ticked"
             @lazy-load="lazy_load"
-            @update:selected="selectdir"
           >
             <template v-slot:default-header="prop">
               <div class="row items-center" style="width:100%">
-                <q-icon class="q-mr-xs" name="folder" color="amber" size="xs"/>
+                <q-icon class="q-mr-xs" :name="prop.node.icon" color="amber" size="xs"/>
                 <span class="ellipsis">{{ prop.node.name }}</span>
               </div>
             </template>
@@ -95,10 +95,22 @@
 </template>
 <script>
 
-// import { warn } from 'src/helpers/notify'
+import { warn } from 'src/helpers/notify'
 // import * as bkit from 'src/helpers/bkit'
 const path = require('path')
 import fs from 'fs-extra'
+function comparenames (a, b) {
+  if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
+  if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
+  return 0
+}
+function compare (a, b) {
+  if (a.isdir && b.isdir) return comparenames(a, b)
+  else if (!a.isdir && !b.isdir) return comparenames(a, b)
+  else if (a.isdir) return -1
+  else if (b.isdir) return 1
+  else return 0
+}
 
 export default {
   name: 'localexplorer',
@@ -108,7 +120,7 @@ export default {
       selected: '.',
       root: [],
       selectedof: {},
-      snaps: [],
+      ticked: [],
       currentsnap: null,
       currentnodes: []
     }
@@ -124,28 +136,31 @@ export default {
       console.log('selecdir')
     },
     async lazy_load ({ node, key, done, fail }) {
-      console.log('lazy load:', node)
-      console.log('key', key)
-      const entries = await fs.readdir(key)
-      console.log('entries:', entries)
-      const dirs = []
-      for (const entry of entries) {
-        const fullpath = path.join(key, entry)
-        const stat = await fs.stat(fullpath)
-        console.log('stat', stat)
-        const isDirectory = stat.isDirectory()
-        const child = {
-          isdir: isDirectory,
-          isregular: !isDirectory,
-          path: fullpath,
-          name: entry,
-          icon: 'folder',
-          lazy: true
+      try {
+        const entries = await fs.readdir(key)
+        const childrens = []
+        for (const entry of entries) {
+          const fullpath = path.join(key, entry)
+          const stat = await fs.stat(fullpath)
+          const isDirectory = stat.isDirectory()
+          childrens.push({
+            isdir: isDirectory,
+            path: fullpath,
+            name: entry,
+            icon: isDirectory ? 'folder' : 'description',
+            lazy: isDirectory,
+            expandable: isDirectory,
+            tickable: true,
+            stat: stat
+          })
         }
-        dirs.push(child)
+        childrens.sort(compare)
+        done(childrens)
+        console.log('root', this.root)
+      } catch (err) {
+        warn(err)
+        fail(err)
       }
-      done(dirs)
-      console.log('done entries')
     }
   },
   mounted () {
@@ -153,6 +168,8 @@ export default {
       name: this.name,
       path: this.name,
       icon: 'folder',
+      expandable: true,
+      tickable: true,
       lazy: true
     }]
   }

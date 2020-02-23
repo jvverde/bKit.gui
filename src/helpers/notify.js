@@ -6,4 +6,5 @@ export function warn (warn) {
     multiline: true,
     icon: 'warning'
   })
+  console.warn(warn)
 }
