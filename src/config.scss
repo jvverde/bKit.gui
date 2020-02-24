@@ -4,7 +4,7 @@ $U: $scale * 1.75in;
 $LSIZE: $U/2.3;                     //Label size
 $drivewitdh: ($rackwidth - 4*$LSIZE)/3;
 $line-height: 2em;
-$li-ident: 1.3em;
+$li-ident: 1em;
 $bkit-color: #67a9fb;
 $li-hover: rgba($bkit-color,.3);
 $li-selected: rgba($bkit-color,.2);

@@ -6,9 +6,9 @@
       v-model="splitterModel">
 
       <template v-slot:before>
-        <div class="q-pa-md">
-          <tree :path="name"/>
-        </div>
+        <q-list bordered class="rounded-borders">
+          <tree :path="name" :name="name"/>
+        </q-list>
       </template>
 
       <template v-slot:after>
@@ -34,7 +34,7 @@
 // import { warn } from 'src/helpers/notify'
 // import * as bkit from 'src/helpers/bkit'
 import tree from './tree'
-/*const path = require('path')
+/* const path = require('path')
 import fs from 'fs-extra'
 
 // <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
@@ -98,8 +98,12 @@ export default {
       type: String,
       required: true
     }
+  },
+  components: {
+    tree
   }
-/*  computed: {
+  /*
+  computed: {
     folders () {
       return this.childrens.filter(e => e.isdir)
     }
@@ -210,7 +214,8 @@ export default {
   },
   mounted () {
     this.load(this.name)
-  }*/
+  }
+  */
 }
 </script>
 

@@ -1,50 +1,31 @@
 <template>
-  <ul class="directories">
-    <li v-if="loading">
-        <i class="fa fa-refresh fa-spin fa-fw"></i> Loading...
-    </li>
-    <li v-for="(folder,index) in folders" @click.stop="select(folder)">
-      <header class="line" :class="{selected:currentPath === folder.location.path}">
-        <div class="props">
-          <span class="icon is-small">
-            <i class="fa fa-minus-square-o close" 
-              v-if="folder.open" 
-              @click.stop="folder.open=false">
-            </i>
-            <i class="fa fa-plus-square-o open" 
-              v-else  
-              @click.stop="folder.open=true">
-            </i>
-          </span>
-          <span class="icon is-small">
-            <i class="fa fa-folder-open-o" v-if="folder.open"></i>
-            <i class="fa fa-folder-o" v-else></i>
-          </span>
-          <span class="name">{{folder.name}}</span>
-        </div>
-        <a :href="getUrl('bkit',folder.name)" title="Recovery" @click.stop="" class="links">
-          <span class="icon is-small">
-            <i class="fa fa-history"></i>
-          </span>
-        </a>
-      </header>
-      <directory v-if="folder.open" :location="folder.location">
-      </directory>
-    </li>
-  </ul>
+  <q-expansion-item
+      switch-toggle-side
+      icon="folder"
+      :content-inset-level=".35"
+      @before-show="show"
+      :label="name">
+      <div v-if="open">
+        <tree
+          :path="folder.path"
+          :name="folder.name"
+          v-for="folder in folders"
+          :key="folder.path"/>
+      </div>
+  </q-expansion-item>
 </template>
 <script>
 
 import { warn } from 'src/helpers/notify'
-import * as bkit from 'src/helpers/bkit'
+// import * as bkit from 'src/helpers/bkit'
 const path = require('path')
 import fs from 'fs-extra'
 
 // <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
-const regexpNewFile = /^<f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+// const regexpNewFile = /^<f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+// const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 // <f.st......|2020/02/23-18:24:04|1652|/home/jvv/projectos/bkit/apps/client/package.json
-const regexpChgFile = /^<f.s.{7}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+// const regexpChgFile = /^<f.s.{7}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -59,6 +40,7 @@ function compare (a, b) {
   else return 0
 }
 
+/*
 function recursiveChecked (node, level = 0) {
   if (level > 100) {
     throw new Error('Recursion too deep (> 100)')
@@ -84,16 +66,19 @@ function upsideInform (parent) {
   }
   return upsideInform(parent.parent)
 }
+*/
 
 export default {
   name: 'tree',
   data () {
     return {
       loading: false,
+      open: false,
       splitterModel: 80,
       selected: '',
       root: [],
-      children: [],
+      childrens: [],
+      currentPath: '',
       currentfiles: []
     }
   },
@@ -106,9 +91,17 @@ export default {
     path: {
       type: String,
       required: true
+    },
+    name: {
+      type: String,
+      required: true
     }
   },
   methods: {
+    show () {
+      console.log('show', this.path)
+      this.open = true
+    },
     selectdir (key) {
       if (!key) return
       this.selected = key
@@ -116,20 +109,24 @@ export default {
       if (node.children) this.currentfiles = [...node.children]
       this.tree.setExpanded(key, true)
     },
-    checkdir (node) {
-      console.log('Check dir:', node.path)
+    select (dir) {
+      console.log('select dir', dir)
+    },
+    checkdir () {
+    /*
+      console.log('Check dir:', this.path)
       const entries = []
       bkit.bash('./dkit.sh', [
         '--no-recursive',
         '--dirs',
-        `${node.path}/`
+        `${this.path}/`
       ], {
         onclose: () => {
           this.$nextTick(() => {
             console.log('dkit done')
             entries.sort(compare)
             // this.currentnodeentries = node.entries = entries
-            if (this.selected === node.path) this.currentfiles = [...node.children]
+            // if (this.selected === node.path) this.currentfiles = [...node.children]
           })
         },
         onreadline: (line) => {
@@ -166,11 +163,12 @@ export default {
           }
         }
       })
+    */
     },
     node_checked (node) {
       if (node.checked !== null) {
-        recursiveChecked(node)
-        upsideInform(node.parent)
+        // recursiveChecked(node)
+        // upsideInform(node.parent)
       }
     },
     async load (dir) {
@@ -183,14 +181,15 @@ export default {
             const stat = await fs.stat(fullpath)
             const isDirectory = stat.isDirectory()
             childrens.push({
-              parent: node,
+              // parent: node,
               isdir: isDirectory,
               path: fullpath,
               name: entry,
               icon: isDirectory ? 'folder' : 'description',
               lazy: isDirectory,
               expandable: isDirectory,
-              checked: !!node.checked,
+              open: false,
+              // checked: !!node.checked,
               stat: stat
             })
           } catch (err) {
@@ -198,113 +197,23 @@ export default {
           }
         }
         childrens.sort(compare)
-        this.childrens = childrens
-        this.checkdir()
+        this.$nextTick(() => {
+          this.childrens = childrens
+          console.log(`Childrens of ${this.path} are now`, this.childrens)
+        })
+        // this.checkdir()
       } catch (err) {
         warn(err)
-        fail(err)
+        // fail(err)
       }
     }
   },
   mounted () {
-    this.load(this.name)
+    console.log('Mount tree:', this.path)
+    this.load(this.path)
   }
 }
 </script>
 
 <style scoped lang="scss">
-  @import "../../../config.scss";
-  ul.directories{
-    list-style: none;
-    position:relative;
-    li {
-      display: flex;
-      flex-direction: column;
-      padding-left: $li-ident;            /* indentation = .5em */
-      line-height:$line-height;
-      box-sizing: border-box;
-      position: relative;
-      &::before, &::after {
-        border-width: 0;
-        border-style: dotted;
-        border-color: #777777;
-        position:absolute;
-        display:block;
-        content:"";
-        left:$li-ident / 4;
-      }
-      &::before{
-        width: .5 * $li-ident;          /* 50% of indentation */
-        height: 0;
-        border-top-width:1px;
-        margin-top:-1px;
-        margin-left: 3px;
-        top:$line-height / 2;
-      }
-      &::after{
-        width: 0;
-        top: 0;
-        bottom: 1px;
-        border-left-width:1px;
-      }
-      li:first-child::after{ // first line must start a little bit closer to the parent, except the top one
-        top: - $line-height / 4;
-      }
-      &:last-child::after{ // last line should stop at middle
-        bottom: auto; //disable bottom
-        height: $line-height / 2;
-      }
-      li:last-child:first-child::after{ //just to correct shift to top on first line
-        height: $line-height / 2 + $line-height / 4;
-      }
-      header.line{
-        display: flex;
-        width: 100%;
-        border-radius:4px;
-        cursor: pointer;
-        .links{
-          flex-shrink: 0;
-          margin-right: 3px;
-          margin-left: 1px;
-        }
-        .props{
-          flex-grow: 1;
-          display: flex;
-          overflow: hidden;
-          .icon{
-            padding-right:1px;
-            padding-left:1px;
-            flex-shrink: 0;
-          }
-          .file{
-            flex-grow: 1;
-            display: flex;
-            * {
-              display: inline-block;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-            .name{
-              flex-shrink: 0;
-              flex-grow: 1;
-              padding-right:3px;
-              padding-left:3px;
-            }
-          }
-          .open{
-            cursor:zoom-in
-          }
-          .close{
-            cursor: zoom-out
-          }
-        }
-      }
-      header.line.selected{
-        background-color: $li-selected;
-      }
-      header.line:hover{
-        background-color: $li-hover;
-      }
-    }
-  }
 </style>
