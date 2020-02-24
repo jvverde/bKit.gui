@@ -15,8 +15,6 @@
             label-key="name"
             color="secondary"
             selected-color="positive"
-            :filter="filter"
-            :filter-method="getDirs"
             :selected.sync="selected"
             @lazy-load="lazy_load"
             @update:selected="selectdir"
@@ -119,7 +117,6 @@ export default {
       splitterModel: 80,
       selected: '',
       root: [],
-      filter: '',
       currentfiles: []
     }
   },
@@ -156,7 +153,6 @@ export default {
             entries.sort(compare)
             // this.currentnodeentries = node.entries = entries
             if (this.selected === node.path) this.currentfiles = [...node.children]
-            this.filter = this.filter + '_'
           })
         },
         onreadline: (line) => {
@@ -199,10 +195,6 @@ export default {
         recursiveChecked(node)
         upsideInform(node.parent)
       }
-    },
-    getDirs (node) {
-      console.log('getdirs:', node)
-      return node.isdir
     },
     async lazy_load ({ node, key, done, fail }) {
       try {
