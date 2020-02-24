@@ -1,6 +1,6 @@
 {
   "name": "bkit-gui",
-  "version": "1.2.30",
+  "version": "1.2.30-beta",
   "description": "A bKit Client App",
   "productName": "bKit",
   "cordovaId": "org.cordova.quasar.app",
@@ -17,15 +17,16 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.5.1",
+    "@quasar/extras": "^1.5.2",
     "async": "^3.1.1",
     "chokidar": "^3.3.1",
     "electron-log": "^4.0.6",
     "electron-store": "^5.1.0",
     "electron-updater": "^4.2.2",
     "electron-window-state": "^5.0.3",
+    "fs-extra": "^8.1.0",
     "moment": "^2.24.0",
-    "quasar": "^1.9.3",
+    "quasar": "^1.9.4",
     "terminate": "^2.1.2",
     "vue-i18n": "^8.0.0"
   },

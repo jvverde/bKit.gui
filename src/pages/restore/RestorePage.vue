@@ -36,7 +36,7 @@
             :name="disk.rvid"
             v-for="disk in disks"
             :key="disk.rvid">
-              <fileexplorer :disk="disk" @restore="restore"/>
+              <backupexplorer :disk="disk" @restore="restore"/>
           </q-tab-panel>
         </q-tab-panels>
         <q-inner-loading :showing="loading">
@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import fileexplorer from './components/fileExplorer'
+import backupexplorer from './components/backupExplorer'
 import restore from './components/Restore'
 import * as bkit from 'src/helpers/bkit'
 export default {
@@ -75,7 +75,7 @@ export default {
     }
   },
   components: {
-    fileexplorer,
+    backupexplorer,
     restore
   },
   computed: {

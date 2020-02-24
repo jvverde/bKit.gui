@@ -126,7 +126,7 @@ import snaps from './Snaps'
 import askuser from './Askuser'
 import * as bkit from 'src/helpers/bkit'
 export default {
-  name: 'fileexplorer',
+  name: 'backupexplorer',
   components: {
     snaps,
     askuser
