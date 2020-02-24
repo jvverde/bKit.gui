@@ -14,7 +14,9 @@
             label-key="name"
             color="secondary"
             selected-color="positive"
+            :selected.sync="selected"
             @lazy-load="lazy_load"
+            @update:selected="selectdir"
           >
             <template v-slot:default-header="prop">
               <div class="row items-center" style="width:100%">
@@ -48,9 +50,15 @@
 <script>
 
 import { warn } from 'src/helpers/notify'
-// import * as bkit from 'src/helpers/bkit'
+import * as bkit from 'src/helpers/bkit'
 const path = require('path')
 import fs from 'fs-extra'
+
+// <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
+const regexpNewFile = /^<f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+// <f.st......|2020/02/23-18:24:04|1652|/home/jvv/projectos/bkit/apps/client/package.json
+const regexpChgFile = /^<f.s.{7}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -96,7 +104,7 @@ export default {
   data () {
     return {
       splitterModel: 80,
-      selected: '.',
+      selected: '',
       root: [],
       selectedof: {},
       currentsnap: null,
@@ -110,8 +118,42 @@ export default {
     }
   },
   methods: {
-    selectdir () {
-      console.log('selecdir')
+    selectdir (key) {
+      console.log('selecdir', key)
+      bkit.bash('./dkit.sh', [
+        '--no-recursive',
+        '--dirs',
+        `${key}/`
+      ], {
+        onclose: () => {
+          this.$nextTick(() => {
+            console.log('dkit done')
+          })
+        },
+        onreadline: (line) => {
+          console.log('dkit:', line)
+          const newfileMatch = line.match(regexpNewFile)
+          if (newfileMatch) { // if this file is will be new on backup
+            const stepaths = (newfileMatch[3] || '').split('/')
+            const [name] = stepaths.slice(-1)
+            console.log(`File ${name} doesn't exits in backup yet`)
+          } else {
+            const chgFileMatch = line.match(regexpChgFile)
+            if (chgFileMatch) {
+              const stepaths = (chgFileMatch[3] || '').split('/')
+              const [name] = stepaths.slice(-1)
+              console.log(`File ${name} need update on backup yet`)
+            } else {
+              const newdirMatch = line.match(regexpNewDir)
+              if (newdirMatch) {
+                const stepaths = (newdirMatch[3] || '').split('/')
+                const [name] = stepaths.slice(-1)
+                console.log(`Dir ${name} doesn't exits in backup yet`)
+              }
+            }
+          }
+        }
+      })
     },
     node_checked (node) {
       if (node.checked !== null) {
@@ -124,20 +166,24 @@ export default {
         const entries = await fs.readdir(key)
         const childrens = []
         for (const entry of entries) {
-          const fullpath = path.join(key, entry)
-          const stat = await fs.stat(fullpath)
-          const isDirectory = stat.isDirectory()
-          childrens.push({
-            parent: node,
-            isdir: isDirectory,
-            path: fullpath,
-            name: entry,
-            icon: isDirectory ? 'folder' : 'description',
-            lazy: isDirectory,
-            expandable: isDirectory,
-            checked: !!node.checked,
-            stat: stat
-          })
+          try {
+            const fullpath = path.join(key, entry)
+            const stat = await fs.stat(fullpath)
+            const isDirectory = stat.isDirectory()
+            childrens.push({
+              parent: node,
+              isdir: isDirectory,
+              path: fullpath,
+              name: entry,
+              icon: isDirectory ? 'folder' : 'description',
+              lazy: isDirectory,
+              expandable: isDirectory,
+              checked: !!node.checked,
+              stat: stat
+            })
+          } catch (err) {
+            warn(err)
+          }
         }
         childrens.sort(compare)
         done(childrens)
