@@ -8,6 +8,7 @@
       <template v-slot:before>
         <div class="q-pa-md">
           <q-tree
+            ref="explorerTree"
             accordion
             :nodes="root"
             node-key="path"
@@ -40,8 +41,18 @@
       </template>
 
       <template v-slot:after>
-        <div class="q-pa-md">
-
+        <div class="q-pa-md row justify-around q-gutter-md items-stretch">
+          <q-card v-for="entry in currentnodestatus" :key="entry.name" class="column">
+            <div class="column no-wrap items-center">
+              <q-icon name="folder" style="font-size:8em" color="amber"/>
+              <div style="max-width:8em;overflow-wrap: break-word; text-align:center">{{entry.name}}</div>
+            </div>
+            <q-card-actions align="right" style="margin-top:auto">
+              <q-btn flat round color="red" icon="favorite" />
+              <q-btn flat round color="teal" icon="bookmark" />
+              <q-btn flat round color="primary" icon="share" />
+            </q-card-actions>
+          </q-card>
         </div>
       </template>
     </q-splitter>
@@ -106,9 +117,7 @@ export default {
       splitterModel: 80,
       selected: '',
       root: [],
-      selectedof: {},
-      currentsnap: null,
-      currentnodes: []
+      currentnodestatus: []
     }
   },
   props: {
@@ -119,7 +128,11 @@ export default {
   },
   methods: {
     selectdir (key) {
-      console.log('selecdir', key)
+      console.log('selecdir:', key)
+      const tree = this.$refs.explorerTree
+      const node = tree.getNodeByKey(key)
+      console.log('node:', node)
+      const status = []
       bkit.bash('./dkit.sh', [
         '--no-recursive',
         '--dirs',
@@ -128,6 +141,8 @@ export default {
         onclose: () => {
           this.$nextTick(() => {
             console.log('dkit done')
+            status.sort(compare)
+            this.currentnodestatus = node.status = status
           })
         },
         onreadline: (line) => {
@@ -137,18 +152,21 @@ export default {
             const stepaths = (newfileMatch[3] || '').split('/')
             const [name] = stepaths.slice(-1)
             console.log(`File ${name} doesn't exits in backup yet`)
+            status.push({ name, isfile: true, type: 'new' })
           } else {
             const chgFileMatch = line.match(regexpChgFile)
             if (chgFileMatch) {
               const stepaths = (chgFileMatch[3] || '').split('/')
               const [name] = stepaths.slice(-1)
               console.log(`File ${name} need update on backup yet`)
+              status.push({ name, isfile: true, type: 'modified' })
             } else {
               const newdirMatch = line.match(regexpNewDir)
               if (newdirMatch) {
                 const stepaths = (newdirMatch[3] || '').split('/')
                 const [name] = stepaths.slice(-1)
                 console.log(`Dir ${name} doesn't exits in backup yet`)
+                status.push({ name, isdir: true, type: 'new' })
               }
             }
           }
