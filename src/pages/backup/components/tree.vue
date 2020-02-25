@@ -5,6 +5,7 @@
       dense-toggle
       @before-show="showChildrens"
       class="b-tree"
+      ref="rootTree"
       :expand-icon="leaf ? 'description' : 'folder'"
       :expanded-icon="leaf ? 'description': 'folder_open'"
       expand-icon-class="b-kit-tree-icon">
@@ -176,8 +177,9 @@ export default {
     }
   },
   mounted () {
-    // console.log('Load tree:', this.path)
     this.load(this.path)
+    // check is name == path => means is a root and on those cases show the tree
+    if (this.name === this.path) this.$refs.rootTree.show()
   }
 }
 </script>
