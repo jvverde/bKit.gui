@@ -7,9 +7,8 @@
       class="b-tree"
       :expand-icon="leaf ? 'description' : 'folder'"
       :expanded-icon="leaf ? 'description': 'folder_open'"
-      expand-icon-class="b-kit-tree-icon"
-      :label="name">
-      <template v-slot:header>
+      expand-icon-class="b-kit-tree-icon">
+      <template v-slot:header> <!-- this is the header line template -->
 
           <q-item-section side>
             <q-checkbox
@@ -19,12 +18,8 @@
               keep-color
               size="xs"
               color="positive"
-              @click.native.stop="usertoogle"/>
+            />
           </q-item-section>
-
-          <!--q-item-section side>
-            <q-icon name="folder" color="amber" size="xs"/>
-          </q-item-section-->
 
           <q-item-section no-wrap>
            <q-item-label @click="see">{{name}}</q-item-label>
@@ -39,14 +34,16 @@
         <tree
           :path="folder.path"
           :name="folder.name"
-          @toogle="childToggled"
+          :selected.sync="folder.selected"
+          @update:selected="childSelect"
           v-for="folder in folders"
           :key="folder.path"/>
         <tree
           :leaf="true"
           :path="file.path"
           :name="file.name"
-          @toogle="childToggled"
+          :selected.sync="file.selected"
+          @update:selected="childSelect"
           v-for="file in files"
           :key="file.path"/>
       </div>
@@ -78,39 +75,15 @@ function compare (a, b) {
   else return 0
 }
 
-const isChecked = node => node.checked === true
-const isNotChecked = node => node.checked === false
+const isChecked = node => node.selected === true
+const isNotChecked = node => node.selected === false
 
-/*
-function recursiveChecked (node, level = 0) {
-  if (level > 100) {
-    throw new Error('Recursion too deep (> 100)')
-  }
-  (node.children || []).map(child => {
-    child.checked = node.checked
-    recursiveChecked(child, level + 1)
-  })
-}
-
-function upsideInform (parent) {
-  if (parent === null) {
-    return
-  } else if (parent.children.every(isChecked)) {
-    parent.checked = true
-  } else if (parent.children.every(isNotChecked)) {
-    parent.checked = false
-  } else {
-    parent.checked = null
-  }
-  return upsideInform(parent.parent)
-}
-*/
 export default {
   name: 'tree',
   data () {
     return {
       open: false,
-      checked: false,
+      // checked: false,
       stat: null,
       childrens: []
     }
@@ -123,6 +96,14 @@ export default {
     },
     files () {
       return this.childrens.filter(e => !e.isdir)
+    },
+    checked: {
+      get () {
+        return this.selected
+      },
+      set (val) {
+        this.$emit('update:selected', val)
+      }
     }
   },
   props: {
@@ -137,40 +118,26 @@ export default {
     leaf: {
       type: Boolean,
       default: false
+    },
+    selected: {
+      type: Boolean,
+      default: false
+    }
+  },
+  watch: {
+    selected: function (val) {
+      // console.log(`Watch selectet change to ${val} on ${this.path}`)
+      if (val !== null) this.childrens.forEach(c => { c.selected = val })
     }
   },
   methods: {
-    usertoogle () {
-      console.log('User toogle to:', this.checked)
-      if (this.checked !== null) {
-        this.toogleUp(this.checked)
-      }
-    },
-    toogleUp (value) {
-      const path = this.path
-      this.$emit('toogle', { path, value })
-    },
-    toggle (value) {
-      this.checked = value
-      console.log(`Set ${this.path} to check = ${this.checked}`)
-      this.toogleUp(value)
-    },
-    childToggled ({ path, value }) {
-      console.log(`Child ${path} toggle to:`, value)
-      const child = this.childrens.find(e => e.path === path)
-      if (child) {
-        console.log('Child:', child)
-        child.checked = value
-        this.childrens.map(c => {
-          console.log('checked:', c.checked)
-        })
-        if (this.childrens.every(isChecked)) {
-          this.toggle(true)
-        } else if (this.childrens.every(isNotChecked)) {
-          this.toggle(false)
-        } else {
-          this.toggle(null)
-        }
+    childSelect () {
+      if (this.childrens.every(isChecked)) {
+        this.checked = true
+      } else if (this.childrens.every(isNotChecked)) {
+        this.checked = false
+      } else {
+        this.checked = null
       }
     },
     showChildrens () {
@@ -178,16 +145,6 @@ export default {
     },
     see () {
       console.log('see')
-    },
-    selectdir (key) {
-      if (!key) return
-      this.selected = key
-      const node = this.tree.getNodeByKey(key)
-      if (node.children) this.currentfiles = [...node.children]
-      this.tree.setExpanded(key, true)
-    },
-    select (dir) {
-      console.log('select dir', dir)
     },
     checkdir () {
       console.log('Check dir:', this.path)
@@ -241,7 +198,7 @@ export default {
       })
     },
     load (dir) {
-      (async () => {
+      (async (self) => {
         const stat = await fs.lstat(dir)
         this.stat = stat
         this.isdir = stat.isDirectory()
@@ -256,6 +213,7 @@ export default {
               childrens.push({
                 path: fullpath,
                 name: entry,
+                selected: self.selected,
                 isdir,
                 stat
               })
@@ -266,11 +224,11 @@ export default {
             this.childrens = childrens
           })
         }
-      })().catch(warn)
+      })(this).catch(warn)
     }
   },
   mounted () {
-    console.log('Load tree:', this.path)
+    // console.log('Load tree:', this.path)
     this.load(this.path)
   }
 }

@@ -7,7 +7,10 @@
 
       <template v-slot:before>
         <q-list class="rounded-borders">
-          <tree :path="mountpoint" :name="mountpoint"/>
+          <tree
+            :path="mountpoint"
+            :name="mountpoint"
+            :selected.sync="selected"/>
         </q-list>
       </template>
 
@@ -87,7 +90,7 @@ export default {
   data () {
     return {
       splitterModel: 80,
-      selected: '',
+      selected: false,
       root: [],
       children: [],
       currentfiles: []
