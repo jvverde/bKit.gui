@@ -7,7 +7,19 @@
       class="b-tree"
       :label="name">
       <template v-slot:header>
-          <q-item-section thumbnail>
+
+          <q-item-section side>
+            <q-checkbox
+              :indeterminate-value="null"
+              toggle-indeterminate
+              v-model="checked"
+              keep-color
+              size="xs"
+              color="positive"
+              @click.native.stop="check"/>
+          </q-item-section>
+
+          <q-item-section side>
             <q-icon name="folder" color="amber" size="xs"/>
           </q-item-section>
 
@@ -16,13 +28,15 @@
           </q-item-section>
 
           <q-item-section side>
-            <q-icon name="restore" color="primary" size="24px" />
+            <q-icon name="restore" color="positive" size="xs" />
           </q-item-section>
+
       </template>
       <div v-if="open" style="margin-left:1em">
         <tree
           :path="folder.path"
           :name="folder.name"
+          @check="childcheck"
           v-for="folder in folders"
           :key="folder.path"/>
       </div>
@@ -54,6 +68,9 @@ function compare (a, b) {
   else return 0
 }
 
+const isChecked = node => node.checked === true
+const isNotChecked = node => node.checked === false
+
 /*
 function recursiveChecked (node, level = 0) {
   if (level > 100) {
@@ -65,8 +82,6 @@ function recursiveChecked (node, level = 0) {
   })
 }
 
-const isChecked = node => node.checked === true
-const isNotChecked = node => node.checked === false
 
 function upsideInform (parent) {
   if (parent === null) {
@@ -87,6 +102,7 @@ export default {
   data () {
     return {
       open: false,
+      checked: false,
       childrens: []
     }
   },
@@ -106,8 +122,24 @@ export default {
     }
   },
   methods: {
+    check () {
+      console.log('check:', this.checked)
+      if (this.checked !== null) {
+        const [path, value] = [this.path, this.checked]
+        this.$emit('check', { path, value })
+      }
+    },
+    childcheck ({ path, value }) {
+      console.log(`Child ${path} checked to:`, value)
+      const child = this.childrens.find(e => e.path === path)
+      if (child) {
+        console.log('Child:', child)
+        child.checked = value
+        this.childrens.every(isChecked)  
+      }
+    },
     show () {
-      console.log('show', this.path)
+      console.log('show:', this.path)
       this.open = true
     },
     see () {
