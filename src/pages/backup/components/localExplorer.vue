@@ -10,7 +10,8 @@
           <tree
             :path="mountpoint"
             :name="mountpoint"
-            :selected.sync="selected"/>
+            :selected.sync="selected"
+            @show="show"/>
         </q-list>
       </template>
 
@@ -35,10 +36,8 @@
 <script>
 
 // import { warn } from 'src/helpers/notify'
-// import * as bkit from 'src/helpers/bkit'
+import * as bkit from 'src/helpers/bkit'
 import tree from './tree'
-/* const path = require('path')
-import fs from 'fs-extra'
 
 // <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
 const regexpNewFile = /^<f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
@@ -53,11 +52,14 @@ function comparenames (a, b) {
 }
 function compare (a, b) {
   if (a.isdir && b.isdir) return comparenames(a, b)
-  else if (!a.isdir && !b.isdir) return comparenames(a, b)
+  else if (a.isfile && b.isfile) return comparenames(a, b)
   else if (a.isdir) return -1
   else if (b.isdir) return 1
   else return 0
 }
+
+/* const path = require('path')
+import fs from 'fs-extra'
 
 function recursiveChecked (node, level = 0) {
   if (level > 100) {
@@ -104,6 +106,58 @@ export default {
   },
   components: {
     tree
+  },
+  methods: {
+    show (fullpath) {
+      console.log('fullpath:', fullpath)
+      this.checkdir(fullpath)
+    },
+    checkdir (fullpath) {
+      console.log('Check entry:', fullpath)
+      const entries = []
+      bkit.bash('./dkit.sh', [
+        '--no-recursive',
+        '--dirs',
+        `${fullpath}`
+      ], {
+        onclose: () => {
+          this.$nextTick(() => {
+            console.log('dkit done')
+            entries.sort(compare)
+            this.currentfiles = [...entries]
+          })
+        },
+        onreadline: (line) => {
+          console.log('dkit:', line)
+          const newfileMatch = line.match(regexpNewFile)
+          if (newfileMatch) { // if this file is will be new on backup
+            const filename = newfileMatch[3] || ''
+            const stepaths = filename.split('/')
+            const [name] = stepaths.slice(-1)
+            console.log(`File ${name} doesn't exits in backup yet`)
+            entries.push({ name, isfile: true, type: 'new' })
+          } else {
+            const chgFileMatch = line.match(regexpChgFile)
+            if (chgFileMatch) {
+              const filename = chgFileMatch[3] || ''
+              const stepaths = filename.split('/')
+              const [name] = stepaths.slice(-1)
+              console.log(`File ${name} need update on backup yet`)
+              entries.push({ name, isfile: true, type: 'modified' })
+            } else {
+              const newdirMatch = line.match(regexpNewDir)
+              if (newdirMatch) {
+                const dirname = newdirMatch[3] || ''
+                const stepaths = dirname.split('/')
+                const [name] = stepaths.slice(-1)
+                console.log(`Dir ${name} doesn't exits in backup yet`)
+                entries.push({ name, isdir: true, type: 'new' })
+              }
+            }
+          }
+        }
+      })
+    }
   }
   /*
   computed: {
