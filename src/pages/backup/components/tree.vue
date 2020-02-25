@@ -1,11 +1,25 @@
 <template>
   <q-expansion-item
       switch-toggle-side
-      icon="folder"
-      :content-inset-level=".35"
+      dense
+      dense-toggle
       @before-show="show"
+      class="b-tree"
       :label="name">
-      <div v-if="open">
+      <template v-slot:header>
+          <q-item-section thumbnail>
+            <q-icon name="folder" color="amber" size="xs"/>
+          </q-item-section>
+
+          <q-item-section no-wrap>
+           <q-item-label @click="see">{{name}}</q-item-label>
+          </q-item-section>
+
+          <q-item-section side>
+            <q-icon name="restore" color="primary" size="24px" />
+          </q-item-section>
+      </template>
+      <div v-if="open" style="margin-left:1em">
         <tree
           :path="folder.path"
           :name="folder.name"
@@ -17,15 +31,15 @@
 <script>
 
 import { warn } from 'src/helpers/notify'
-// import * as bkit from 'src/helpers/bkit'
+import * as bkit from 'src/helpers/bkit'
 const path = require('path')
 import fs from 'fs-extra'
 
 // <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
-// const regexpNewFile = /^<f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-// const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpNewFile = /^<f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 // <f.st......|2020/02/23-18:24:04|1652|/home/jvv/projectos/bkit/apps/client/package.json
-// const regexpChgFile = /^<f.s.{7}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpChgFile = /^<f.s.{7}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -72,14 +86,8 @@ export default {
   name: 'tree',
   data () {
     return {
-      loading: false,
       open: false,
-      splitterModel: 80,
-      selected: '',
-      root: [],
-      childrens: [],
-      currentPath: '',
-      currentfiles: []
+      childrens: []
     }
   },
   computed: {
@@ -102,6 +110,9 @@ export default {
       console.log('show', this.path)
       this.open = true
     },
+    see () {
+      console.log('see')
+    },
     selectdir (key) {
       if (!key) return
       this.selected = key
@@ -113,7 +124,6 @@ export default {
       console.log('select dir', dir)
     },
     checkdir () {
-    /*
       console.log('Check dir:', this.path)
       const entries = []
       bkit.bash('./dkit.sh', [
@@ -137,8 +147,8 @@ export default {
             // const [name] = stepaths.slice(-1)
             // console.log(`File ${name} doesn't exits in backup yet`)
             // entries.push({ name, isfile: true, type: 'new' })
-            const node = this.tree.getNodeByKey(newfileMatch[3])
-            node.missing = true
+            // const node = this.tree.getNodeByKey(newfileMatch[3])
+            // node.missing = true
           } else {
             const chgFileMatch = line.match(regexpChgFile)
             if (chgFileMatch) {
@@ -146,9 +156,9 @@ export default {
               // const [name] = stepaths.slice(-1)
               // console.log(`File ${name} need update on backup yet`)
               // entries.push({ name, isfile: true, type: 'modified' })
-              const node = this.tree.getNodeByKey(chgFileMatch[3])
-              node.missing = false
-              node.needupdate = true
+              // const node = this.tree.getNodeByKey(chgFileMatch[3])
+              // node.missing = false
+              // node.needupdate = true
             } else {
               const newdirMatch = line.match(regexpNewDir)
               if (newdirMatch) {
@@ -156,14 +166,13 @@ export default {
                 // const [name] = stepaths.slice(-1)
                 // console.log(`Dir ${name} doesn't exits in backup yet`)
                 // entries.push({ name, isdir: true, type: 'new' })
-                const node = this.tree.getNodeByKey(newdirMatch[3])
-                node.missing = true
+                // const node = this.tree.getNodeByKey(newdirMatch[3])
+                // node.missing = true
               }
             }
           }
         }
       })
-    */
     },
     node_checked (node) {
       if (node.checked !== null) {
@@ -199,7 +208,7 @@ export default {
         childrens.sort(compare)
         this.$nextTick(() => {
           this.childrens = childrens
-          console.log(`Childrens of ${this.path} are now`, this.childrens)
+          // console.log(`Childrens of ${this.path} are now`, this.childrens)
         })
         // this.checkdir()
       } catch (err) {
@@ -216,4 +225,16 @@ export default {
 </script>
 
 <style scoped lang="scss">
+  .hover:hover{
+    background-color: $grey-2;
+  }
+  .q-item__section--avatar {
+    min-width:100px;
+  }
+</style>
+
+<style lang="scss">
+  .b-tree .q-item__section--avatar {
+    min-width:1px;
+  }
 </style>

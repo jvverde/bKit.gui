@@ -34,7 +34,7 @@
             :name="disk"
             v-for="disk in disks"
             :key="disk">
-              <localexplorer :name="disk" @backup="backup"/>
+              <localexplorer :mountpoint="disk" @backup="backup"/>
           </q-tab-panel>
         </q-tab-panels>
         <q-inner-loading :showing="loading">

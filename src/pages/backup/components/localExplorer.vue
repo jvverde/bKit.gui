@@ -6,8 +6,8 @@
       v-model="splitterModel">
 
       <template v-slot:before>
-        <q-list bordered class="rounded-borders">
-          <tree :path="name" :name="name"/>
+        <q-list class="rounded-borders">
+          <tree :path="mountpoint" :name="mountpoint"/>
         </q-list>
       </template>
 
@@ -94,7 +94,7 @@ export default {
     }
   },
   props: {
-    name: {
+    mountpoint: {
       type: String,
       required: true
     }
