@@ -3,8 +3,11 @@
       switch-toggle-side
       dense
       dense-toggle
-      @before-show="show"
+      @before-show="showChildrens"
       class="b-tree"
+      :expand-icon="leaf ? 'description' : 'folder'"
+      :expanded-icon="leaf ? 'description': 'folder_open'"
+      expand-icon-class="b-kit-tree-icon"
       :label="name">
       <template v-slot:header>
 
@@ -16,12 +19,12 @@
               keep-color
               size="xs"
               color="positive"
-              @click.native.stop="check"/>
+              @click.native.stop="usertoogle"/>
           </q-item-section>
 
-          <q-item-section side>
+          <!--q-item-section side>
             <q-icon name="folder" color="amber" size="xs"/>
-          </q-item-section>
+          </q-item-section-->
 
           <q-item-section no-wrap>
            <q-item-label @click="see">{{name}}</q-item-label>
@@ -36,13 +39,14 @@
         <tree
           :path="folder.path"
           :name="folder.name"
-          @check="childcheck"
+          @toogle="childToggled"
           v-for="folder in folders"
           :key="folder.path"/>
-        <leaf
+        <tree
+          :leaf="true"
           :path="file.path"
           :name="file.name"
-          @check="childcheck"
+          @toogle="childToggled"
           v-for="file in files"
           :key="file.path"/>
       </div>
@@ -101,7 +105,6 @@ function upsideInform (parent) {
   return upsideInform(parent.parent)
 }
 */
-import leaf from './leaf'
 export default {
   name: 'tree',
   data () {
@@ -113,7 +116,6 @@ export default {
     }
   },
   components: {
-    leaf
   },
   computed: {
     folders () {
@@ -131,26 +133,30 @@ export default {
     name: {
       type: String,
       required: true
+    },
+    leaf: {
+      type: Boolean,
+      default: false
     }
   },
   methods: {
-    check () {
-      console.log('check:', this.checked)
+    usertoogle () {
+      console.log('User toogle to:', this.checked)
       if (this.checked !== null) {
-        this.send_check()
+        this.toogleUp(this.checked)
       }
     },
-    send_check () {
-      const [path, value] = [this.path, this.checked]
-      this.$emit('check', { path, value })
+    toogleUp (value) {
+      const path = this.path
+      this.$emit('toogle', { path, value })
     },
-    set_check (value) {
+    toggle (value) {
       this.checked = value
       console.log(`Set ${this.path} to check = ${this.checked}`)
-      this.send_check()
+      this.toogleUp(value)
     },
-    childcheck ({ path, value }) {
-      console.log(`Child ${path} checked to:`, value)
+    childToggled ({ path, value }) {
+      console.log(`Child ${path} toggle to:`, value)
       const child = this.childrens.find(e => e.path === path)
       if (child) {
         console.log('Child:', child)
@@ -159,16 +165,15 @@ export default {
           console.log('checked:', c.checked)
         })
         if (this.childrens.every(isChecked)) {
-          this.set_check(true)
+          this.toggle(true)
         } else if (this.childrens.every(isNotChecked)) {
-          this.set_check(false)
+          this.toggle(false)
         } else {
-          this.set_check(null)
+          this.toggle(null)
         }
       }
     },
-    show () {
-      console.log('show:', this.path)
+    showChildrens () {
       this.open = true
     },
     see () {
@@ -235,12 +240,6 @@ export default {
         }
       })
     },
-    node_checked (node) {
-      if (node.checked !== null) {
-        // recursiveChecked(node)
-        // upsideInform(node.parent)
-      }
-    },
     load (dir) {
       (async () => {
         const stat = await fs.lstat(dir)
@@ -271,23 +270,21 @@ export default {
     }
   },
   mounted () {
-    console.log('Mount tree:', this.path)
+    console.log('Load tree:', this.path)
     this.load(this.path)
   }
 }
 </script>
 
 <style scoped lang="scss">
-  .hover:hover{
-    background-color: $grey-2;
-  }
-  .q-item__section--avatar {
-    min-width:100px;
-  }
+
 </style>
 
 <style lang="scss">
   .b-tree .q-item__section--avatar {
     min-width:1px;
+  }
+  .b-kit-tree-icon {
+    color: $amber;
   }
 </style>
