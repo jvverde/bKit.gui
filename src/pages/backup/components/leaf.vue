@@ -1,58 +1,33 @@
 <template>
-  <q-expansion-item
-      switch-toggle-side
-      dense
-      dense-toggle
-      @before-show="show"
-      class="b-tree"
-      :label="name">
-      <template v-slot:header>
+  <q-item>
+    <q-item-section side>
+      <q-checkbox
+        :indeterminate-value="null"
+        toggle-indeterminate
+        v-model="checked"
+        keep-color
+        size="xs"
+        color="positive"
+        @click.native.stop="check"/>
+    </q-item-section>
 
-          <q-item-section side>
-            <q-checkbox
-              :indeterminate-value="null"
-              toggle-indeterminate
-              v-model="checked"
-              keep-color
-              size="xs"
-              color="positive"
-              @click.native.stop="check"/>
-          </q-item-section>
+    <q-item-section side>
+      <q-icon name="description" color="amber" size="xs"/>
+    </q-item-section>
 
-          <q-item-section side>
-            <q-icon name="folder" color="amber" size="xs"/>
-          </q-item-section>
+    <q-item-section no-wrap>
+     <q-item-label @click="see">{{name}}</q-item-label>
+    </q-item-section>
 
-          <q-item-section no-wrap>
-           <q-item-label @click="see">{{name}}</q-item-label>
-          </q-item-section>
-
-          <q-item-section side>
-            <q-icon name="restore" color="positive" size="xs" />
-          </q-item-section>
-
-      </template>
-      <div v-if="open" style="margin-left:1em">
-        <tree
-          :path="folder.path"
-          :name="folder.name"
-          @check="childcheck"
-          v-for="folder in folders"
-          :key="folder.path"/>
-        <leaf
-          :path="file.path"
-          :name="file.name"
-          @check="childcheck"
-          v-for="file in files"
-          :key="file.path"/>
-      </div>
-  </q-expansion-item>
+    <q-item-section side>
+      <q-icon name="restore" color="positive" size="xs" />
+    </q-item-section>
+  </q-item>
 </template>
 <script>
 
 import { warn } from 'src/helpers/notify'
 import * as bkit from 'src/helpers/bkit'
-const path = require('path')
 import fs from 'fs-extra'
 
 // <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
@@ -101,27 +76,17 @@ function upsideInform (parent) {
   return upsideInform(parent.parent)
 }
 */
-import leaf from './leaf'
+
 export default {
-  name: 'tree',
+  name: 'leaf',
   data () {
     return {
       open: false,
       checked: false,
-      stat: null,
-      childrens: []
+      stat: null
     }
-  },
-  components: {
-    leaf
   },
   computed: {
-    folders () {
-      return this.childrens.filter(e => e.isdir)
-    },
-    files () {
-      return this.childrens.filter(e => !e.isdir)
-    }
   },
   props: {
     path: {
@@ -235,38 +200,13 @@ export default {
         }
       })
     },
-    node_checked (node) {
-      if (node.checked !== null) {
-        // recursiveChecked(node)
-        // upsideInform(node.parent)
-      }
-    },
     load (dir) {
       (async () => {
         const stat = await fs.lstat(dir)
-        this.stat = stat
-        this.isdir = stat.isDirectory()
-        if (this.isdir) {
-          const entries = await fs.readdir(dir)
-          const childrens = []
-          for (const entry of entries) {
-            (async () => { // catch error individualy. This way it doesn't ends the loop
-              const fullpath = path.join(dir, entry)
-              const stat = await fs.lstat(fullpath)
-              const isdir = stat.isDirectory()
-              childrens.push({
-                path: fullpath,
-                name: entry,
-                isdir,
-                stat
-              })
-            })().catch(warn)
-          }
-          childrens.sort(compare)
-          this.$nextTick(() => {
-            this.childrens = childrens
-          })
-        }
+        this.$nextTick(() => {
+          this.stat = stat
+          this.isdir = stat.isDirectory()
+        })
       })().catch(warn)
     }
   },
