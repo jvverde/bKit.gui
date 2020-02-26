@@ -73,7 +73,7 @@
                 <q-item-label class="text-right">{{dir.size}}</q-item-label>
               </q-item-section>
 
-              <q-item-section no-warp>
+              <q-item-section no-wrap>
                 <q-item-label>{{dir.date}}</q-item-label>
               </q-item-section>
 

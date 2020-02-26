@@ -21,24 +21,22 @@
             <div class="column no-wrap items-center">
               <q-icon
                 v-if="entry.isdir"
+                class="bkit-icon"
                 name="folder"
-                style="font-size:8em"
-                color="amber"/>
+                :color="colorosOf[entry.type]"/>
               <q-icon
                 v-else-if="entry.isfile"
+                class="bkit-icon"
                 name="description"
-                style="font-size:8em"
                 :color="colorosOf[entry.type]"/>
               <q-icon
                 v-else-if="entry.type === 'deleted'"
+                class="bkit-icon"
                 name="delete_sweep"
-                style="font-size:8em"
                 color="red-7"/>
-              <div
-                style="max-width:8em;overflow-wrap: break-word; text-align:center">
+              <div class="bkit-text">
                 {{entry.name}}
               </div>
-              type:{{entry.type}}
               <div v-if="entry.type === 'new'">missing</div>
               <div v-if="entry.type === 'modified'">modified</div>
             </div>
@@ -55,10 +53,10 @@
 </template>
 <script>
 
-import { warn } from 'src/helpers/notify'
+// import { warn } from 'src/helpers/notify'
 import * as bkit from 'src/helpers/bkit'
 import tree from './tree'
-import fs from 'fs-extra'
+// import fs from 'fs-extra'
 const path = require('path')
 
 // <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
@@ -81,53 +79,8 @@ function compare (a, b) {
   else return 0
 }
 
-/*
-function recursiveChecked (node, level = 0) {
-  if (level > 100) {
-    throw new Error('Recursion too deep (> 100)')
-  }
-  (node.children || []).map(child => {
-    child.checked = node.checked
-    recursiveChecked(child, level + 1)
-  })
-}
+import { readdir } from 'src/helpers/readfs'
 
-const isChecked = node => node.checked === true
-const isNotChecked = node => node.checked === false
-
-function upsideInform (parent) {
-  if (parent === null) {
-    return
-  } else if (parent.children.every(isChecked)) {
-    parent.checked = true
-  } else if (parent.children.every(isNotChecked)) {
-    parent.checked = false
-  } else {
-    parent.checked = null
-  }
-  return upsideInform(parent.parent)
-}
-*/
-
-async function* readdir (dir) {
-  const files = await fs.readdir(dir)
-  for (const file of files) {
-    try { // catch error individualy. This way it doesn't ends the loop
-      const fullpath = path.join(dir, file)
-      const stat = await fs.lstat(fullpath)
-      const isdir = stat.isDirectory()
-      yield {
-        path: fullpath,
-        name: file,
-        isdir,
-        isfile: !isdir,
-        stat
-      }
-    } catch (err) {
-      warn(err)
-    }
-  }
-}
 export default {
   name: 'localexplorer',
   data () {
@@ -138,9 +91,9 @@ export default {
       children: [],
       colorosOf: {
         deleted: 'red',
-        updated: 'green',
-        new: 'black',
-        modified: 'amber'
+        updated: 'cyan',
+        new: 'green',
+        modified: 'blue'
       },
       currentfiles: []
     }
@@ -155,19 +108,44 @@ export default {
     tree
   },
   methods: {
-    show (fullpath) {
-      this.checkdir(fullpath)
-    },
-    changeView (entries) {
+    async show (fullpath) {
+      const updated = []
       this.currentfiles = []
-      entries.sort(compare)
+      for await (const entry of readdir(fullpath)) {
+        // entry.type = 'updated'
+        updated.push(entry)
+      }
+      console.log('Update', fullpath)
       this.$nextTick(() => {
-        this.currentfiles = entries
+        this.updateCurrent(updated)
+        this.checkdir(fullpath)
+      })
+    },
+    updateCurrent (entries) {
+      entries.sort(compare)
+      this.currentfiles = [...entries]
+    },
+    send2Current (entries) {
+      this.$nextTick(() => {
+        this.updateCurrent(entries)
       })
     },
     checkdir (fullpath) {
-      console.log('Check entry:', fullpath)
-      const entries = []
+      console.log(`Check ${fullpath} status on server`)
+      const entries = this.currentfiles
+      let lasttime = Date.now()
+      const update = (entrie) => {
+        const index = entries.findIndex(e => e.path === entrie.path)
+        if (index > -1) {
+          entries[index] = entrie
+        } else {
+          entries.push(entrie)
+        }
+        if (Date.now() - lasttime > 1000) {
+          this.send2Current(entries)
+          lasttime = Date.now()
+        }
+      }
       bkit.bash('./dkit.sh', [
         '--no-recursive',
         '--delete',
@@ -175,26 +153,11 @@ export default {
         `${fullpath}`
       ], {
         onclose: () => {
-          (async () => {
-            const stat = await fs.lstat(fullpath)
-            if (stat.isDirectory()) {
-              // console.log('start waitv for', fullpath)
-              const updated = []
-              for await (const entry of readdir(fullpath)) {
-                // console.log('await entry', entry)
-                if (!entries.find(e => e.path === entry.path)) {
-                  entry.type = 'updated'
-                  updated.push(entry)
-                }
-              }
-              // console.log('updated:', updated.map(e => e.name))
-              // console.log('entries:', entries.map(e => e.name))
-              updated.push(...entries)
-              this.changeView(updated)
-            }
-          })().catch(warn)
           console.log('dkit done')
-          this.changeView(entries)
+          entries
+            .filter(e => !('type' in e))
+            .forEach(e => { e.type = 'updated' })
+          this.send2Current(entries)
         },
         onreadline: (line) => {
           console.log('Read from dkit:', line)
@@ -204,7 +167,7 @@ export default {
             const stepaths = filename.split('/')
             const [name] = stepaths.slice(-1)
             console.log(`File ${name} doesn't exits in backup yet`)
-            entries.push({ name, isfile: true, type: 'new', path: filename })
+            update({ name, isfile: true, type: 'new', path: filename })
           } else {
             const chgFileMatch = line.match(regexpChgFile)
             if (chgFileMatch) {
@@ -212,7 +175,7 @@ export default {
               const stepaths = filename.split('/')
               const [name] = stepaths.slice(-1)
               console.log(`File ${name} need update on backup yet`)
-              entries.push({ name, isfile: true, type: 'modified', path: filename })
+              update({ name, isfile: true, type: 'modified', path: filename })
             } else {
               const newdirMatch = line.match(regexpNewDir)
               if (newdirMatch) {
@@ -221,7 +184,7 @@ export default {
                 const stepaths = dirname.split('/')
                 const [name] = stepaths.slice(-1)
                 console.log(`Dir ${name} doesn't exits in backup yet`)
-                entries.push({ name, isdir: true, type: 'new', path: dirname })
+                update({ name, isdir: true, type: 'new', path: dirname })
               } else {
                 const deletingMatch = line.match(regexpDelete)
                 if (deletingMatch) {
@@ -233,7 +196,7 @@ export default {
                   const name = path.basename(fullname)
                   if (dirname !== path.normalize(fullpath)) return
                   console.log(`Resource ${name} deleted`)
-                  entries.push({ name, type: 'deleted', path: fullname })
+                  update({ name, type: 'deleted', path: fullname })
                 }
               }
             }
@@ -246,6 +209,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+  $bkitsize: 6em;
   .bkit-explorer {
     height:100%;
     display: flex;
@@ -259,6 +223,14 @@ export default {
       flex-grow: 1;
       overflow-y: hidden;
     }
+    .bkit-text{
+      max-width:$bkitsize;
+      overflow-wrap: break-word;
+      text-align:center
+    }
+    .bkit-icon{
+      font-size:$bkitsize;
+    }
   }
 </style>
 
@@ -266,7 +238,7 @@ export default {
   .bkit-explorer{
     .bkit-splitter {
       .q-icon {
-        font-size: initial;
+        // font-size: initial;
       }
     }
   }

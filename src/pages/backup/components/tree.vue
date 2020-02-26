@@ -23,11 +23,15 @@
         </q-item-section>
 
         <q-item-section no-wrap>
-         <q-item-label @click="see">{{name}}</q-item-label>
+         <q-item-label>{{name}}</q-item-label>
         </q-item-section>
 
-        <q-item-section side>
-          <q-icon name="restore" color="positive" size="xs" />
+        <q-item-section side no-wrap>
+           <q-btn-group flat rounded>
+            <q-btn round color="positive" flat size="sm" icon="visibility"
+              @click.stop="see"/>
+            <q-btn round color="positive" flat size="sm" icon="restore"/>
+          </q-btn-group>
         </q-item-section>
 
       </template>
