@@ -190,7 +190,7 @@ export default {
 
 <style lang="scss">
   .b-tree .q-item__section--avatar {
-    min-width:1px;
+    min-width:0px;
   }
   .b-kit-tree-icon {
     color: $amber;

@@ -24,6 +24,7 @@
               <q-icon v-else name="description" style="font-size:8em"
                 color="amber"/>
               <div style="max-width:8em;overflow-wrap: break-word; text-align:center">{{entry.name}}</div>
+              type:{{entry.type}}
               <div v-if="entry.type === 'new'">missing</div>
               <div v-if="entry.type === 'modified'">modified</div>
             </div>
@@ -92,6 +93,26 @@ function upsideInform (parent) {
   return upsideInform(parent.parent)
 }
 */
+
+async function* readdir (dir) {
+  const files = await fs.readdir(dir)
+  for (const file of files) {
+    try { // catch error individualy. This way it doesn't ends the loop
+      const fullname = path.join(dir, file)
+      const stat = await fs.lstat(fullname)
+      const isdir = stat.isDirectory()
+      yield {
+        path: fullname,
+        name: file,
+        isdir,
+        isfile: !isdir,
+        stat
+      }
+    } catch (err) {
+      warn(err)
+    }
+  }
+}
 export default {
   name: 'localexplorer',
   data () {
@@ -114,7 +135,6 @@ export default {
   },
   methods: {
     show (fullname) {
-      console.log('fullname:', fullname)
       this.checkdir(fullname)
     },
     changeView (entries) {
@@ -132,29 +152,23 @@ export default {
         '--dirs',
         `${fullname}`
       ], {
-        onclose: async () => {
+        onclose: () => {
           (async () => {
             const stat = await fs.lstat(fullname)
             if (stat.isDirectory()) {
-              const localfiles = await fs.readdir(fullname)
-              for (const file of localfiles) {
-                (async () => { // catch error individualy. This way it doesn't ends the loop
-                  const filename = path.join(fullname, file)
-                  if (!entries.find(e => e.path === filename)) {
-                    const stat = await fs.lstat(filename)
-                    const isdir = stat.isDirectory()
-                    entries.push({
-                      path: filename,
-                      name: file,
-                      isdir,
-                      isfile: !isdir,
-                      type: 'updated',
-                      stat
-                    })
-                  }
-                })().catch(warn)
+              // console.log('start waitv for', fullname)
+              const updated = []
+              for await (const entry of readdir(fullname)) {
+                // console.log('await entry', entry)
+                if (!entries.find(e => e.path === entry.path)) {
+                  entry.type = 'updated'
+                  updated.push(entry)
+                }
               }
-              this.changeView(entries) // force rendering again
+              // console.log('updated:', updated.map(e => e.name))
+              // console.log('entries:', entries.map(e => e.name))
+              updated.push(...entries)
+              this.changeView(updated)
             }
           })().catch(warn)
           console.log('dkit done')
@@ -181,6 +195,7 @@ export default {
               const newdirMatch = line.match(regexpNewDir)
               if (newdirMatch) {
                 const dirname = newdirMatch[3] || ''
+                if (dirname === fullname) return
                 const stepaths = dirname.split('/')
                 const [name] = stepaths.slice(-1)
                 console.log(`Dir ${name} doesn't exits in backup yet`)
