@@ -160,11 +160,14 @@ export default {
         onreadline: (line) => {
           console.log('Read from dkit:', line)
           matchLine(line, (entry) => {
-            if (entry.isdir && entry.path === fullpath) {
+            if (entry.isdir && path.dirname(entry.path) !== fullpath) {
               console.log('Discard dir', entry.path)
               return
             } else if (entry.type === 'deleted') {
-              const newpath = path.join(path.dirname(fullpath), entry.path)
+              console.log('path', entry.path)
+              console.log('fullpath', fullpath)
+              const newpath = path.join(this.mountpoint, entry.path)
+              console.log('newpath', newpath)
               const dirname = path.dirname(newpath)
               if (dirname !== fullpath) {
                 console.log('Discard deleted', entry.path)
