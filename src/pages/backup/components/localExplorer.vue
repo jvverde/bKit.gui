@@ -37,8 +37,6 @@
               <div class="bkit-text">
                 {{entry.name}}
               </div>
-              <div v-if="entry.type === 'new'">missing</div>
-              <div v-if="entry.type === 'modified'">modified</div>
             </div>
             <q-card-actions align="right" style="margin-top:auto">
               <q-btn flat round color="red" icon="favorite" />
@@ -161,6 +159,21 @@ export default {
         },
         onreadline: (line) => {
           console.log('Read from dkit:', line)
+          matchLine(line, (entry) => {
+            if (entry.isdir && entry.path === fullpath) {
+              console.log('Discard dir', entry.path)
+              return
+            } else if (entry.type === 'deleted') {
+              const newpath = path.join(path.dirname(fullpath), entry.path)
+              const dirname = path.dirname(newpath)
+              if (dirname !== fullpath) {
+                console.log('Discard deleted', entry.path)
+                return
+              }
+            }
+            update(entry)
+          })
+          /*
           const newfileMatch = line.match(regexpNewFile)
           if (newfileMatch) { // if this file is will be new on backup
             const filename = newfileMatch[3] || ''
@@ -201,9 +214,51 @@ export default {
               }
             }
           }
+          */
         }
       })
     }
+  }
+}
+
+function matchLine (line, done = () => false) {
+  const match = (line, exp, done) => {
+    const isaMatch = line.match(exp)
+    if (isaMatch) { // if this file is will be new on backup
+      const filename = isaMatch[3] || ''
+      const name = path.basename(filename)
+      done({ name, path: filename })
+      return true
+    }
+    return false
+  }
+  const newfile = (entry) => {
+    entry.isfile = true
+    entry.type = 'new'
+    console.log('newfile', entry.path)
+    done(entry)
+  }
+  const modified = (entry) => {
+    entry.isfile = true
+    entry.type = 'modified'
+    console.log('modified', entry.path)
+    done(entry)
+  }
+  const newdir = (entry) => {
+    entry.isdir = true
+    entry.type = 'new'
+    console.log('newdir', entry.path)
+    done(entry)
+  }
+  const removed = (entry) => {
+    entry.type = 'deleted'
+    console.log('deleted', entry.path)
+    return done(entry)
+  }
+  if (!match(line, regexpNewFile, newfile) &&
+      !match(line, regexpChgFile, modified) &&
+      !match(line, regexpNewDir, newdir)) {
+    match(line, regexpDelete, removed)
   }
 }
 </script>
