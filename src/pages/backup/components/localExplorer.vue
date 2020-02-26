@@ -19,11 +19,25 @@
         <div class="q-pa-md row justify-around q-gutter-md items-stretch">
           <q-card v-for="entry in currentfiles" :key="entry.path" class="column">
             <div class="column no-wrap items-center">
-              <q-icon v-if="entry.isdir" name="folder" style="font-size:8em"
+              <q-icon
+                v-if="entry.isdir"
+                name="folder"
+                style="font-size:8em"
                 color="amber"/>
-              <q-icon v-else name="description" style="font-size:8em"
-                color="amber"/>
-              <div style="max-width:8em;overflow-wrap: break-word; text-align:center">{{entry.name}}</div>
+              <q-icon
+                v-else-if="entry.isfile"
+                name="description"
+                style="font-size:8em"
+                :color="colorosOf[entry.type]"/>
+              <q-icon
+                v-else-if="entry.type === 'deleted'"
+                name="delete_sweep"
+                style="font-size:8em"
+                color="red-7"/>
+              <div
+                style="max-width:8em;overflow-wrap: break-word; text-align:center">
+                {{entry.name}}
+              </div>
               type:{{entry.type}}
               <div v-if="entry.type === 'new'">missing</div>
               <div v-if="entry.type === 'modified'">modified</div>
@@ -52,6 +66,7 @@ const regexpNewFile = /^<f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 // <f.st......|2020/02/23-18:24:04|1652|/home/jvv/projectos/bkit/apps/client/package.json
 const regexpChgFile = /^<f.s.{7}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpDelete = /^[*]deleting\s*[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -98,11 +113,11 @@ async function* readdir (dir) {
   const files = await fs.readdir(dir)
   for (const file of files) {
     try { // catch error individualy. This way it doesn't ends the loop
-      const fullname = path.join(dir, file)
-      const stat = await fs.lstat(fullname)
+      const fullpath = path.join(dir, file)
+      const stat = await fs.lstat(fullpath)
       const isdir = stat.isDirectory()
       yield {
-        path: fullname,
+        path: fullpath,
         name: file,
         isdir,
         isfile: !isdir,
@@ -121,6 +136,12 @@ export default {
       selected: false,
       root: [],
       children: [],
+      colorosOf: {
+        deleted: 'red',
+        updated: 'green',
+        new: 'black',
+        modified: 'amber'
+      },
       currentfiles: []
     }
   },
@@ -134,8 +155,8 @@ export default {
     tree
   },
   methods: {
-    show (fullname) {
-      this.checkdir(fullname)
+    show (fullpath) {
+      this.checkdir(fullpath)
     },
     changeView (entries) {
       this.currentfiles = []
@@ -144,21 +165,22 @@ export default {
         this.currentfiles = entries
       })
     },
-    checkdir (fullname) {
-      console.log('Check entry:', fullname)
+    checkdir (fullpath) {
+      console.log('Check entry:', fullpath)
       const entries = []
       bkit.bash('./dkit.sh', [
         '--no-recursive',
+        '--delete',
         '--dirs',
-        `${fullname}`
+        `${fullpath}`
       ], {
         onclose: () => {
           (async () => {
-            const stat = await fs.lstat(fullname)
+            const stat = await fs.lstat(fullpath)
             if (stat.isDirectory()) {
-              // console.log('start waitv for', fullname)
+              // console.log('start waitv for', fullpath)
               const updated = []
-              for await (const entry of readdir(fullname)) {
+              for await (const entry of readdir(fullpath)) {
                 // console.log('await entry', entry)
                 if (!entries.find(e => e.path === entry.path)) {
                   entry.type = 'updated'
@@ -195,11 +217,24 @@ export default {
               const newdirMatch = line.match(regexpNewDir)
               if (newdirMatch) {
                 const dirname = newdirMatch[3] || ''
-                if (dirname === fullname) return
+                if (dirname === fullpath) return
                 const stepaths = dirname.split('/')
                 const [name] = stepaths.slice(-1)
                 console.log(`Dir ${name} doesn't exits in backup yet`)
                 entries.push({ name, isdir: true, type: 'new', path: dirname })
+              } else {
+                const deletingMatch = line.match(regexpDelete)
+                if (deletingMatch) {
+                  const delname = deletingMatch[3] || ''
+                  const base = path.dirname(fullpath)
+                  const fullname = path.join(base, delname)
+                  const dirname = path.dirname(fullname)
+                  console.log('dirname', dirname)
+                  const name = path.basename(fullname)
+                  if (dirname !== path.normalize(fullpath)) return
+                  console.log(`Resource ${name} deleted`)
+                  entries.push({ name, type: 'deleted', path: fullname })
+                }
               }
             }
           }
@@ -207,120 +242,6 @@ export default {
       })
     }
   }
-  /*
-  computed: {
-    folders () {
-      return this.childrens.filter(e => e.isdir)
-    }
-  },
-  props: {
-    path: {
-      type: String,
-      required: true
-    }
-  },
-  methods: {
-    selectdir (key) {
-      if (!key) return
-      this.selected = key
-      const node = this.tree.getNodeByKey(key)
-      if (node.children) this.currentfiles = [...node.children]
-      this.tree.setExpanded(key, true)
-    },
-    checkdir (node) {
-      console.log('Check dir:', node.path)
-      const entries = []
-      bkit.bash('./dkit.sh', [
-        '--no-recursive',
-        '--dirs',
-        `${node.path}/`
-      ], {
-        onclose: () => {
-          this.$nextTick(() => {
-            console.log('dkit done')
-            entries.sort(compare)
-            // this.currentnodeentries = node.entries = entries
-            if (this.selected === node.path) this.currentfiles = [...node.children]
-          })
-        },
-        onreadline: (line) => {
-          console.log('dkit:', line)
-          const newfileMatch = line.match(regexpNewFile)
-          if (newfileMatch) { // if this file is will be new on backup
-            // const stepaths = (newfileMatch[3] || '').split('/')
-            // const [name] = stepaths.slice(-1)
-            // console.log(`File ${name} doesn't exits in backup yet`)
-            // entries.push({ name, isfile: true, type: 'new' })
-            const node = this.tree.getNodeByKey(newfileMatch[3])
-            node.missing = true
-          } else {
-            const chgFileMatch = line.match(regexpChgFile)
-            if (chgFileMatch) {
-              // const stepaths = (chgFileMatch[3] || '').split('/')
-              // const [name] = stepaths.slice(-1)
-              // console.log(`File ${name} need update on backup yet`)
-              // entries.push({ name, isfile: true, type: 'modified' })
-              const node = this.tree.getNodeByKey(chgFileMatch[3])
-              node.missing = false
-              node.needupdate = true
-            } else {
-              const newdirMatch = line.match(regexpNewDir)
-              if (newdirMatch) {
-                // const stepaths = (newdirMatch[3] || '').split('/')
-                // const [name] = stepaths.slice(-1)
-                // console.log(`Dir ${name} doesn't exits in backup yet`)
-                // entries.push({ name, isdir: true, type: 'new' })
-                const node = this.tree.getNodeByKey(newdirMatch[3])
-                node.missing = true
-              }
-            }
-          }
-        }
-      })
-    },
-    node_checked (node) {
-      if (node.checked !== null) {
-        recursiveChecked(node)
-        upsideInform(node.parent)
-      }
-    },
-    async load (dir) {
-      try {
-        const entries = await fs.readdir(dir)
-        const childrens = []
-        for (const entry of entries) {
-          try {
-            const fullname = path.join(dir, entry)
-            const stat = await fs.stat(fullname)
-            const isDirectory = stat.isDirectory()
-            childrens.push({
-              parent: node,
-              isdir: isDirectory,
-              path: fullname,
-              name: entry,
-              icon: isDirectory ? 'folder' : 'description',
-              lazy: isDirectory,
-              expandable: isDirectory,
-              checked: !!node.checked,
-              stat: stat
-            })
-          } catch (err) {
-            warn(err)
-          }
-        }
-        childrens.sort(compare)
-        this.childrens = childrens
-        this.checkdir()
-      } catch (err) {
-        warn(err)
-        fail(err)
-      }
-    }
-  },
-  mounted () {
-    this.load(this.name)
-  }
-  */
 }
 </script>
 
