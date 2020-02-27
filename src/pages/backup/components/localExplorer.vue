@@ -17,36 +17,11 @@
 
       <template v-slot:after>
         <div class="q-pa-md row justify-around q-gutter-md items-stretch">
-          <q-card v-for="entry in currentfiles" :key="entry.path" class="column">
-            <div class="column no-wrap items-center">
-              <q-icon
-                v-if="entry.isdir"
-                class="bkit-icon"
-                name="folder"
-                :color="colorosOf[entry.type]"/>
-              <q-icon
-                v-else-if="entry.isfile"
-                class="bkit-icon"
-                name="description"
-                :color="colorosOf[entry.type]"/>
-              <q-icon
-                v-else-if="entry.type === 'deleted'"
-                class="bkit-icon"
-                name="delete_sweep"
-                color="red-7"/>
-              <div class="bkit-text">
-                {{entry.name}}
-                <span v-if="entry.type === 'deleted' && entry.descendants > 0">
-                  [+{{entry.descendants}}]
-                </span>
-              </div>
-            </div>
-            <q-card-actions align="right" style="margin-top:auto">
-              <q-btn flat round color="red" icon="favorite" />
-              <q-btn flat round color="teal" icon="bookmark" />
-              <q-btn flat round color="primary" icon="share" />
-            </q-card-actions>
-          </q-card>
+          <item
+            v-for="entry in currentfiles"
+            :key="entry.path"
+            :entry="entry"
+            class="column"/>
         </div>
       </template>
     </q-splitter>
@@ -57,6 +32,7 @@
 // import { warn } from 'src/helpers/notify'
 import * as bkit from 'src/helpers/bkit'
 import tree from './tree'
+import item from './item'
 // import fs from 'fs-extra'
 const path = require('path')
 
@@ -106,7 +82,8 @@ export default {
     }
   },
   components: {
-    tree
+    tree,
+    item
   },
   methods: {
     async show (fullpath) {
