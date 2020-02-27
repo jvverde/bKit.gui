@@ -36,6 +36,9 @@
                 color="red-7"/>
               <div class="bkit-text">
                 {{entry.name}}
+                <span v-if="entry.type === 'deleted' && entry.descendants > 0">
+                  [+{{entry.descendants}}]
+                </span>
               </div>
             </div>
             <q-card-actions align="right" style="margin-top:auto">
@@ -131,6 +134,7 @@ export default {
     checkdir (fullpath) {
       console.log(`Check ${fullpath} status on server`)
       const entries = this.currentfiles
+      let cnt = 0
       let lasttime = Date.now()
       const update = (entrie) => {
         const index = entries.findIndex(e => e.path === entrie.path)
@@ -164,60 +168,20 @@ export default {
               console.log('Discard dir', entry.path)
               return
             } else if (entry.type === 'deleted') {
-              console.log('path', entry.path)
-              console.log('fullpath', fullpath)
               const newpath = path.join(this.mountpoint, entry.path)
-              console.log('newpath', newpath)
               const dirname = path.dirname(newpath)
               if (dirname !== fullpath) {
                 console.log('Discard deleted', entry.path)
+                console.log('relative', path.relative(fullpath, newpath))
+                cnt++
                 return
+              } else {
+                entry.descendants = cnt
+                cnt = 0
               }
             }
             update(entry)
           })
-          /*
-          const newfileMatch = line.match(regexpNewFile)
-          if (newfileMatch) { // if this file is will be new on backup
-            const filename = newfileMatch[3] || ''
-            const stepaths = filename.split('/')
-            const [name] = stepaths.slice(-1)
-            console.log(`File ${name} doesn't exits in backup yet`)
-            update({ name, isfile: true, type: 'new', path: filename })
-          } else {
-            const chgFileMatch = line.match(regexpChgFile)
-            if (chgFileMatch) {
-              const filename = chgFileMatch[3] || ''
-              const stepaths = filename.split('/')
-              const [name] = stepaths.slice(-1)
-              console.log(`File ${name} need update on backup yet`)
-              update({ name, isfile: true, type: 'modified', path: filename })
-            } else {
-              const newdirMatch = line.match(regexpNewDir)
-              if (newdirMatch) {
-                const dirname = newdirMatch[3] || ''
-                if (dirname === fullpath) return
-                const stepaths = dirname.split('/')
-                const [name] = stepaths.slice(-1)
-                console.log(`Dir ${name} doesn't exits in backup yet`)
-                update({ name, isdir: true, type: 'new', path: dirname })
-              } else {
-                const deletingMatch = line.match(regexpDelete)
-                if (deletingMatch) {
-                  const delname = deletingMatch[3] || ''
-                  const base = path.dirname(fullpath)
-                  const fullname = path.join(base, delname)
-                  const dirname = path.dirname(fullname)
-                  console.log('dirname', dirname)
-                  const name = path.basename(fullname)
-                  if (dirname !== path.normalize(fullpath)) return
-                  console.log(`Resource ${name} deleted`)
-                  update({ name, type: 'deleted', path: fullname })
-                }
-              }
-            }
-          }
-          */
         }
       })
     }
