@@ -5,12 +5,12 @@
         v-if="isdir"
         class="bkit-icon"
         name="folder"
-        :color="colorosOf[type]"/>
+        :color="colorosOf[status]"/>
       <q-icon
         v-else-if="isfile"
         class="bkit-icon"
         name="description"
-        :color="colorosOf[type]"/>
+        :color="colorosOf[status]"/>
       <q-icon
         v-else-if="wasdeleted"
         class="bkit-icon"
@@ -50,6 +50,8 @@ export default {
     isdir () { return this.entry.isdir },
     isfile () { return this.entry.isfile },
     type () { return this.entry.type },
+    onbackup () { return this.entry.onbackup },
+    status () { return this.onbackup && !this.type ? 'updated' : this.type },
     hastype () { return 'type' in this.entry },
     name () { return this.entry.name },
     path () { return this.entry.path },

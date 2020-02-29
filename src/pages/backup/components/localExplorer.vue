@@ -16,7 +16,7 @@
       </template>
 
       <template v-slot:after>
-        <div class="q-pa-md row justify-around q-gutter-md items-stretch">
+        <div class="q-pa-md row justify-evenly q-gutter-md items-stretch">
           <item
             v-for="entry in currentfiles"
             :key="entry.path"
@@ -112,124 +112,64 @@ export default {
           lasttime = Date.now()
         }
       }
-      bkit.bash('./dkit.sh',
-        [
-          '--no-recursive',
-          '--delete',
-          '--dirs',
-          `${fullpath}`
-        ],
-        bkit.onRsyncLine({
-          close: () => {
-            console.log('dkit done')
-            entries
-              .filter(e => !('type' in e))
-              .forEach(e => { e.type = 'updated' })
-            this.send2Current(entries)
-          },
-          newDir: (entry) => {
-            if (path.dirname(entry.path) !== fullpath) {
-              console.log('Discard dir', entry.path)
-              return
+      const updatedir = (entry) => {
+        if (path.dirname(entry.path) !== fullpath) {
+          console.log('Discard dir', entry.path)
+          return
+        }
+        update(entry)
+      }
+      bkit.bash('./listdirs.sh', [fullpath], {
+        onclose: () => {
+          console.log('List dirs done')
+          this.send2Current(entries)
+        },
+        onreadline: (data) => {
+          console.log('Data:', data)
+          const regexpSize = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
+          const match = data.match(regexpSize)
+          if (match && match[5] !== '.') {
+            const name = match[5]
+            const fullpath = path.join(this.mountpoint, name)
+            const entry = entries.find(e => e.path === fullpath)
+            if (entry) {
+              entry.onbackup = true
             }
-            updated(entry)
-          },
-          newFile: (entry) => {
-            updated(entry)
-          },
-          chgFile: (entry) {
-            entry.isfile = true
-            updated(entry)
-          },
-          deleted: (entry) {
-            const newpath = path.join(this.mountpoint, entry.path)
-            const dirname = path.dirname(newpath)
-            if (dirname !== fullpath) {
-              console.log('Discard deleted', entry.path)
-              console.log('relative', path.relative(fullpath, newpath))
-              cnt++
-              return
-            } else {
-              entry.descendants = cnt
-              cnt = 0
-            }
-            update(entry)  
-          },
-          onreadline: (line) => {
-            console.log('Read from dkit:', line)
-            matchLine(line, (entry) => {
-              if (entry.isdir && path.dirname(entry.path) !== fullpath) {
-                console.log('Discard dir', entry.path)
-                return
-              } else if (entry.type === 'deleted') {
-                const newpath = path.join(this.mountpoint, entry.path)
-                const dirname = path.dirname(newpath)
-                if (dirname !== fullpath) {
-                  console.log('Discard deleted', entry.path)
-                  console.log('relative', path.relative(fullpath, newpath))
-                  cnt++
-                  return
-                } else {
-                  entry.descendants = cnt
-                  cnt = 0
-                }
-              }
-              update(entry)
-            })
           }
-        })
-      )
+        }
+      })
+      const onRsyncLine = bkit.onRsyncLine({
+        close: () => {
+          console.log('dkit done')
+          entries
+            .filter(e => !('type' in e))
+            .forEach(e => { e.type = 'updated' })
+          this.send2Current(entries)
+        },
+        newDir: updatedir,
+        chgDir: updatedir,
+        newFile: update,
+        chgFile: update,
+        deleted: (entry) => {
+          const newpath = path.join(this.mountpoint, entry.path)
+          const dirname = path.dirname(newpath)
+          if (dirname !== fullpath) {
+            console.log('Discard deleted', entry.path)
+            cnt++
+            return
+          } else {
+            entry.descendants = cnt
+            cnt = 0
+          }
+          update(entry)
+        }
+      })
+      const args = ['--no-recursive', '--delete', '--dirs', `${fullpath}`]
+      bkit.bash('./dkit.sh', args, onRsyncLine)
     }
   }
 }
 
-// <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
-const regexpNewFile = /^<f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-// <f.st......|2020/02/23-18:24:04|1652|/home/jvv/projectos/bkit/apps/client/package.json
-const regexpChgFile = /^<f.s.{7}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-const regexpDelete = /^[*]deleting\s*[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-
-function matchLine (line, done = () => false) {
-  const match = (line, exp, done) => {
-    const isaMatch = line.match(exp)
-    if (isaMatch) { // if this file is will be new on backup
-      const filename = isaMatch[3] || ''
-      const name = path.basename(filename)
-      done({ name, path: filename })
-      return true
-    }
-    return false
-  }
-  const newfile = (entry) => {
-    entry.isfile = true
-    entry.type = 'new'
-    console.log('newfile', entry.path)
-    done(entry)
-  }
-  const modified = (entry) => {
-    entry.isfile = true
-    entry.type = 'modified'
-    console.log('modified', entry.path)
-    done(entry)
-  }
-  const newdir = (entry) => {
-    entry.isdir = true
-    entry.type = 'new'
-    console.log('newdir', entry.path)
-    done(entry)
-  }
-  const removed = (entry) => {
-    entry.type = 'deleted'
-    console.log('deleted', entry.path)
-    return done(entry)
-  }
-  if (!match(line, regexpNewFile, newfile) &&
-      !match(line, regexpChgFile, modified) &&
-      !match(line, regexpNewDir, newdir)) {
-    match(line, regexpDelete, removed)
-  }
-}
 </script>
 
 <style scoped lang="scss">
