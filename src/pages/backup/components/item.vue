@@ -26,9 +26,9 @@
     <q-card-actions align="right" style="margin-top:auto">
       <q-btn flat round color="primary" icon="restore" v-if="wasdeleted"/>
       <q-btn flat round color="teal" icon="backup" v-if="isnew"/>
-      <q-btn flat round color="teal" icon="assignment" v-if="ismodified"/>
-      <q-btn flat round color="teal" icon="assignment" v-if="hastype"/>
-      <q-btn flat round color="cyan" icon="share" />
+      <q-btn flat round color="teal" icon="code" v-if="ismodified"/>
+      <q-btn flat round color="amber" icon="assignment" v-if="hastype"/>
+      <!--q-btn flat round color="cyan" icon="share" /-->
     </q-card-actions>
   </q-card>
 </template>

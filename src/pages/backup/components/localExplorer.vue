@@ -36,13 +36,6 @@ import item from './item'
 // import fs from 'fs-extra'
 const path = require('path')
 
-// <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
-const regexpNewFile = /^<f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-// <f.st......|2020/02/23-18:24:04|1652|/home/jvv/projectos/bkit/apps/client/package.json
-const regexpChgFile = /^<f.s.{7}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-const regexpDelete = /^[*]deleting\s*[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
   if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
@@ -66,12 +59,6 @@ export default {
       selected: false,
       root: [],
       children: [],
-      colorosOf: {
-        deleted: 'red',
-        updated: 'cyan',
-        new: 'green',
-        modified: 'blue'
-      },
       currentfiles: []
     }
   },
@@ -125,45 +112,83 @@ export default {
           lasttime = Date.now()
         }
       }
-      bkit.bash('./dkit.sh', [
-        '--no-recursive',
-        '--delete',
-        '--dirs',
-        `${fullpath}`
-      ], {
-        onclose: () => {
-          console.log('dkit done')
-          entries
-            .filter(e => !('type' in e))
-            .forEach(e => { e.type = 'updated' })
-          this.send2Current(entries)
-        },
-        onreadline: (line) => {
-          console.log('Read from dkit:', line)
-          matchLine(line, (entry) => {
-            if (entry.isdir && path.dirname(entry.path) !== fullpath) {
+      bkit.bash('./dkit.sh',
+        [
+          '--no-recursive',
+          '--delete',
+          '--dirs',
+          `${fullpath}`
+        ],
+        bkit.onRsyncLine({
+          close: () => {
+            console.log('dkit done')
+            entries
+              .filter(e => !('type' in e))
+              .forEach(e => { e.type = 'updated' })
+            this.send2Current(entries)
+          },
+          newDir: (entry) => {
+            if (path.dirname(entry.path) !== fullpath) {
               console.log('Discard dir', entry.path)
               return
-            } else if (entry.type === 'deleted') {
-              const newpath = path.join(this.mountpoint, entry.path)
-              const dirname = path.dirname(newpath)
-              if (dirname !== fullpath) {
-                console.log('Discard deleted', entry.path)
-                console.log('relative', path.relative(fullpath, newpath))
-                cnt++
-                return
-              } else {
-                entry.descendants = cnt
-                cnt = 0
-              }
             }
-            update(entry)
-          })
-        }
-      })
+            updated(entry)
+          },
+          newFile: (entry) => {
+            updated(entry)
+          },
+          chgFile: (entry) {
+            entry.isfile = true
+            updated(entry)
+          },
+          deleted: (entry) {
+            const newpath = path.join(this.mountpoint, entry.path)
+            const dirname = path.dirname(newpath)
+            if (dirname !== fullpath) {
+              console.log('Discard deleted', entry.path)
+              console.log('relative', path.relative(fullpath, newpath))
+              cnt++
+              return
+            } else {
+              entry.descendants = cnt
+              cnt = 0
+            }
+            update(entry)  
+          },
+          onreadline: (line) => {
+            console.log('Read from dkit:', line)
+            matchLine(line, (entry) => {
+              if (entry.isdir && path.dirname(entry.path) !== fullpath) {
+                console.log('Discard dir', entry.path)
+                return
+              } else if (entry.type === 'deleted') {
+                const newpath = path.join(this.mountpoint, entry.path)
+                const dirname = path.dirname(newpath)
+                if (dirname !== fullpath) {
+                  console.log('Discard deleted', entry.path)
+                  console.log('relative', path.relative(fullpath, newpath))
+                  cnt++
+                  return
+                } else {
+                  entry.descendants = cnt
+                  cnt = 0
+                }
+              }
+              update(entry)
+            })
+          }
+        })
+      )
     }
   }
 }
+
+// <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
+const regexpNewFile = /^<f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+// <f.st......|2020/02/23-18:24:04|1652|/home/jvv/projectos/bkit/apps/client/package.json
+const regexpChgFile = /^<f.s.{7}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpDelete = /^[*]deleting\s*[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 
 function matchLine (line, done = () => false) {
   const match = (line, exp, done) => {

@@ -97,3 +97,58 @@ export function stop (process) {
 // export function get (url) {
 //   return wsList[url]
 // }
+
+const path = require('path')
+// <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
+const regexpNewFile = /^<f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+// <f.st......|2020/02/23-18:24:04|1652|/home/jvv/projectos/bkit/apps/client/package.json
+const regexpChgFile = /^<f.s.{7}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpDelete = /^[*]deleting\s*[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+
+export function onRsyncLine ( {
+  close: () => false,
+  newFile: () => false,
+  newDir: () => false,
+  chgFile: () => false,
+  deleted: () => false,
+  newLink: () => false,
+  newHlink: () => false
+})
+{
+  const match = (line, exp, dispatch) => {
+    const isaMatch = line.match(exp)
+    if (isaMatch) { 
+      dispatch(isaMatch[3])
+      return true
+    }
+    return false
+  }
+  const isnewfile = (filename) => {
+    newFile({ name: path.basename(filename), path: filename, type: 'new', isfile: true })
+  }
+  const isnewdir = (filename) => {
+    newDir({ name: path.basename(filename), path: filename, type: 'new', isdir: true })
+  }
+  const filechanged = (filename) => {
+    chgFile({ name: path.basename(filename), path: filename, type: 'modified', isfile: true })
+  }
+  const entrydeleted = (filename) => {
+    deleted({ name: path.basename(filename), path: filename, type: 'deleted' })
+  }
+  const matchLine = (line) => { 
+    if (!match(line, regexpNewFile, isnewfile) &&
+      !match(line, regexpChgFile, filechanged) &&
+      !match(line, regexpNewDir, isnewdir)) {
+      match(line, regexpDelete, entrydeleted)
+    } else {
+      console.log('Is something else:', line)
+    }
+  }
+  return {
+    close,
+    onreadline: (line) => {
+      matchLine(line)
+    }
+  }
+}    
