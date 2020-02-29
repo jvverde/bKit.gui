@@ -77,7 +77,7 @@ export default {
       const updated = []
       this.currentfiles = []
       for await (const entry of readdir(fullpath)) {
-        // entry.type = 'updated'
+        entry.status = 'local'
         updated.push(entry)
       }
       console.log('Update', fullpath)
@@ -100,14 +100,15 @@ export default {
       const entries = this.currentfiles
       let cnt = 0
       let lasttime = Date.now()
-      const update = (entrie) => {
-        const index = entries.findIndex(e => e.path === entrie.path)
+      const update = (entry) => {
+        const status = 'onbackup'
+        const index = entries.findIndex(e => e.path === entry.path)
         if (index > -1) {
-          entries[index] = entrie
+          entries[index] = Object.assign(entries[index], { status }, entry)
         } else {
-          entries.push(entrie)
+          entries.push(Object.assign({ status }, entry))
         }
-        if (Date.now() - lasttime > 1000) {
+        if (Date.now() - lasttime > 600) {
           this.send2Current(entries)
           lasttime = Date.now()
         }
@@ -128,22 +129,17 @@ export default {
           console.log('Data:', data)
           const regexpSize = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
           const match = data.match(regexpSize)
-          if (match && match[5] !== '.') {
+          if (match && match[5] !== '.') { // only if not current directory
             const name = match[5]
-            const fullpath = path.join(this.mountpoint, name)
-            const entry = entries.find(e => e.path === fullpath)
-            if (entry) {
-              entry.onbackup = true
-            }
+            const status = 'onbackup'
+            const fullname = path.join(fullpath, name)
+            update({ name, status, path: fullname })
           }
         }
       })
       const onRsyncLine = bkit.onRsyncLine({
         close: () => {
           console.log('dkit done')
-          entries
-            .filter(e => !('type' in e))
-            .forEach(e => { e.type = 'updated' })
           this.send2Current(entries)
         },
         newDir: updatedir,
@@ -161,6 +157,7 @@ export default {
             entry.descendants = cnt
             cnt = 0
           }
+          entry.path = newpath
           update(entry)
         }
       })
