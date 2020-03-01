@@ -22,7 +22,7 @@
           />
         </q-item-section>
 
-        <q-item-section no-wrap>
+        <q-item-section no-wrap :class="{ showNode: showNode }">
          <q-item-label>{{name}}</q-item-label>
         </q-item-section>
 
@@ -40,6 +40,7 @@
         <tree
           :path="folder.path"
           :name="folder.name"
+          :currentNode.sync="setNode"
           :selected.sync="folder.selected"
           @update:selected="childSelect"
           @show="path => $emit('show', path)"
@@ -105,6 +106,17 @@ export default {
       set (val) {
         this.$emit('update:selected', val)
       }
+    },
+    showNode () {
+      return this.path === this.currentNode
+    },
+    setNode: {
+      get () {
+        return this.currentNode
+      },
+      set (val) {
+        this.$emit('update:currentNode', val)
+      }
     }
   },
   props: {
@@ -123,6 +135,10 @@ export default {
     selected: {
       type: Boolean,
       default: false
+    },
+    currentNode: {
+      type: String,
+      required: true
     }
   },
   watch: {
@@ -146,6 +162,7 @@ export default {
     },
     see () {
       console.log('see')
+      this.setNode = this.path
       this.$emit('show', this.path)
     },
     async load (dir) {
@@ -178,5 +195,8 @@ export default {
   }
   .b-kit-tree-icon {
     color: $amber;
+  }
+  .showNode {
+    color:$positive;
   }
 </style>

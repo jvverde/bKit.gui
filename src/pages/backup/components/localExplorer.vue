@@ -6,7 +6,7 @@
           v-if="steps.length > 0"
           style="cursor:pointer"
           @click="stepto(0)"
-          icon="home"/>
+          icon="far fa-hdd"/>
         <q-breadcrumbs-el
           style="cursor:pointer"
           v-for="(step, index) in steps" :key="index"
@@ -24,6 +24,7 @@
           <tree
             :path="mountpoint"
             :name="mountpoint"
+            :currentNode.sync="currentNode"
             :selected.sync="selectedNode"
             @show="show"/>
         </q-list>
@@ -76,6 +77,7 @@ export default {
       selectedNode: false,
       selectedpath: '',
       loading: false,
+      currentNode: this.mountpoint,
       currentfiles: []
     }
   },
