@@ -51,6 +51,7 @@
           :leaf="true"
           :path="file.path"
           :name="file.name"
+          :currentNode.sync="setNode"
           :selected.sync="file.selected"
           @update:selected="childSelect"
           @show="path => $emit('show', path)"
