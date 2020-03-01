@@ -36,6 +36,9 @@
             :key="entry.path"
             :entry="entry"
             class="column"/>
+          <q-inner-loading :showing="loading">
+            <q-spinner-gears size="100px" color="primary"/>
+          </q-inner-loading>
         </div>
       </template>
     </q-splitter>
@@ -72,6 +75,7 @@ export default {
       verticalSplitter: 55,
       selectedNode: false,
       selectedpath: '',
+      loading: false,
       currentfiles: []
     }
   },
@@ -100,6 +104,7 @@ export default {
     async show (fullpath) {
       const updated = []
       this.currentfiles = []
+      this.loading = true
       for await (const entry of readdir(fullpath)) {
         entry.status = 'local'
         updated.push(entry)
@@ -164,7 +169,8 @@ export default {
       })
       const onRsyncLine = bkit.onRsyncLine({
         close: () => {
-          console.log('dkit done')
+          console.log('dkit done...')
+          if (this.selectedpath === fullpath) this.loading = false
           this.selectNextTick(entries)
         },
         newDir: updatedir,

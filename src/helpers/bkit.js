@@ -152,7 +152,7 @@ export function onRsyncLine ({
     }
   }
   return {
-    close,
+    onclose: close,
     onreadline
   }
 }
