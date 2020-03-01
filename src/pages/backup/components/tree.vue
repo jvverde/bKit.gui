@@ -61,9 +61,7 @@
 </template>
 <script>
 
-import { warn } from 'src/helpers/notify'
-const path = require('path')
-import fs from 'fs-extra'
+import { readdir } from 'src/helpers/readfs'
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -150,34 +148,16 @@ export default {
       console.log('see')
       this.$emit('show', this.path)
     },
-    load (dir) {
-      (async () => {
-        const stat = await fs.lstat(dir)
-        this.stat = stat
-        this.isdir = stat.isDirectory()
-        if (this.isdir) {
-          const entries = await fs.readdir(dir)
-          const childrens = []
-          for (const entry of entries) {
-            (async () => { // catch error individualy. This way it doesn't ends the loop
-              const fullpath = path.join(dir, entry)
-              const stat = await fs.lstat(fullpath)
-              const isdir = stat.isDirectory()
-              childrens.push({
-                path: fullpath,
-                name: entry,
-                selected: this.selected,
-                isdir,
-                stat
-              })
-            })().catch(warn)
-          }
-          childrens.sort(compare)
-          this.$nextTick(() => {
-            this.childrens = childrens
-          })
-        }
-      })().catch(warn)
+    async load (dir) {
+      const childrens = []
+      for await (const entry of readdir(dir)) {
+        entry.selected = this.selected
+        childrens.push(entry)
+      }
+      childrens.sort(compare)
+      this.$nextTick(() => {
+        this.childrens = childrens
+      })
     }
   },
   mounted () {

@@ -1,22 +1,36 @@
 <template>
-  <div class="bkit-explorer">
+  <div class="bkit-explorer relative-position">
+    <q-toolbar inset>
+      <q-breadcrumbs gutter="xs" separator-color="amber">
+        <q-breadcrumbs-el
+          v-if="steps.length > 0"
+          style="cursor:pointer"
+          @click="stepto(0)"
+          icon="home"/>
+        <q-breadcrumbs-el
+          style="cursor:pointer"
+          v-for="(step, index) in steps" :key="index"
+          @click="stepto(1 + index)"
+          :label="step"/>
+      </q-breadcrumbs>
+    </q-toolbar>
     <q-splitter
       class="bkit-splitter"
       :limits="[0, 80]"
-      v-model="splitterModel">
+      v-model="verticalSplitter">
 
       <template v-slot:before>
         <q-list class="rounded-borders">
           <tree
             :path="mountpoint"
             :name="mountpoint"
-            :selected.sync="selected"
+            :selected.sync="selectedNode"
             @show="show"/>
         </q-list>
       </template>
 
       <template v-slot:after>
-        <div class="q-pa-md row justify-evenly q-gutter-md items-stretch">
+        <div class="q-pa-md row justify-evenly q-gutter-md items-stretch relative-position">
           <item
             v-for="entry in currentfiles"
             :key="entry.path"
@@ -55,10 +69,9 @@ export default {
   name: 'localexplorer',
   data () {
     return {
-      splitterModel: 55,
-      selected: false,
-      root: [],
-      children: [],
+      verticalSplitter: 55,
+      selectedNode: false,
+      selectedpath: '',
       currentfiles: []
     }
   },
@@ -72,7 +85,18 @@ export default {
     tree,
     item
   },
+  computed: {
+    steps: function () {
+      const relative = path.relative(this.mountpoint, this.selectedpath)
+      return this.selectedpath !== '' ? `${relative}`.split('/') : []
+    }
+  },
   methods: {
+    stepto (index) {
+      const fullpath = path.join(this.mountpoint, this.steps.slice(0, index).join('/'))
+      console.log('go to', fullpath)
+      this.show(fullpath)
+    },
     async show (fullpath) {
       const updated = []
       this.currentfiles = []
@@ -81,18 +105,19 @@ export default {
         updated.push(entry)
       }
       console.log('Update', fullpath)
+      this.selectedpath = fullpath
       this.$nextTick(() => {
-        this.updateCurrent(updated)
+        this.select(updated)
         this.checkdir(fullpath)
       })
     },
-    updateCurrent (entries) {
+    select (entries) {
       entries.sort(compare)
       this.currentfiles = [...entries]
     },
-    send2Current (entries) {
+    selectNextTick (entries) {
       this.$nextTick(() => {
-        this.updateCurrent(entries)
+        this.select(entries)
       })
     },
     checkdir (fullpath) {
@@ -109,7 +134,7 @@ export default {
           entries.push(Object.assign({ status }, entry))
         }
         if (Date.now() - lasttime > 600) {
-          this.send2Current(entries)
+          this.selectNextTick(entries)
           lasttime = Date.now()
         }
       }
@@ -123,7 +148,7 @@ export default {
       bkit.bash('./listdirs.sh', [fullpath], {
         onclose: () => {
           console.log('List dirs done')
-          this.send2Current(entries)
+          this.selectNextTick(entries)
         },
         onreadline: (data) => {
           console.log('Data:', data)
@@ -140,7 +165,7 @@ export default {
       const onRsyncLine = bkit.onRsyncLine({
         close: () => {
           console.log('dkit done')
-          this.send2Current(entries)
+          this.selectNextTick(entries)
         },
         newDir: updatedir,
         chgDir: updatedir,

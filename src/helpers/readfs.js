@@ -17,6 +17,7 @@ export async function* readdir (dir) {
             name: file,
             isdir,
             isfile: !isdir,
+            isblock: stat.isBlockDevice(),
             stat
           }
         } catch (err) {
