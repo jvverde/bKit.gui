@@ -8,9 +8,11 @@
         <q-icon
           v-if="isdir"
           class="bkit-icon"
-          name="fas fa-folder"
+          style="cursor:pointer"
+          name="folder"
+          @click="open"
           :color="colorosOf[status]">
-          <q-tooltip anchor="center middle" self="center middle"
+          <q-tooltip anchor="top right" self="center middle"
             content-class="bg-amber text-black shadow-4"
             transition-show="scale"
             transition-hide="scale">
@@ -20,9 +22,9 @@
         <q-icon
           v-else-if="isfile"
           class="bkit-icon"
-          name="fas fa-file"
+          name="description"
           :color="colorosOf[status]">
-          <q-tooltip anchor="center middle" self="center middle"
+          <q-tooltip anchor="top right" self="center middle"
             content-class="bg-amber text-black shadow-4"
             transition-show="scale"
             transition-hide="scale">
@@ -34,7 +36,7 @@
           class="bkit-icon"
           name="fas fa-trash-restore"
           color="red-7">
-          <q-tooltip anchor="center middle" self="center middle"
+          <q-tooltip anchor="top right" self="center middle"
             content-class="bg-amber text-black shadow-4"
             transition-show="scale"
             transition-hide="scale">
@@ -93,6 +95,10 @@ export default {
     }
   },
   methods: {
+    open () {
+      console.log('open:', this.entry.path)
+      this.$emit('open', this.entry.path)
+    }
   },
   mounted () {
     // console.log('entry:', this.entry)

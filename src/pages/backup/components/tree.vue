@@ -3,7 +3,7 @@
       switch-toggle-side
       dense
       dense-toggle
-      @before-show="showChildrens"
+      @before-show="open = true"
       class="b-tree"
       ref="rootTree"
       :expand-icon="leaf ? 'description' : 'folder'"
@@ -35,6 +35,7 @@
         </q-item-section>
 
       </template>
+
       <div v-if="open" style="margin-left:1em">
         <!-- dirs -->
         <tree
@@ -146,6 +147,13 @@ export default {
     selected: function (val) {
       // console.log(`Watch selectet change to ${val} on ${this.path}`)
       if (val !== null) this.childrens.forEach(c => { c.selected = val })
+    },
+    currentNode: function (fullpath) {
+      if (!this.leaf) {
+        console.log('currentNode', fullpath)
+        console.log('this.path', this.path)
+        if (fullpath.includes(this.path)) this.$refs.rootTree.show()
+      }
     }
   },
   methods: {
@@ -157,9 +165,6 @@ export default {
       } else {
         this.checked = null
       }
-    },
-    showChildrens () {
-      this.open = true
     },
     see () {
       console.log('see')

@@ -36,6 +36,7 @@
             v-for="entry in currentfiles"
             :key="entry.path"
             :entry="entry"
+            @open="open"
             class="column"/>
           <q-inner-loading :showing="loading">
             <q-spinner-gears size="100px" color="primary"/>
@@ -98,6 +99,11 @@ export default {
     }
   },
   methods: {
+    open (path) {
+      this.currentNode = path
+      console.log('Set currentNode', this.currentNode)
+      this.show(path)
+    },
     stepto (index) {
       const fullpath = path.join(this.mountpoint, this.steps.slice(0, index).join('/'))
       console.log('go to', fullpath)
