@@ -4,16 +4,19 @@ const path = require('path')
 
 export async function* readdir (dir) {
   try {
-    const stat = await fs.lstat(dir)
+    const fullpath = path.normalize(dir)
+    const stat = await fs.lstat(fullpath)
     if (stat.isDirectory()) {
-      const files = await fs.readdir(dir)
+      console.log('fullpath', fullpath)
+      const files = await fs.readdir(fullpath)
+      console.log('files:', files)
       for (const file of files) {
         try { // catch error individualy. This way it doesn't ends the loop
-          const fullpath = path.join(dir, file)
-          const stat = await fs.lstat(fullpath)
+          const filename = path.join(fullpath, file)
+          const stat = await fs.lstat(filename)
           const isdir = stat.isDirectory()
           yield {
-            path: fullpath,
+            path: filename,
             name: file,
             isdir,
             isfile: !isdir,
@@ -24,7 +27,6 @@ export async function* readdir (dir) {
         }
       }
     } else {
-      const fullpath = path.normalize(dir)
       const name = path.basename(fullpath)
       yield {
         path: fullpath,
