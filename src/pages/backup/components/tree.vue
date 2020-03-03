@@ -149,14 +149,15 @@ export default {
       if (val !== null) this.childrens.forEach(c => { c.selected = val })
     },
     currentNode: function (fullpath) {
-      if (!this.leaf) {
-        console.log('currentNode', fullpath)
-        console.log('this.path', this.path)
-        if (fullpath.includes(this.path)) this.$refs.rootTree.show()
+      if (!this.leaf && fullpath.includes(this.path)) {
+        this.showChildrens()
       }
     }
   },
   methods: {
+    showChildrens () {
+      this.$refs.rootTree.show() // call show method on three
+    },
     childSelect () {
       if (this.childrens.every(isChecked)) {
         this.checked = true
@@ -185,8 +186,8 @@ export default {
   },
   mounted () {
     this.load(this.path)
-    // check is name == path => means is a root and on those cases show the tree
-    if (this.name === this.path) this.$refs.rootTree.show()
+    // check is name == path => means is a root => On those cases show the tree
+    if (this.name === this.path) this.showChildrens()
   }
 }
 </script>

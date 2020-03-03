@@ -24,7 +24,7 @@
           <tree
             :path="mountpoint"
             :name="mountpoint"
-            :currentNode.sync="currentNode"
+            :currentNode.sync="currentPath"
             :selected.sync="selectedNode"
             @show="show"/>
         </q-list>
@@ -36,7 +36,7 @@
             v-for="entry in currentfiles"
             :key="entry.path"
             :entry="entry"
-            @open="open"
+            @open="show"
             class="column"/>
           <q-inner-loading :showing="loading">
             <q-spinner-gears size="100px" color="primary"/>
@@ -76,9 +76,8 @@ export default {
     return {
       verticalSplitter: 55,
       selectedNode: false,
-      selectedpath: '',
+      currentPath: this.mountpoint,
       loading: false,
-      currentNode: this.mountpoint,
       currentfiles: []
     }
   },
@@ -94,16 +93,11 @@ export default {
   },
   computed: {
     steps: function () {
-      const relative = path.relative(this.mountpoint, this.selectedpath)
-      return this.selectedpath !== '' ? `${relative}`.split('/') : []
+      const relative = path.relative(this.mountpoint, this.currentPath)
+      return this.currentPath !== '' ? `${relative}`.split('/') : []
     }
   },
   methods: {
-    open (path) {
-      this.currentNode = path
-      console.log('Set currentNode', this.currentNode)
-      this.show(path)
-    },
     stepto (index) {
       const fullpath = path.join(this.mountpoint, this.steps.slice(0, index).join('/'))
       console.log('go to', fullpath)
@@ -118,7 +112,7 @@ export default {
         updated.push(entry)
       }
       console.log('Update', fullpath)
-      this.selectedpath = fullpath
+      this.currentPath = fullpath
       this.$nextTick(() => {
         this.select(updated)
         this.checkdir(fullpath)
@@ -178,7 +172,7 @@ export default {
       const onRsyncLine = bkit.onRsyncLine({
         close: () => {
           console.log('dkit done...')
-          if (this.selectedpath === fullpath) this.loading = false
+          if (this.currentPath === fullpath) this.loading = false
           this.selectNextTick(entries)
         },
         newDir: updatedir,
@@ -222,14 +216,6 @@ export default {
       flex-shrink: 1;
       flex-grow: 1;
       overflow-y: hidden;
-    }
-    .bkit-text{
-      max-width:$bkitsize;
-      overflow-wrap: break-word;
-      text-align:center
-    }
-    .bkit-icon{
-      font-size:$bkitsize;
     }
   }
 </style>

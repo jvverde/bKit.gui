@@ -268,7 +268,7 @@ export default {
   .bkit-explorer{
     .bkit-splitter {
       .q-icon {
-        font-size: initial;
+        // font-size: initial;
       }
     }
   }
