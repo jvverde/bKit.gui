@@ -94,7 +94,9 @@ export default {
   computed: {
     steps: function () {
       const relative = path.relative(this.mountpoint, this.currentPath)
-      return this.currentPath !== '' ? `${relative}`.split('/') : []
+      console.log('relative', relative)
+      console.log('sep', path.sep)
+      return this.currentPath !== '' ? `${relative}`.split(path.sep) : []
     }
   },
   methods: {
