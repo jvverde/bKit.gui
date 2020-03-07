@@ -153,7 +153,7 @@ export default {
         }
         update(entry)
       }
-      bkit.listdirs( fullpath, { entry: update, atend: () => this.selectNextTick(entries) })
+      bkit.listdirs(fullpath, { entry: update, atend: () => this.selectNextTick(entries) })
       const onRsyncLine = bkit.onRsyncLine({
         close: () => {
           console.log('dkit done...')

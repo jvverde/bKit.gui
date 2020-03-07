@@ -69,13 +69,14 @@ export function bash (scriptname, args, {
   return null
 }
 
+const regexp = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
+
 export function listdirs (fullpath, { entry, atend = () => console.log('List dirs done') }) {
   bash('./listdirs.sh', [fullpath], {
     onclose: atend,
     onreadline: (data) => {
       console.log('Listdir:', data)
-      const regexpSize = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
-      const match = data.match(regexpSize)
+      const match = data.match(regexp)
       if (match && match[5] !== '.') { // only if not current directory
         const name = match[5]
         const status = 'onbackup'

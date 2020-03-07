@@ -4,8 +4,9 @@
       dense
       dense-toggle
       @before-show="open = true"
+      @hide="open = false"
       class="b-tree"
-      ref="rootTree"
+      :ref="path"
       :expand-icon="leaf ? 'description' : 'folder'"
       :expanded-icon="leaf ? 'description': 'folder_open'"
       expand-icon-class="b-kit-tree-icon">
@@ -65,6 +66,7 @@
 <script>
 
 import { readdir } from 'src/helpers/readfs'
+import * as bkit from 'src/helpers/bkit'
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -119,6 +121,9 @@ export default {
       set (val) {
         this.$emit('update:currentNode', val)
       }
+    },
+    isdir () {
+      return this.folders.length > 0
     }
   },
   props: {
@@ -152,11 +157,15 @@ export default {
       if (!this.leaf && fullpath.includes(this.path)) {
         this.showChildrens()
       }
+    },
+    open: function (val) {
+      if (val) this.load()
     }
   },
   methods: {
     showChildrens () {
-      this.$refs.rootTree.show() // call show method on three
+      console.log('Show', this.path)
+      this.$refs[this.path].show() // call show method on three
     },
     childSelect () {
       if (this.childrens.every(isChecked)) {
@@ -172,12 +181,21 @@ export default {
       this.setNode = this.path
       this.$emit('show', this.path)
     },
-    async load (dir) {
+    async load () {
+      const dir = this.path
+      console.log('load:', dir)
       const childrens = []
       for await (const entry of readdir(dir)) {
         entry.selected = this.selected
         childrens.push(entry)
       }
+      const update = (entry) => {
+        const children = childrens.find(e => e.path === entry.path)
+        if (children) Object.assign(children, entry)
+        // console.log('Dir:', dir)
+        // console.log('Children:', children)
+      }
+      if (childrens.length > 0) bkit.listdirs(dir, { entry: update })
       childrens.sort(compare)
       this.$nextTick(() => {
         this.childrens = childrens
@@ -185,7 +203,7 @@ export default {
     }
   },
   mounted () {
-    this.load(this.path)
+    // this.load()
     // check is name == path => means is a root => On those cases show the tree
     if (this.name === this.path) this.showChildrens()
   }
