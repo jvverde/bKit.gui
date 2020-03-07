@@ -1,7 +1,7 @@
 <template>
   <div class="bkit-explorer relative-position">
     <q-toolbar inset>
-      <q-breadcrumbs gutter="xs" separator-color="amber">
+      <q-breadcrumbs gutter="xs" separator-color="amber" :separator="sep">
         <q-breadcrumbs-el
           v-if="steps.length > 0"
           style="cursor:pointer"
@@ -75,6 +75,7 @@ export default {
   data () {
     return {
       verticalSplitter: 55,
+      sep: path.sep,
       selectedNode: false,
       currentPath: this.mountpoint,
       loading: false,
@@ -152,23 +153,7 @@ export default {
         }
         update(entry)
       }
-      bkit.bash('./listdirs.sh', [fullpath], {
-        onclose: () => {
-          console.log('List dirs done')
-          this.selectNextTick(entries)
-        },
-        onreadline: (data) => {
-          console.log('Data:', data)
-          const regexpSize = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
-          const match = data.match(regexpSize)
-          if (match && match[5] !== '.') { // only if not current directory
-            const name = match[5]
-            const status = 'onbackup'
-            const fullname = path.join(fullpath, name)
-            update({ name, status, path: fullname })
-          }
-        }
-      })
+      bkit.listdirs( fullpath, { entry: update, atend: () => this.selectNextTick(entries) })
       const onRsyncLine = bkit.onRsyncLine({
         close: () => {
           console.log('dkit done...')

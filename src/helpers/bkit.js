@@ -25,10 +25,10 @@ export function user () {
   return username
 }
 
-function invoke (script, done) {
+function invoke ({ name, args, onreadline, onerror }, done) {
   const fd = spawn(
     BASH,
-    [script.name, ...script.args],
+    [name, ...args],
     { cwd: bKitPath, windowsHide: true }
   )
   fd.on('close', (code) => {
@@ -38,8 +38,8 @@ function invoke (script, done) {
     input: fd.stdout,
     output: process.stdout
   })
-  rl.on('line', script.onreadline)
-  fd.stderr.on('data', script.onerror)
+  rl.on('line', onreadline)
+  fd.stderr.on('data', onerror)
 }
 
 export function shell () {
@@ -68,6 +68,25 @@ export function bash (scriptname, args, {
   invokequeue.push({ name: scriptname, args, onreadline, onerror }, onclose)
   return null
 }
+
+export function listdirs (fullpath, { entry, atend = () => console.log('List dirs done') }) {
+  bash('./listdirs.sh', [fullpath], {
+    onclose: atend,
+    onreadline: (data) => {
+      console.log('Listdir:', data)
+      const regexpSize = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
+      const match = data.match(regexpSize)
+      if (match && match[5] !== '.') { // only if not current directory
+        const name = match[5]
+        const status = 'onbackup'
+        const fullname = path.join(fullpath, name)
+        entry({ name, status, path: fullname })
+      }
+    }
+  })
+}
+
+/* ------------------- */
 
 const terminate = require('terminate')
 
