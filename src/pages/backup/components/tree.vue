@@ -29,7 +29,7 @@
         <q-item-section no-wrap :class="{ showNode: showNode }">
           <q-item-label>
             {{name}}
-            <q-icon name="done" v-if="shouldIcheck()"/>
+            <q-icon name="done" v-if="onbackup"/>
           </q-item-label>
         </q-item-section>
 
@@ -141,6 +141,9 @@ export default {
     },
     expand () {
       return this.open && this.isdir
+    },
+    onbackup () { // We should be very carefully with this one
+      return this.entry.status === 'onbackup'
     }
   },
   props: {
@@ -173,7 +176,6 @@ export default {
   },
   methods: {
     showChildrens () {
-      console.log('Show', this.path)
       this.$refs[this.path].show() // call show method on three
     },
     childSelect () {
@@ -186,42 +188,47 @@ export default {
       }
     },
     see () {
-      console.log('see')
       this.setNode = this.path
       this.$emit('show', this.path)
     },
     shouldIcheck () {
       return this.isroot || (this.isdir && this.entry.status === 'onbackup')
     },
-    setNextTick (childrens) {
-      this.$nextTick(() => {
+    updateInNextTick (childrens) {
+      return this.$nextTick(() => {
         this.childrens = childrens
-        this.loading = false
       })
+    },
+    checkBackup (childrens = this.childrens) {
+      if (this.isroot || (this.isdir && this.entry.status === 'onbackup')) {
+        const update = (entry) => {
+          const children = childrens.find(e => e.path === entry.path)
+          if (children) Object.assign(children, entry)
+        }
+        const atend = async () => {
+          this.childrens = []
+          await this.updateInNextTick(childrens)
+          this.loading = false
+        }
+        this.loading = true
+        bkit.listdirs(this.path, { entry: update, atend })
+      }
     },
     async load () {
       console.log('load:', this.path)
-      this.loading = true
       const childrens = []
+      this.loading = true
       for await (const entry of readdir(this.path)) {
         entry.selected = this.selected
         childrens.push(entry)
       }
-      const update = (entry) => {
-        const children = childrens.find(e => e.path === entry.path)
-        if (children) Object.assign(children, entry)
-      }
       childrens.sort(compare)
-      if (this.shouldIcheck()) bkit.listdirs(this.path, { entry: update })
-      this.$nextTick(() => {
-        this.childrens = childrens
-        this.loading = false
-      })
+      this.loading = false
+      await this.updateInNextTick(childrens)
+      this.checkBackup(childrens)
     }
   },
   mounted () {
-    // this.load()
-    // check is name == path => means is a root => On those cases show the tree
     if (this.isroot) this.showChildrens()
   }
 }
