@@ -6,6 +6,7 @@
           v-if="steps.length > 0"
           style="cursor:pointer"
           @click="stepto(0)"
+          :label="drive"
           icon="far fa-hdd"/>
         <q-breadcrumbs-el
           style="cursor:pointer"
@@ -78,7 +79,8 @@ export default {
       selectedNode: false,
       currentPath: this.mountpoint,
       loading: false,
-      currentfiles: []
+      currentfiles: [],
+      root: { isdir: true, isroot: true, path: this.mountpoint }
     }
   },
   props: {
@@ -96,8 +98,8 @@ export default {
       const relative = path.relative(this.mountpoint, this.currentPath)
       return this.currentPath !== '' ? `${relative}`.split(path.sep) : []
     },
-    root () {
-      return { isdir: true, isroot: true, path: this.mountpoint }
+    drive: function () {
+      return this.mountpoint.replace(/[\\/]+$/, '')
     }
   },
   methods: {

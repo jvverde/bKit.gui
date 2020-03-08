@@ -26,7 +26,7 @@
           </q-inner-loading>
         </q-item-section>
 
-        <q-item-section no-wrap :class="{ showNode: showNode }">
+        <q-item-section no-wrap :class="{ isSelected: isSelected }">
           <q-item-label>
             {{name}}
             <q-icon name="done" v-if="onbackup"/>
@@ -47,7 +47,7 @@
         <!-- dirs -->
         <tree
           :entry="folder"
-          :currentNode.sync="setNode"
+          :currentNode.sync="selectedNode"
           :selected.sync="folder.selected"
           @update:selected="childSelect"
           @show="path => $emit('show', path)"
@@ -56,7 +56,7 @@
         <!-- files-->
         <tree
           :entry="file"
-          :currentNode.sync="setNode"
+          :currentNode.sync="selectedNode"
           :selected.sync="file.selected"
           @update:selected="childSelect"
           @show="path => $emit('show', path)"
@@ -113,10 +113,10 @@ export default {
         this.$emit('update:selected', val)
       }
     },
-    showNode () {
+    isSelected () {
       return this.path === this.currentNode
     },
-    setNode: {
+    selectedNode: {
       get () {
         return this.currentNode
       },
@@ -134,7 +134,7 @@ export default {
       return this.entry.path
     },
     name () {
-      return path.basename(this.path)
+      return this.isroot ? this.path : path.basename(this.path)
     },
     leaf () {
       return !this.isdir
@@ -188,7 +188,7 @@ export default {
       }
     },
     see () {
-      this.setNode = this.path
+      this.selectedNode = this.path
       this.$emit('show', this.path)
     },
     shouldIcheck () {
@@ -245,7 +245,7 @@ export default {
   .b-kit-tree-icon {
     color: $amber;
   }
-  .showNode {
+  .isSelected {
     color:$positive;
   }
 </style>
