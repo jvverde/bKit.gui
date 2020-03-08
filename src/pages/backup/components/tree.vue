@@ -21,9 +21,6 @@
             size="xs"
             color="positive"
           />
-          <q-inner-loading :showing="loading">
-            <q-spinner-gears color="primary"/>
-          </q-inner-loading>
         </q-item-section>
 
         <q-item-section no-wrap :class="{ isSelected: isSelected }">
@@ -40,6 +37,10 @@
             <q-btn round color="positive" flat size="sm" icon="restore"/>
           </q-btn-group>
         </q-item-section>
+
+        <q-inner-loading :showing="loading">
+          <q-spinner-ios color="amber"/>
+        </q-inner-loading>
 
       </template>
 
@@ -95,6 +96,7 @@ export default {
       open: false,
       loading: false,
       stat: null,
+      deletedChildrens: 0,
       childrens: []
     }
   },
@@ -199,19 +201,19 @@ export default {
         this.childrens = childrens
       })
     },
-    checkBackup (childrens = this.childrens) {
+    checkBackup () {
+      const childrens = this.childrens
       if (this.isroot || (this.isdir && this.entry.status === 'onbackup')) {
-        const update = (entry) => {
-          const children = childrens.find(e => e.path === entry.path)
-          if (children) Object.assign(children, entry)
+        const entry = (file) => {
+          const index = childrens.findIndex(e => e.path === file.path)
+          if (index >= 0) {
+            const children = Object.assign({}, childrens[index], file)
+            childrens.splice(index, 1, children)
+          } else this.deletedChildrens++
         }
-        const atend = async () => {
-          this.childrens = []
-          await this.updateInNextTick(childrens)
-          this.loading = false
-        }
+        const atend = async () => { this.loading = false }
         this.loading = true
-        bkit.listdirs(this.path, { entry: update, atend })
+        bkit.listdirs(this.path, { entry, atend })
       }
     },
     async load () {

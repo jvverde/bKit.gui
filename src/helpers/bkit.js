@@ -81,7 +81,8 @@ export function listdirs (fullpath, { entry, atend = () => console.log('List dir
         const name = match[5]
         const status = 'onbackup'
         const fullname = path.join(fullpath, name)
-        entry({ name, status, path: fullname })
+        const isdir = match[0].startsWith('d')
+        entry({ name, status, path: fullname, isdir })
       }
     }
   })
