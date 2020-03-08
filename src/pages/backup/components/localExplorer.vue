@@ -22,8 +22,7 @@
       <template v-slot:before>
         <q-list class="rounded-borders">
           <tree
-            :path="mountpoint"
-            :name="mountpoint"
+            :entry="root"
             :currentNode.sync="currentPath"
             :selected.sync="selectedNode"
             @show="show"/>
@@ -96,6 +95,9 @@ export default {
     steps: function () {
       const relative = path.relative(this.mountpoint, this.currentPath)
       return this.currentPath !== '' ? `${relative}`.split(path.sep) : []
+    },
+    root () {
+      return { isdir: true, isroot: true, path: this.mountpoint }
     }
   },
   methods: {

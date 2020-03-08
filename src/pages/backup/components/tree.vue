@@ -21,10 +21,16 @@
             size="xs"
             color="positive"
           />
+          <q-inner-loading :showing="loading">
+            <q-spinner-gears color="primary"/>
+          </q-inner-loading>
         </q-item-section>
 
         <q-item-section no-wrap :class="{ showNode: showNode }">
-         <q-item-label>{{name}}</q-item-label>
+          <q-item-label>
+            {{name}}
+            <q-icon name="done" v-if="shouldIcheck()"/>
+          </q-item-label>
         </q-item-section>
 
         <q-item-section side no-wrap>
@@ -40,8 +46,7 @@
       <div v-if="open" style="margin-left:1em">
         <!-- dirs -->
         <tree
-          :path="folder.path"
-          :name="folder.name"
+          :entry="folder"
           :currentNode.sync="setNode"
           :selected.sync="folder.selected"
           @update:selected="childSelect"
@@ -50,9 +55,7 @@
           :key="folder.path"/>
         <!-- files-->
         <tree
-          :leaf="true"
-          :path="file.path"
-          :name="file.name"
+          :entry="file"
           :currentNode.sync="setNode"
           :selected.sync="file.selected"
           @update:selected="childSelect"
@@ -67,6 +70,7 @@
 
 import { readdir } from 'src/helpers/readfs'
 import * as bkit from 'src/helpers/bkit'
+const path = require('path')
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -89,12 +93,10 @@ export default {
   data () {
     return {
       open: false,
-      // checked: false,
+      loading: false,
       stat: null,
       childrens: []
     }
-  },
-  components: {
   },
   computed: {
     folders () {
@@ -123,21 +125,28 @@ export default {
       }
     },
     isdir () {
-      return this.folders.length > 0
+      return this.entry.isdir
+    },
+    isroot () {
+      return this.entry.isroot
+    },
+    path () {
+      return this.entry.path
+    },
+    name () {
+      return path.basename(this.path)
+    },
+    leaf () {
+      return !this.isdir
+    },
+    expand () {
+      return this.open && this.isdir
     }
   },
   props: {
-    path: {
-      type: String,
+    entry: {
+      type: Object,
       required: true
-    },
-    name: {
-      type: String,
-      required: true
-    },
-    leaf: {
-      type: Boolean,
-      default: false
     },
     selected: {
       type: Boolean,
@@ -158,7 +167,7 @@ export default {
         this.showChildrens()
       }
     },
-    open: function (val) {
+    expand: function (val) {
       if (val) this.load()
     }
   },
@@ -181,31 +190,39 @@ export default {
       this.setNode = this.path
       this.$emit('show', this.path)
     },
+    shouldIcheck () {
+      return this.isroot || (this.isdir && this.entry.status === 'onbackup')
+    },
+    setNextTick (childrens) {
+      this.$nextTick(() => {
+        this.childrens = childrens
+        this.loading = false
+      })
+    },
     async load () {
-      const dir = this.path
-      console.log('load:', dir)
+      console.log('load:', this.path)
+      this.loading = true
       const childrens = []
-      for await (const entry of readdir(dir)) {
+      for await (const entry of readdir(this.path)) {
         entry.selected = this.selected
         childrens.push(entry)
       }
       const update = (entry) => {
         const children = childrens.find(e => e.path === entry.path)
         if (children) Object.assign(children, entry)
-        // console.log('Dir:', dir)
-        // console.log('Children:', children)
       }
-      if (childrens.length > 0) bkit.listdirs(dir, { entry: update })
       childrens.sort(compare)
+      if (this.shouldIcheck()) bkit.listdirs(this.path, { entry: update })
       this.$nextTick(() => {
         this.childrens = childrens
+        this.loading = false
       })
     }
   },
   mounted () {
     // this.load()
     // check is name == path => means is a root => On those cases show the tree
-    if (this.name === this.path) this.showChildrens()
+    if (this.isroot) this.showChildrens()
   }
 }
 </script>
