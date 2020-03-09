@@ -44,7 +44,7 @@
 
       </template>
 
-      <div v-if="open" style="margin-left:1em">
+      <div v-show="isOpen" style="margin-left:1em">
         <!-- dirs -->
         <tree
           :entry="folder"
@@ -97,6 +97,7 @@ export default {
       loading: false,
       stat: null,
       deletedChildrens: 0,
+      loaded: false,
       childrens: []
     }
   },
@@ -141,7 +142,7 @@ export default {
     leaf () {
       return !this.isdir
     },
-    expand () {
+    isOpen () {
       return this.open && this.isdir
     },
     onbackup () { // We should be very carefully with this one
@@ -172,8 +173,11 @@ export default {
         this.showChildrens()
       }
     },
-    expand: function (val) {
-      if (val) this.load()
+    isOpen: function (val) {
+      if (val && !this.loaded) this.load()
+    },
+    onbackup: function (val) {
+      if (val && this.isOpen) this.checkBackup()
     }
   },
   methods: {
@@ -217,7 +221,6 @@ export default {
       }
     },
     async load () {
-      console.log('load:', this.path)
       const childrens = []
       this.loading = true
       for await (const entry of readdir(this.path)) {
@@ -228,6 +231,7 @@ export default {
       this.loading = false
       await this.updateInNextTick(childrens)
       this.checkBackup(childrens)
+      this.loaded = true
     }
   },
   mounted () {
