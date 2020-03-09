@@ -10,6 +10,7 @@
         dense
         no-caps
         switch-indicator
+        inline-label
         active-bg-color="grey-2"
         active-color="primary">
         <q-tab
@@ -17,7 +18,7 @@
           :key="disk"
           :name="disk"
           icon="far fa-hdd"
-          :label="disk">
+          :label="diskname(disk)">
         </q-tab>
       </q-tabs>
     </div>
@@ -77,6 +78,9 @@ export default {
   methods: {
     backup () {
       console.log('dobackup')
+    },
+    diskname  (disk) {
+      return disk.replace(/\\$/, '')
     }
   },
   mounted () {

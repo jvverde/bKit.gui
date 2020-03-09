@@ -7,8 +7,6 @@
       @hide="open = false"
       class="b-tree"
       :ref="path"
-      :expand-icon="leaf ? 'description' : 'folder'"
-      :expanded-icon="leaf ? 'description': 'folder_open'"
       expand-icon-class="b-kit-tree-icon">
       <template v-slot:header> <!-- this is the header line template -->
 
@@ -19,21 +17,23 @@
             v-model="checked"
             keep-color
             size="xs"
-            color="positive"
+            color="bkiticoncolor"
           />
         </q-item-section>
 
-        <q-item-section no-wrap :class="{ isSelected: isSelected }">
+        <q-item-section side>
+        </q-item-section>
+
+        <q-item-section :class="{ no-wrap: true, isSelected: isSelected }" @click="see">
+          <q-icon :name="leaf ? 'description' : open ? 'folder_open' : 'folder'" color="bkiticoncolor"/>
           <q-item-label>
-            {{name}}
+            {{name}}iiiiillll
             <q-icon name="done" v-if="onbackup"/>
           </q-item-label>
         </q-item-section>
 
         <q-item-section side no-wrap>
            <q-btn-group flat rounded>
-            <q-btn round color="positive" flat size="sm" icon="visibility"
-              @click.stop="see"/>
             <q-btn round color="positive" flat size="sm" icon="restore"/>
           </q-btn-group>
         </q-item-section>
@@ -241,17 +241,21 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
+  .text-bkiticoncolor {
+    color: #a2aa33;
+  }
+  .bg-bkiticoncolor {
+    background: #a2aa33;
+  }
 </style>
 
 <style lang="scss">
+  @import 'src/css/app.scss';
+
   .b-tree .q-item__section--avatar {
     min-width:0px;
   }
-  .b-kit-tree-icon {
-    color: $amber;
-  }
   .isSelected {
-    color:$positive;
+    color:$primary;
   }
 </style>
