@@ -3,8 +3,7 @@
       switch-toggle-side
       dense
       dense-toggle
-      @before-show="open = true"
-      @hide="open = false"
+      v-model="open"
       class="b-tree"
       :ref="path"
       expand-icon="keyboard_arrow_down"
@@ -90,6 +89,20 @@ function compare (a, b) {
 const isChecked = node => node.selected === true
 const isNotChecked = node => node.selected === false
 
+const chokidar = require('chokidar')
+const chokidarOptions = {
+  depth: 0,
+  ignoreInitial: true,
+  persistent: true
+}
+
+import queue from 'async/queue'
+const listdirs = ({ path, entry }, atend) => {
+  console.log('listdir', path)
+  bkit.listdirs(path, { entry, atend })
+}
+const qlistdir = queue(listdirs)
+
 export default {
   name: 'tree',
   data () {
@@ -170,8 +183,8 @@ export default {
       if (val !== null) this.childrens.forEach(c => { c.selected = val })
     },
     currentNode: function (fullpath) {
-      // console.log(`Watch currentNode change to ${fullpath} on ${this.path}`)
       if (!this.leaf && fullpath.includes(this.path)) {
+        console.log(`Watch currentNode change to ${fullpath} on ${this.path}`)
         this.showChildrens()
       }
     },
@@ -185,7 +198,7 @@ export default {
   },
   methods: {
     showChildrens () {
-      this.$refs[this.path].show() // call show method on three
+      this.open = true
     },
     childSelect () {
       if (this.childrens.every(isChecked)) {
@@ -199,9 +212,6 @@ export default {
     see () {
       this.selectedNode = this.path
       this.$emit('show', this.path)
-    },
-    shouldIcheck () {
-      return this.isroot || (this.isdir && this.entry.status === 'onbackup')
     },
     updateInNextTick (childrens) {
       return this.$nextTick(() => {
@@ -218,9 +228,12 @@ export default {
             childrens.splice(index, 1, children)
           } else this.deletedChildrens++
         }
-        const atend = async () => { this.loading = false }
+        const done = () => { this.loading = false }
         this.loading = true
-        bkit.listdirs(this.path, { entry, atend })
+        if (qlistdir.length() < 2) {
+          console.log('q.len', qlistdir.length())
+          qlistdir.push({ path: this.path, entry }, done)
+        }
       }
     },
     async load () {
@@ -239,6 +252,12 @@ export default {
   },
   mounted () {
     if (this.isroot) this.showChildrens()
+    if (this.isdir) {
+      chokidar.watch(this.path, chokidarOptions).on('all', (event, path) => {
+        console.log(`[${this.path}]Event ${event} for ${path}`)
+        this.load()
+      })
+    }
   }
 }
 </script>

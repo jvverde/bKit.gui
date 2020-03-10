@@ -75,7 +75,7 @@ export function listdirs (fullpath, { entry, atend = () => console.log('List dir
   bash('./listdirs.sh', [fullpath], {
     onclose: atend,
     onreadline: (data) => {
-      console.log('Listdir:', data)
+      // console.log('Listdir:', data)
       const match = data.match(regexp)
       if (match && match[5] !== '.') { // only if not current directory
         const name = match[5]

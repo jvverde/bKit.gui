@@ -101,7 +101,8 @@ export default {
     item
   },
   watch: {
-    currentPath: async function (dir) {
+    currentPath: async function (dir, oldir) {
+      console.log(`${this.currentPath} [${oldir} => ${dir}]`)
       await this.watcher.close()
       this.watcher.add(dir)
       this.watcher.on('all', (event, path) => {
@@ -128,6 +129,7 @@ export default {
       this.show(fullpath)
     },
     async show (fullpath) {
+      console.log('Show', fullpath)
       const updated = []
       this.currentfiles = []
       this.loading = true
@@ -135,9 +137,9 @@ export default {
         entry.status = 'local'
         updated.push(entry)
       }
-      console.log('Update', fullpath)
-      this.currentPath = fullpath
+      console.log('Update:', fullpath)
       this.$nextTick(() => {
+        this.currentPath = fullpath
         this.select(updated)
         this.checkdir(fullpath)
       })
