@@ -69,8 +69,8 @@ export default {
       colorosOf: {
         deleted: 'red',
         onbackup: 'cyan',
-        new: 'deep-orange-1',
-        modified: 'blue',
+        new: 'green',
+        modified: 'amber',
         local: 'grey-4'
       }
     }

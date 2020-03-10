@@ -7,8 +7,13 @@
       @hide="open = false"
       class="b-tree"
       :ref="path"
-      expand-icon-class="b-kit-tree-icon">
+      expand-icon="keyboard_arrow_down"
+      :expand-icon-class="isdir ? 'expandicon' : 'noexpandicon'">
       <template v-slot:header> <!-- this is the header line template -->
+
+        <q-item-section side>
+          <q-icon :name="leaf ? 'description' : open ? 'folder_open' : 'folder'" color="bkiticoncolor"/>
+        </q-item-section>
 
         <q-item-section side>
           <q-checkbox
@@ -21,13 +26,9 @@
           />
         </q-item-section>
 
-        <q-item-section side>
-        </q-item-section>
-
-        <q-item-section :class="{ no-wrap: true, isSelected: isSelected }" @click="see">
-          <q-icon :name="leaf ? 'description' : open ? 'folder_open' : 'folder'" color="bkiticoncolor"/>
+        <q-item-section no-wrap :class="{ isSelected: isSelected }" @click.stop="see">
           <q-item-label>
-            {{name}}iiiiillll
+            {{name}}
             <q-icon name="done" v-if="onbackup"/>
           </q-item-label>
         </q-item-section>
@@ -101,6 +102,20 @@ export default {
       childrens: []
     }
   },
+  props: {
+    entry: {
+      type: Object,
+      required: true
+    },
+    selected: {
+      type: Boolean,
+      default: false
+    },
+    currentNode: {
+      type: String,
+      required: true
+    }
+  },
   computed: {
     folders () {
       return this.childrens.filter(e => e.isdir)
@@ -149,31 +164,19 @@ export default {
       return this.entry.status === 'onbackup'
     }
   },
-  props: {
-    entry: {
-      type: Object,
-      required: true
-    },
-    selected: {
-      type: Boolean,
-      default: false
-    },
-    currentNode: {
-      type: String,
-      required: true
-    }
-  },
   watch: {
     selected: function (val) {
       // console.log(`Watch selectet change to ${val} on ${this.path}`)
       if (val !== null) this.childrens.forEach(c => { c.selected = val })
     },
     currentNode: function (fullpath) {
+      // console.log(`Watch currentNode change to ${fullpath} on ${this.path}`)
       if (!this.leaf && fullpath.includes(this.path)) {
         this.showChildrens()
       }
     },
     isOpen: function (val) {
+      // console.log(`isOpen change to ${val} on ${this.path}`)
       if (val && !this.loaded) this.load()
     },
     onbackup: function (val) {
@@ -241,21 +244,22 @@ export default {
 </script>
 
 <style scoped lang="scss">
-  .text-bkiticoncolor {
-    color: #a2aa33;
-  }
-  .bg-bkiticoncolor {
-    background: #a2aa33;
+  .isSelected {
+    color:$primary;
   }
 </style>
 
 <style lang="scss">
   @import 'src/css/app.scss';
 
-  .b-tree .q-item__section--avatar {
-    min-width:0px;
+  .expandicon, .noexpandicon {
+    margin: 0px;
+    padding: 0px;
+    padding-right: 5px;
+    color: $bkit-color;
   }
-  .isSelected {
-    color:$primary;
+  .noexpandicon {
+    visibility: hidden;
   }
+
 </style>
