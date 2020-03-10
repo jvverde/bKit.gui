@@ -54,18 +54,40 @@
         <q-btn flat color="positive" icon="restore" no-caps stack label="Restore" v-if="wasdeleted"/>
         <q-btn flat color="positive" icon="backup" no-caps stack label="Backup" v-if="isnew"/>
         <q-btn flat color="positive" icon="backup" no-caps stack label="Backup" v-if="ismodified"/>
-        <q-btn flat color="amber" icon="assignment"  no-caps stack label="Versions" v-if="hasbackup"/>
         <!--q-btn flat round color="cyan" icon="share" /-->
       </q-card-actions>
     </q-card-section>
+    <q-card-section v-if="hasbackup">
+      <q-btn flat color="green-4" icon="assignment" no-caps label="Versions" @click="getVersions"/>
+      <q-list separator class="q-pa-xd">
+        <q-item dense v-for="version in versions" :key="version.snap">
+          <q-item-section>
+            {{version.date}}
+          </q-item-section>
+          <q-item-section side>
+            <q-icon color="positive" name="restore" />
+          </q-item-section>
+        </q-item>
+      </q-list>
+      <q-inner-loading :showing="loading">
+        <q-spinner-ios color="amber"/>
+      </q-inner-loading>
+    </q-card-section>
   </q-card>
 </template>
+
 <script>
+import * as bkit from 'src/helpers/bkit'
+
+const moment = require('moment')
+moment.locale('en')
 
 export default {
   name: 'item',
   data () {
     return {
+      versions: [],
+      loading: false,
       colorosOf: {
         deleted: 'red',
         onbackup: 'cyan',
@@ -86,7 +108,8 @@ export default {
     hasdescendants () { return 0 | this.descendants > 0 },
     wasdeleted () { return this.status === 'deleted' },
     ismodified () { return this.status === 'modified' },
-    isnew () { return this.status === 'new' }
+    isnew () { return this.status === 'new' },
+    hasversions () { return this.versions.length > 0 }
   },
   props: {
     entry: {
@@ -98,6 +121,26 @@ export default {
     open () {
       console.log('open:', this.entry.path)
       this.$emit('open', this.entry.path)
+    },
+    async getVersions () {
+      console.log('getVersions')
+      const versions = []
+      this.loading = true
+      bkit.bash('./versions.sh', [this.path], {
+        onreadline: (data) => {
+          console.log('Version:', data)
+          const match = data.match(/(@GMT-.*?)\s+have a last modifed version at (\d{4}[/]\d\d[/]\d{2}-\d\d:\d\d:\d\d)/)
+          const snap = match[1]
+          const date = moment.utc(match[2], 'YYYY/MM/DD-HH:mm:ss').local().format('DD-MM-YYYY HH:mm')
+          versions.push({ date, snap })
+        },
+        onclose: () => {
+          this.$nextTick(() => {
+            this.versions = versions
+            this.loading = false
+          })
+        }
+      })
     }
   },
   mounted () {

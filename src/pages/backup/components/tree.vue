@@ -22,7 +22,7 @@
             v-model="checked"
             keep-color
             size="xs"
-            color="bkiticoncolor"
+            color="bkitchekcolor"
           />
         </q-item-section>
 
@@ -256,7 +256,7 @@ export default {
     margin: 0px;
     padding: 0px;
     padding-right: 5px;
-    color: $bkit-color;
+    color: $bkit-check-color;
   }
   .noexpandicon {
     visibility: hidden;

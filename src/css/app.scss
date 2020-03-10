@@ -1,11 +1,19 @@
 // app global css in SCSS form
-$bkit-yellow-icon   : #FFE792;
-$bkit-color : #a2aa33;
+$bkit-icon-color   : #FFE792;
+$bkit-check-color : #a2aa33;
 
 .text-bkiticoncolor {
-  color: $bkit-color;
+  color: $bkit-icon-color;
 }
 .bg-bkiticoncolor {
-  background: $bkit-color;
+  background: $bkit-icon-color;
 }
+
+.text-bkitchekcolor {
+  color: $bkit-check-color;
+}
+.bg-bkitchekcolor {
+  background: $bkit-check-color;
+}
+
 
