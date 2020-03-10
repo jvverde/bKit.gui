@@ -39,7 +39,7 @@
             @open="show"
             class="column"/>
           <q-inner-loading :showing="loading">
-            <q-spinner-gears size="100px" color="primary"/>
+            <q-spinner-ios size="100px" color="primary"/>
           </q-inner-loading>
         </div>
       </template>
@@ -69,12 +69,19 @@ function compare (a, b) {
 }
 
 import { readdir } from 'src/helpers/readfs'
+const chokidar = require('chokidar')
+const chokidarOptions = {
+  depth: 0,
+  ignoreInitial: true,
+  persistent: true
+}
 
 export default {
   name: 'localexplorer',
   data () {
     return {
       verticalSplitter: 55,
+      watcher: chokidar.watch(this.mountpoint, chokidarOptions),
       sep: path.sep,
       selectedNode: false,
       currentPath: this.mountpoint,
@@ -93,6 +100,16 @@ export default {
     tree,
     item
   },
+  watch: {
+    currentPath: async function (dir) {
+      await this.watcher.close()
+      this.watcher.add(dir)
+      this.watcher.on('all', (event, path) => {
+        console.log('Event:', path, event)
+        this.show(dir)
+      })
+    }
+  },
   computed: {
     steps: function () {
       const relative = path.relative(this.mountpoint, this.currentPath)
@@ -101,6 +118,8 @@ export default {
     drive: function () {
       return this.mountpoint.replace(/[\\/]+$/, '')
     }
+  },
+  mounted () {
   },
   methods: {
     stepto (index) {
@@ -133,7 +152,7 @@ export default {
       })
     },
     checkdir (fullpath) {
-      console.log(`Check ${fullpath} status on server`)
+      // console.log(`Check ${fullpath} status on server`)
       const entries = this.currentfiles
       let cnt = 0
       let lasttime = Date.now()
