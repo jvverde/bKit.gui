@@ -207,15 +207,6 @@ export default {
         `--snap=${this.currentsnap}`,
         `${key}/`
       ], {
-        onclose: () => {
-          dirs.sort(compare)
-          nodes.sort(compare)
-          node.nodes = nodes
-          done(dirs)
-          this.$nextTick(() => {
-            if (this.selected === key) this.currentnodes = node.nodes
-          })
-        },
         onreadline: (data) => {
           const match = data.match(regexpSize)
           if (!match) return
@@ -233,6 +224,14 @@ export default {
           }
           nodes.push(entry)
         }
+      }, () => {
+        dirs.sort(compare)
+        nodes.sort(compare)
+        node.nodes = nodes
+        done(dirs)
+        this.$nextTick(() => {
+          if (this.selected === key) this.currentnodes = node.nodes
+        })
       })
     }
   },

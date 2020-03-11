@@ -77,6 +77,7 @@ const chokidarOptions = {
 }
 
 const listdir = bkit.enqueueListdir()
+const dkit = bkit.enqueuedkit()
 
 export default {
   name: 'localexplorer',
@@ -158,7 +159,7 @@ export default {
     checkdir (fullpath) {
       // console.log(`Check ${fullpath} status on server`)
       const entries = this.currentfiles
-      let cnt = 0
+      // let cnt = 0
       let lasttime = Date.now()
       const update = (entry) => {
         const status = 'onbackup'
@@ -183,33 +184,17 @@ export default {
       // bkit.listdirs(fullpath, { entry: update, atend: () => this.selectNextTick(entries) })
       const done = () => this.selectNextTick(entries)
       listdir(fullpath, update, done)
-      const onRsyncLine = bkit.onRsyncLine({
-        close: () => {
-          console.log('dkit done...')
-          if (this.currentPath === fullpath) this.loading = false
-          this.selectNextTick(entries)
-        },
+      const done2 = () => {
+        console.log('dkit done...')
+        if (this.currentPath === fullpath) this.loading = false
+        this.selectNextTick(entries)
+      }
+      dkit(fullpath, {
         newDir: updatedir,
         chgDir: updatedir,
         newFile: update,
-        chgFile: update,
-        deleted: (entry) => {
-          const newpath = path.join(this.mountpoint, entry.path)
-          const dirname = path.dirname(newpath)
-          if (dirname !== fullpath) {
-            console.log('Discard deleted', entry.path)
-            cnt++
-            return
-          } else {
-            entry.descendants = cnt
-            cnt = 0
-          }
-          entry.path = newpath
-          update(entry)
-        }
-      })
-      const args = ['--no-recursive', '--delete', '--dirs', `${fullpath}`]
-      bkit.bash('./dkit.sh', args, onRsyncLine)
+        chgFile: update
+      }, done2)
     }
   }
 }

@@ -69,46 +69,6 @@ export function bash (scriptname, args, {
   return null
 }
 
-const regexp = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
-
-export function listdirs (fullpath, { entry, atend = () => console.log('List dirs done') }) {
-  bash('./listdirs.sh', [fullpath], {
-    onclose: atend,
-    onreadline: (data) => {
-      // console.log('Listdir:', data)
-      const match = data.match(regexp)
-      if (match && match[5] !== '.') { // only if not current directory
-        const name = match[5]
-        const status = 'onbackup'
-        const fullname = path.join(fullpath, name)
-        const isdir = match[0].startsWith('d')
-        entry({ name, status, path: fullname, isdir })
-      }
-    }
-  })
-}
-
-const _listdirs = ({ path, entry }, atend) => {
-  console.log('Listdir', path)
-  listdirs(path, { entry, atend })
-}
-
-function makeQueue (action) {
-  const qlistdir = queue(action)
-  return function (path, entry, done) {
-    const items = [...qlistdir]
-    if (items.some(item => item.path === path)) {
-      console.log(`Listdir ${path} already in queue`)
-    } else {
-      qlistdir.push({ path, entry }, done)
-    }
-  }
-}
-
-export function enqueueListdir () {
-  return makeQueue(_listdirs)
-}
-
 /* ------------------- */
 
 const terminate = require('terminate')
@@ -151,7 +111,6 @@ const regexpChgFile = /^[><]f.(?:s.|.t).{6}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 const regexpDelete = /^[*]deleting\s*[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 
 export function onRsyncLine ({
-  close = () => false,
   newFile = () => false,
   newDir = () => false,
   chgFile = () => false,
@@ -159,7 +118,7 @@ export function onRsyncLine ({
   deleted = () => false,
   newLink = () => false,
   newHlink = () => false
-}) {
+}, done = () => false) {
   const match = (line, exp, dispatch) => {
     const isaMatch = line.match(exp)
     if (isaMatch) {
@@ -194,7 +153,61 @@ export function onRsyncLine ({
     }
   }
   return {
-    onclose: close,
+    onclose: done,
     onreadline
   }
+}
+
+export function dkit (fullpath, events, done = () => console.log('dkit done')) {
+  const actions = onRsyncLine(events, done)
+  const args = ['--no-recursive', '--delete', '--dirs', `${fullpath}`]
+  bash('./dkit.sh', args, actions)
+}
+
+const regexp = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
+export function listdirs (fullpath, entry, done = () => console.log('List dirs done')) {
+  bash('./listdirs.sh', [fullpath], {
+    onclose: done,
+    onreadline: (data) => {
+      // console.log('Listdir:', data)
+      const match = data.match(regexp)
+      if (match && match[5] !== '.') { // only if not current directory
+        const name = match[5]
+        const status = 'onbackup'
+        const fullname = path.join(fullpath, name)
+        const isdir = match[0].startsWith('d')
+        entry({ name, status, path: fullname, isdir })
+      }
+    }
+  })
+}
+
+const _dkit = ({ path, events }, done) => {
+  console.log('dkit', path)
+  dkit(path, events, done)
+}
+
+const _listdirs = ({ path, entry }, done) => {
+  console.log('Listdir', path)
+  listdirs(path, entry, done)
+}
+
+function makeQueue (action, name) {
+  const q = queue(action)
+  return function (path, entry, done) {
+    const items = [...q]
+    if (items.some(item => item.path === path)) {
+      console.log(`${name}: ${path} already in queue`)
+    } else {
+      q.push({ path, entry }, done)
+    }
+  }
+}
+
+export function enqueuedkit () {
+  return makeQueue(_dkit, 'dKit')
+}
+
+export function enqueueListdir () {
+  return makeQueue(_listdirs, 'Listdir')
 }
