@@ -88,6 +88,27 @@ export function listdirs (fullpath, { entry, atend = () => console.log('List dir
   })
 }
 
+const _listdirs = ({ path, entry }, atend) => {
+  console.log('Listdir', path)
+  listdirs(path, { entry, atend })
+}
+
+function makeQueue (action) {
+  const qlistdir = queue(action)
+  return function (path, entry, done) {
+    const items = [...qlistdir]
+    if (items.some(item => item.path === path)) {
+      console.log(`Listdir ${path} already in queue`)
+    } else {
+      qlistdir.push({ path, entry }, done)
+    }
+  }
+}
+
+export function enqueueListdir () {
+  return makeQueue(_listdirs)
+}
+
 /* ------------------- */
 
 const terminate = require('terminate')

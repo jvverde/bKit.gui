@@ -76,6 +76,8 @@ const chokidarOptions = {
   persistent: true
 }
 
+const listdir = bkit.enqueueListdir()
+
 export default {
   name: 'localexplorer',
   data () {
@@ -178,7 +180,9 @@ export default {
         }
         update(entry)
       }
-      bkit.listdirs(fullpath, { entry: update, atend: () => this.selectNextTick(entries) })
+      // bkit.listdirs(fullpath, { entry: update, atend: () => this.selectNextTick(entries) })
+      const done = () => this.selectNextTick(entries)
+      listdir(fullpath, update, done)
       const onRsyncLine = bkit.onRsyncLine({
         close: () => {
           console.log('dkit done...')

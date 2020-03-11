@@ -70,7 +70,6 @@
 <script>
 
 import { readdir } from 'src/helpers/readfs'
-import * as bkit from 'src/helpers/bkit'
 const path = require('path')
 
 function comparenames (a, b) {
@@ -96,12 +95,8 @@ const chokidarOptions = {
   persistent: true
 }
 
-import queue from 'async/queue'
-const listdirs = ({ path, entry }, atend) => {
-  console.log('listdir', path)
-  bkit.listdirs(path, { entry, atend })
-}
-const qlistdir = queue(listdirs)
+import * as bkit from 'src/helpers/bkit'
+const listdir = bkit.enqueueListdir()
 
 export default {
   name: 'tree',
@@ -230,10 +225,11 @@ export default {
         }
         const done = () => { this.loading = false }
         this.loading = true
-        if (qlistdir.length() < 2) {
-          console.log('q.len', qlistdir.length())
-          qlistdir.push({ path: this.path, entry }, done)
-        }
+        // if (bkit.qlistdir.length() < 2) {
+        // console.log('q.len', bkit.qlistdir.length())
+        // bkit.qlistdir.push({ path: this.path, entry }, done)
+        listdir(this.path, entry, done)
+        // }
       }
     },
     async load () {
