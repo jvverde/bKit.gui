@@ -143,7 +143,7 @@ export function onRsyncLine ({
     deleted({ name: path.basename(filename), path: filename, status: 'deleted' })
   }
   const onreadline = (line) => {
-    console.log('Read Line:', line)
+    // console.log('Read Line:', line)
     if (!match(line, regexpNewFile, isnewfile) &&
       !match(line, regexpChgFile, filechanged) &&
       !match(line, regexpNewDir, isnewdir) &&
@@ -159,6 +159,7 @@ export function onRsyncLine ({
 }
 
 export function dkit (fullpath, events, done = () => console.log('dkit done')) {
+  // console.log('events', events)
   const actions = onRsyncLine(events, done)
   const args = ['--no-recursive', '--delete', '--dirs', `${fullpath}`]
   bash('./dkit.sh', args, actions)
@@ -182,32 +183,35 @@ export function listdirs (fullpath, entry, done = () => console.log('List dirs d
   })
 }
 
-const _dkit = ({ path, events }, done) => {
-  console.log('dkit', path)
+const _dkit = ({ path, events, name }, done) => {
+  console.log(name, path)
   dkit(path, events, done)
 }
 
-const _listdirs = ({ path, entry }, done) => {
-  console.log('Listdir', path)
-  listdirs(path, entry, done)
+const _listdirs = ({ path, events, name }, done) => {
+  console.log(name, path)
+  listdirs(path, events, done)
 }
 
 function makeQueue (action, name) {
   const q = queue(action)
-  return function (path, entry, done) {
+  return function (path, events,
+    done = () => false,
+    discard = () => console.log(`${name}: ${path} already in queue`)
+  ) {
     const items = [...q]
     if (items.some(item => item.path === path)) {
-      console.log(`${name}: ${path} already in queue`)
+      discard(name, path)
     } else {
-      q.push({ path, entry }, done)
+      q.push({ path, events, name }, done)
     }
   }
 }
 
-export function enqueuedkit () {
-  return makeQueue(_dkit, 'dKit')
+export function enqueuedkit (name = 'dKit') {
+  return makeQueue(_dkit, name)
 }
 
-export function enqueueListdir () {
-  return makeQueue(_listdirs, 'Listdir')
+export function enqueueListdir (name = 'ListDir') {
+  return makeQueue(_listdirs, name)
 }

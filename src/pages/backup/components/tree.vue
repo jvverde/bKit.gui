@@ -96,7 +96,7 @@ const chokidarOptions = {
 }
 
 import * as bkit from 'src/helpers/bkit'
-const listdir = bkit.enqueueListdir()
+const listdir = bkit.enqueueListdir('Listdir on tree')
 
 export default {
   name: 'tree',

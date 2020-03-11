@@ -73,11 +73,12 @@ const chokidar = require('chokidar')
 const chokidarOptions = {
   depth: 0,
   ignoreInitial: true,
+  atomic: true,
   persistent: true
 }
 
-const listdir = bkit.enqueueListdir()
-const dkit = bkit.enqueuedkit()
+const listdir = bkit.enqueueListdir('Listdir on localexplorer')
+const dkit = bkit.enqueuedkit('dKit on localexplorer')
 
 export default {
   name: 'localexplorer',
@@ -140,7 +141,7 @@ export default {
         entry.status = 'local'
         updated.push(entry)
       }
-      console.log('Update:', fullpath)
+      this.loading = false
       this.$nextTick(() => {
         this.currentPath = fullpath
         this.select(updated)
@@ -181,20 +182,23 @@ export default {
         }
         update(entry)
       }
-      // bkit.listdirs(fullpath, { entry: update, atend: () => this.selectNextTick(entries) })
-      const done = () => this.selectNextTick(entries)
-      listdir(fullpath, update, done)
-      const done2 = () => {
-        console.log('dkit done...')
-        if (this.currentPath === fullpath) this.loading = false
-        this.selectNextTick(entries)
+      const discard = (name, path) => {
+        console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
       }
-      dkit(fullpath, {
+      listdir(fullpath, update, () => this.selectNextTick(entries), discard)
+      const events = {
         newDir: updatedir,
         chgDir: updatedir,
         newFile: update,
         chgFile: update
-      }, done2)
+      }
+      const done = () => {
+        console.log('dkit done...')
+        if (this.currentPath === fullpath) this.loading = false
+        this.selectNextTick(entries)
+      }
+      dkit(fullpath, events, done, discard)
+      this.loading = true
     }
   }
 }
