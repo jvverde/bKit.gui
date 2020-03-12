@@ -62,10 +62,9 @@ function comparenames (a, b) {
 }
 function compare (a, b) {
   if (a.isdir && b.isdir) return comparenames(a, b)
-  else if (a.isfile && b.isfile) return comparenames(a, b)
   else if (a.isdir) return -1
   else if (b.isdir) return 1
-  else return 0
+  else return comparenames(a, b)
 }
 
 import { readdir } from 'src/helpers/readfs'
@@ -74,6 +73,7 @@ const chokidarOptions = {
   depth: 0,
   ignoreInitial: true,
   atomic: true,
+  ignorePermissionErrors: true,
   persistent: true
 }
 
@@ -106,11 +106,11 @@ export default {
   },
   watch: {
     currentPath: async function (dir, oldir) {
-      console.log(`${this.currentPath} [${oldir} => ${dir}]`)
+      // console.log(`${this.currentPath} [${oldir} => ${dir}]`)
       await this.watcher.close()
       this.watcher.add(dir)
       this.watcher.on('all', (event, path) => {
-        console.log('Event:', path, event)
+        // console.log('Event:', path, event)
         this.show(dir)
       })
     }
@@ -134,19 +134,17 @@ export default {
     },
     async show (fullpath) {
       console.log('Show', fullpath)
-      const updated = []
-      this.currentfiles = []
+      const currentfiles = this.currentfiles = []
       this.loading = true
       for await (const entry of readdir(fullpath)) {
         entry.status = 'local'
-        updated.push(entry)
+        currentfiles.push(entry)
       }
       this.loading = false
-      this.$nextTick(() => {
-        this.currentPath = fullpath
-        this.select(updated)
-        this.checkdir(fullpath)
-      })
+      // apparently we don't need this.$nextTick(() => {...}
+      currentfiles.sort(compare)
+      this.currentPath = fullpath
+      this.checkdir(fullpath)
     },
     select (entries) {
       entries.sort(compare)
@@ -159,20 +157,17 @@ export default {
     },
     checkdir (fullpath) {
       // console.log(`Check ${fullpath} status on server`)
-      const entries = this.currentfiles
-      // let cnt = 0
-      let lasttime = Date.now()
+      const currentfiles = this.currentfiles
+
       const update = (entry) => {
-        const status = 'onbackup'
-        const index = entries.findIndex(e => e.path === entry.path)
+        const index = currentfiles.findIndex(e => e.path === entry.path)
         if (index > -1) {
-          entries[index] = Object.assign(entries[index], { status }, entry)
+          const newentry = Object.assign(currentfiles[index], entry)
+          currentfiles.splice(index, 1, newentry)
         } else {
-          entries.push(Object.assign({ status }, entry))
-        }
-        if (Date.now() - lasttime > 600) {
-          this.selectNextTick(entries)
-          lasttime = Date.now()
+          entry.status = 'deleted'
+          currentfiles.push(entry)
+          currentfiles.sort(compare)
         }
       }
       const updatedir = (entry) => {
@@ -185,7 +180,7 @@ export default {
       const discard = (name, path) => {
         console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
       }
-      listdir(fullpath, update, () => this.selectNextTick(entries), discard)
+      listdir(fullpath, update, () => {}, discard)
       const events = {
         newDir: updatedir,
         chgDir: updatedir,
@@ -193,9 +188,9 @@ export default {
         chgFile: update
       }
       const done = () => {
-        console.log('dkit done...')
+        console.log(`Done dKit for ${fullpath}`)
         if (this.currentPath === fullpath) this.loading = false
-        this.selectNextTick(entries)
+        this.selectNextTick(currentfiles)
       }
       dkit(fullpath, events, done, discard)
       this.loading = true

@@ -6,6 +6,7 @@
       v-model="open"
       class="b-tree"
       :ref="path"
+      :header-style="isSelected ? 'background-color:#eef' : ''"
       expand-icon="keyboard_arrow_down"
       :expand-icon-class="isdir ? 'expandicon' : 'noexpandicon'">
       <template v-slot:header> <!-- this is the header line template -->
@@ -92,6 +93,8 @@ const chokidar = require('chokidar')
 const chokidarOptions = {
   depth: 0,
   ignoreInitial: true,
+  atomic: true,
+  ignorePermissionErrors: true,
   persistent: true
 }
 
@@ -179,7 +182,7 @@ export default {
     },
     currentNode: function (fullpath) {
       if (!this.leaf && fullpath.includes(this.path)) {
-        console.log(`Watch currentNode change to ${fullpath} on ${this.path}`)
+        // console.log(`Watch currentNode change to ${fullpath} on ${this.path}`)
         this.showChildrens()
       }
     },
@@ -216,6 +219,7 @@ export default {
     checkBackup () {
       const childrens = this.childrens
       if (this.isroot || (this.isdir && this.entry.status === 'onbackup')) {
+        // Only if it is root or otherwise the parent (this) is on backup and is a directory
         const entry = (file) => {
           const index = childrens.findIndex(e => e.path === file.path)
           if (index >= 0) {
@@ -225,11 +229,7 @@ export default {
         }
         const done = () => { this.loading = false }
         this.loading = true
-        // if (bkit.qlistdir.length() < 2) {
-        // console.log('q.len', bkit.qlistdir.length())
-        // bkit.qlistdir.push({ path: this.path, entry }, done)
         listdir(this.path, entry, done)
-        // }
       }
     },
     async load () {
@@ -250,7 +250,7 @@ export default {
     if (this.isroot) this.showChildrens()
     if (this.isdir) {
       chokidar.watch(this.path, chokidarOptions).on('all', (event, path) => {
-        console.log(`[${this.path}]Event ${event} for ${path}`)
+        // console.log(`[${this.path}]Event ${event} for ${path}`)
         this.load()
       })
     }

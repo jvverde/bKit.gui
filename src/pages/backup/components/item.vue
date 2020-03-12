@@ -90,8 +90,8 @@ export default {
       loading: false,
       colorosOf: {
         deleted: 'red',
-        onbackup: 'cyan',
-        new: 'green',
+        onbackup: 'green',
+        new: 'orange',
         modified: 'amber',
         local: 'grey-4'
       }

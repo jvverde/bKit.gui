@@ -64,32 +64,32 @@ export function bash (scriptname, args, {
       icon: 'warning'
     })
   }
-}) {
-  invokequeue.push({ name: scriptname, args, onreadline, onerror }, onclose)
+}, q = invokequeue) {
+  q.push({ name: scriptname, args, onreadline, onerror }, onclose)
   return null
 }
 
 /* ------------------- */
 
-const terminate = require('terminate')
+// const terminate = require('terminate')
 
-export function stop (process) {
-  if (process && process.bkitclosed) {
-    console.log('Process already closed')
-    return
-  }
-  if (!process) {
-    console.error('Process cannot be null or undefined')
-    return
-  }
-  terminate(process.pid, (err) => {
-    if (err) {
-      console.error('Oopsy: ' + err)
-    } else {
-      console.log('Process stop done')
-    }
-  })
-}
+// export function stop (process) {
+//   if (process && process.bkitclosed) {
+//     console.log('Process already closed')
+//     return
+//   }
+//   if (!process) {
+//     console.error('Process cannot be null or undefined')
+//     return
+//   }
+//   terminate(process.pid, (err) => {
+//     if (err) {
+//       console.error('Oopsy: ' + err)
+//     } else {
+//       console.log('Process stop done')
+//     }
+//   })
+// }
 // Windows workaroud to kill a process
 // var spawn = require('child_process').spawn
 // spawn("taskkill", ["/pid", child.pid, '/f', '/t']);
@@ -143,7 +143,7 @@ export function onRsyncLine ({
     deleted({ name: path.basename(filename), path: filename, status: 'deleted' })
   }
   const onreadline = (line) => {
-    // console.log('Read Line:', line)
+    console.log('Read Line:', line)
     if (!match(line, regexpNewFile, isnewfile) &&
       !match(line, regexpChgFile, filechanged) &&
       !match(line, regexpNewDir, isnewdir) &&
@@ -161,17 +161,18 @@ export function onRsyncLine ({
 export function dkit (fullpath, events, done = () => console.log('dkit done')) {
   // console.log('events', events)
   const actions = onRsyncLine(events, done)
-  const args = ['--no-recursive', '--delete', '--dirs', `${fullpath}`]
+  // const args = ['--no-recursive', '--delete', '--dirs', `${fullpath}`]
+  const args = ['--no-recursive', '--dirs', `${fullpath}`]
   bash('./dkit.sh', args, actions)
 }
 
-const regexp = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
+const regexpList = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
 export function listdirs (fullpath, entry, done = () => console.log('List dirs done')) {
   bash('./listdirs.sh', [fullpath], {
     onclose: done,
     onreadline: (data) => {
-      // console.log('Listdir:', data)
-      const match = data.match(regexp)
+      console.log('Listdir:', data)
+      const match = data.match(regexpList)
       if (match && match[5] !== '.') { // only if not current directory
         const name = match[5]
         const status = 'onbackup'
