@@ -167,6 +167,7 @@ export function dkit (fullpath, events, done = () => console.log('dkit done')) {
 }
 
 const regexpList = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
+const onbackup = true
 export function listdirs (fullpath, entry, done = () => console.log('List dirs done')) {
   console.log(`Invoke listdir for ${fullpath}`)
   bash('./listdirs.sh', [fullpath], {
@@ -176,10 +177,9 @@ export function listdirs (fullpath, entry, done = () => console.log('List dirs d
       const match = data.match(regexpList)
       if (match && match[5] !== '.') { // only if not current directory
         const name = match[5]
-        const status = 'onbackup'
         const fullname = path.join(fullpath, name)
         const isdir = match[0].startsWith('d')
-        entry({ name, status, path: fullname, isdir })
+        entry({ name, onbackup, path: fullname, isdir })
       }
     }
   })

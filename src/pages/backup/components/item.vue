@@ -44,7 +44,7 @@
           </q-tooltip>
         </q-icon>
         <div class="bkit-text">
-          {{name}}
+          {{name}} [{{status}}]
           <span v-if="wasdeleted && hasdescendants">
             [+{{descendants}}]
           </span>
@@ -90,7 +90,7 @@ export default {
       loading: false,
       colorosOf: {
         deleted: 'red',
-        onbackup: 'green',
+        update: 'green',
         new: 'indigo-5',
         modified: 'teal-3',
         local: 'grey-4'
@@ -100,16 +100,29 @@ export default {
   computed: {
     isdir () { return this.entry.isdir },
     isfile () { return this.entry.isfile },
-    status () { return this.entry.status },
-    hasbackup () { return this.status !== 'new' && this.status !== 'local' },
+    hasbackup () { return this.entry.onbackup },
     name () { return this.entry.name },
     path () { return this.entry.path },
     descendants () { return this.entry.descendants },
     hasdescendants () { return 0 | this.descendants > 0 },
-    wasdeleted () { return this.status === 'deleted' },
+    wasdeleted () { return this.entry.onbackup && !this.entry.onlocal },
+    islocal () { return !this.entry.onbackup && this.entry.onlocal },
+    isUpdate () { return this.entry.onbackup && this.entry.onlocal },
     ismodified () { return this.status === 'modified' },
     isnew () { return this.status === 'new' },
-    hasversions () { return this.versions.length > 0 }
+    hasversions () { return this.versions.length > 0 },
+    status () {
+      if (this.entry.status) {
+        return this.entry.status
+      } else if (this.wasdeleted) {
+        return 'deleted'
+      } else if (this.isUpdate) {
+        return 'update'
+      } else if (this.islocal) {
+        return 'local'
+      }
+      return null
+    }
   },
   props: {
     entry: {

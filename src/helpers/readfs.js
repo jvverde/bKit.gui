@@ -1,7 +1,7 @@
 import { warn } from 'src/helpers/notify'
 import fs from 'fs-extra'
 const path = require('path')
-
+const onlocal = true
 export async function* readdir (dir) {
   try {
     const fullpath = path.normalize(dir)
@@ -17,11 +17,13 @@ export async function* readdir (dir) {
             path: filename,
             name: file,
             isdir,
+            onlocal,
+            status: 'local',
             isfile: !isdir,
             stat
           }
         } catch (err) {
-          warn(err)
+          warn(err, false)
         }
       }
     } else {
@@ -29,11 +31,12 @@ export async function* readdir (dir) {
       yield {
         path: fullpath,
         name,
+        onlocal,
         isfile: true,
         stat
       }
     }
   } catch (err) {
-    warn(err)
+    warn(err, false)
   }
 }

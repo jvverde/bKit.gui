@@ -172,7 +172,7 @@ export default {
       return this.open && this.isdir
     },
     onbackup () { // We should be very carefully with this one
-      return this.entry.status === 'onbackup'
+      return !!this.entry.onbackup
     }
   },
   watch: {
@@ -218,18 +218,18 @@ export default {
     },
     checkBackup () {
       const childrens = this.childrens
-      if (this.isroot || (this.isdir && this.entry.status === 'onbackup')) {
+      if (this.isroot || (this.isdir && this.onbackup)) {
         // Only if it is root or otherwise the parent (this) is on backup and is a directory
-        const entry = (file) => {
-          const index = childrens.findIndex(e => e.path === file.path)
+        const event = (entry) => {
+          const index = childrens.findIndex(e => e.path === entry.path)
           if (index >= 0) {
-            const children = Object.assign({}, childrens[index], file)
+            const children = Object.assign({}, childrens[index], entry)
             childrens.splice(index, 1, children)
           } else this.deletedChildrens++
         }
         const done = () => { this.loading = false }
         this.loading = true
-        listdir(this.path, entry, done)
+        listdir(this.path, event, done)
       }
     },
     async load () {

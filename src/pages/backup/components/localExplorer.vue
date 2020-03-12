@@ -88,7 +88,7 @@ export default {
       watcher: chokidar.watch(this.mountpoint, chokidarOptions),
       sep: path.sep,
       selectedNode: false,
-      currentPath: this.mountpoint,
+      currentPath: '',
       loading: false,
       currentfiles: [],
       root: { isdir: true, isroot: true, path: this.mountpoint }
@@ -106,7 +106,7 @@ export default {
   },
   watch: {
     currentPath: async function (dir, oldir) {
-      // console.log(`${this.currentPath} [${oldir} => ${dir}]`)
+      console.log(`${this.currentPath} [${oldir} => ${dir}]`)
       this.load(dir)
       await this.watcher.close()
       this.watcher.add(dir)
@@ -125,7 +125,7 @@ export default {
     }
   },
   mounted () {
-    this.load(this.mountpoint)
+    this.show(this.mountpoint)
   },
   methods: {
     stepto (index) {
@@ -141,34 +141,34 @@ export default {
       const currentfiles = this.currentfiles = []
       this.loading = true
       for await (const entry of readdir(fullpath)) {
-        entry.status = 'local'
-        currentfiles.push(entry)
+        // prevent the situation where dir path is no longer the current path
+        if (this.currentPath === fullpath) currentfiles.push(entry)
       }
       this.loading = false
-      // apparently we don't need this.$nextTick(() => {...}
       currentfiles.sort(compare)
       this.checkdir(fullpath)
     },
-    select (entries) {
+    refresh (entries = this.currentfiles) {
       entries.sort(compare)
       this.currentfiles = [...entries]
     },
-    selectNextTick (entries) {
-      this.$nextTick(() => {
-        this.select(entries)
+    refreshNextTick () {
+      return this.$nextTick(() => {
+        this.refresh()
       })
     },
     checkdir (fullpath) {
-      console.log(`Check ${fullpath} status on server`)
+      if (this.currentPath !== fullpath) return // only if it still the current path
+      // console.log(`Check ${fullpath} status on server`)
       const currentfiles = this.currentfiles
 
       const update = (entry) => {
+        if (this.currentPath !== fullpath) return // only if it still the current path
         const index = currentfiles.findIndex(e => e.path === entry.path)
         if (index > -1) {
           const newentry = Object.assign(currentfiles[index], entry)
           currentfiles.splice(index, 1, newentry)
         } else {
-          entry.status = 'deleted'
           currentfiles.push(entry)
           currentfiles.sort(compare)
         }
@@ -192,7 +192,7 @@ export default {
       const done = () => {
         console.log(`Done dKit for ${fullpath}`)
         if (this.currentPath === fullpath) this.loading = false
-        this.selectNextTick(currentfiles)
+        this.refreshNextTick()
       }
       dkit(fullpath, events, done, discard)
       this.loading = true
