@@ -168,6 +168,7 @@ export function dkit (fullpath, events, done = () => console.log('dkit done')) {
 
 const regexpList = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
 export function listdirs (fullpath, entry, done = () => console.log('List dirs done')) {
+  console.log(`Invoke listdir for ${fullpath}`)
   bash('./listdirs.sh', [fullpath], {
     onclose: done,
     onreadline: (data) => {

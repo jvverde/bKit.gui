@@ -107,11 +107,11 @@ export default {
   watch: {
     currentPath: async function (dir, oldir) {
       // console.log(`${this.currentPath} [${oldir} => ${dir}]`)
+      this.load(dir)
       await this.watcher.close()
       this.watcher.add(dir)
       this.watcher.on('all', (event, path) => {
-        // console.log('Event:', path, event)
-        this.show(dir)
+        this.load(dir)
       })
     }
   },
@@ -125,6 +125,7 @@ export default {
     }
   },
   mounted () {
+    this.load(this.mountpoint)
   },
   methods: {
     stepto (index) {
@@ -132,8 +133,11 @@ export default {
       console.log('go to', fullpath)
       this.show(fullpath)
     },
-    async show (fullpath) {
-      console.log('Show', fullpath)
+    show (fullpath) {
+      this.currentPath = fullpath
+    },
+    async load (fullpath) {
+      console.log('Load', fullpath)
       const currentfiles = this.currentfiles = []
       this.loading = true
       for await (const entry of readdir(fullpath)) {
@@ -143,7 +147,6 @@ export default {
       this.loading = false
       // apparently we don't need this.$nextTick(() => {...}
       currentfiles.sort(compare)
-      this.currentPath = fullpath
       this.checkdir(fullpath)
     },
     select (entries) {
@@ -156,7 +159,7 @@ export default {
       })
     },
     checkdir (fullpath) {
-      // console.log(`Check ${fullpath} status on server`)
+      console.log(`Check ${fullpath} status on server`)
       const currentfiles = this.currentfiles
 
       const update = (entry) => {
@@ -171,15 +174,14 @@ export default {
         }
       }
       const updatedir = (entry) => {
-        if (path.dirname(entry.path) !== fullpath) {
+        if (path.dirname(entry.path) !== fullpath || entry.path === this.mountpoint) {
+          // ignore all parents and the mountpoint
           console.log('Discard dir', entry.path)
           return
         }
         update(entry)
       }
-      const discard = (name, path) => {
-        console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
-      }
+      const discard = (name, path) => console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
       listdir(fullpath, update, () => {}, discard)
       const events = {
         newDir: updatedir,
