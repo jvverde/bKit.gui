@@ -65,7 +65,7 @@ export function bash (scriptname, args, {
     })
   }
 }, q = invokequeue) {
-  console.log('q=', q)
+  // console.log('q=', q)
   q.push({ name: scriptname, args, onreadline, onerror }, onclose)
   return null
 }
@@ -161,28 +161,31 @@ export function onRsyncLine ({
   }
 }
 
-export function dkit (fullpath, events, done = () => console.log('dkit done')) {
+export function dkit (args, events, done = () => console.log('dkit done')) {
   // console.log('events', events)
   const actions = onRsyncLine(events, done)
   // const args = ['--no-recursive', '--delete', '--dirs', `${fullpath}`]
-  const args = ['--no-recursive', '--dirs', `${fullpath}`]
-  bash('./dkit.sh', args, actions)
+  const fullargs = ['--no-recursive', '--dirs', ...args]
+  bash('./dkit.sh', fullargs, actions)
 }
 
 const regexpList = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
 const onbackup = true
-export function listdirs (fullpath, entry, done = () => console.log('List dirs done')) {
-  console.log(`Invoke listdir for ${fullpath}`)
-  bash('./listdirs.sh', [fullpath], {
+export function listdirs (args, entry, done = () => console.log('List dirs done')) {
+  console.log(`Invoke listdir for ${args[0]}`)
+  bash('./listdirs.sh', args, {
     onclose: done,
     onreadline: (data) => {
       console.log('Listdir:', data)
       const match = data.match(regexpList)
       if (match && match[5] !== '.') { // only if not current directory
         const name = match[5]
-        const fullname = path.join(fullpath, name)
-        const isdir = match[0].startsWith('d')
-        entry({ name, onbackup, path: fullname, isdir })
+        const fullname = path.join(args[0], name)
+        const isdir = match[1].startsWith('d')
+        const isregular = match[1].startsWith('-')
+        const date = `${match[3]} ${match[4]}`
+        const size = match[2]
+        entry({ name, onbackup, path: fullname, isdir, isregular, date, size })
       }
     }
   })
@@ -193,22 +196,22 @@ const _dkit = ({ path, events, name }, done) => {
   dkit(path, events, done)
 }
 
-const _listdirs = ({ path, events, name }, done) => {
-  console.log(name, path)
-  listdirs(path, events, done)
+const _listdirs = ({ args, events, name }, done) => {
+  console.log(name, args[0])
+  listdirs(args, events, done)
 }
 
 function makeQueue (action, name) {
   const q = queue(action)
-  return function (path, events,
+  return function (args, events,
     done = () => false,
-    discard = () => console.log(`${name}: ${path} already in queue`)
+    discard = () => console.log(`${name}: ${args[0]} already in queue`)
   ) {
     const items = [...q]
-    if (items.some(item => item.path === path)) {
-      discard(name, path)
+    if (items.some(item => item.path === args[0])) {
+      discard(name, args[0])
     } else {
-      q.push({ path, events, name }, done)
+      q.push({ args, events, name }, done)
     }
   }
 }

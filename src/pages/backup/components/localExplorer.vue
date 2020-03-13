@@ -187,7 +187,7 @@ export default {
         update(entry)
       }
       const discard = (name, path) => console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
-      listdir(fullpath, update, () => {}, discard)
+      listdir([fullpath], update, () => {}, discard)
       if (fs.existsSync(fullpath)) {
         const events = {
           newDir: updatedir,
@@ -202,7 +202,7 @@ export default {
             // this.refreshNextTick()
           }
         }
-        dkit(fullpath, events, done, discard)
+        dkit([fullpath], events, done, discard)
       }
       this.loading = true
     }

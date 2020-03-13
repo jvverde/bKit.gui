@@ -121,10 +121,13 @@
 <script>
 const moment = require('moment')
 moment.locale('en')
-const regexpSize = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
+// const regexpSize = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
 import snaps from './Snaps'
 import askuser from './Askuser'
 import * as bkit from 'src/helpers/bkit'
+
+const listdir = bkit.enqueueListdir('Listdir on remoteexplorer')
+
 export default {
   name: 'backupexplorer',
   components: {
@@ -202,40 +205,63 @@ export default {
         if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
         return 0
       }
-      bkit.bash('./listdirs.sh', [
-        `--rvid=${this.disk.rvid}`,
-        `--snap=${this.currentsnap}`,
-        `${key}/`
-      ], {
-        onreadline: (data) => {
-          console.log('Data:', data)
-          const match = data.match(regexpSize)
-          if (!match) return
-          if (match[5] === '.') return // omitt . directory
-          const entry = {
-            isdir: match[1].match(/^d/) !== null,
-            isregular: match[1].match(/^-/) !== null,
-            path: `${key}/${match[5]}`,
-            name: match[5],
-            date: `${match[3]} ${match[4]}`,
-            size: match[2]
-          }
-          if (entry.isdir) {
-            dirs.push(Object.assign({}, entry, { icon: 'folder', lazy: true, body: '' }))
-          }
-          nodes.push(entry)
-        },
-        onclose: () => {
-          console.log('done listdirs.sh')
-          dirs.sort(compare)
-          nodes.sort(compare)
-          node.nodes = nodes
-          done(dirs)
-          this.$nextTick(() => {
-            if (this.selected === key) this.currentnodes = node.nodes
-          })
+      const atend = () => {
+        console.log('done listdirs.sh')
+        dirs.sort(compare)
+        nodes.sort(compare)
+        node.nodes = nodes
+        done(dirs)
+        this.$nextTick(() => {
+          if (this.selected === key) this.currentnodes = node.nodes
+        })
+      }
+      const discard = (name, path) => console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
+      const update = (entry) => {
+        Object.assign(entry, { icon: 'folder', lazy: true, body: '', path: `${key}/${entry.name}` })
+        const index = dirs.findIndex(e => e.path === entry.path)
+        if (index > -1) {
+          const newentry = Object.assign(dirs[index], entry)
+          dirs.splice(index, 1, newentry)
+        } else if (entry.isdir) {
+          dirs.push(entry)
         }
-      })
+        nodes.push(entry)
+      }
+      listdir([`--rvid=${this.disk.rvid}`, `--snap=${this.currentsnap}`, `${key}/`], update, atend, discard)
+      // bkit.bash('./listdirs.sh', [
+      //   `--rvid=${this.disk.rvid}`,
+      //   `--snap=${this.currentsnap}`,
+      //   `${key}/`
+      // ], {
+      //   onreadline: (data) => {
+      //     console.log('Data:', data)
+      //     const match = data.match(regexpSize)
+      //     if (!match) return
+      //     if (match[5] === '.') return // omitt . directory
+      //     const entry = {
+      //       isdir: match[1].match(/^d/) !== null,
+      //       isregular: match[1].match(/^-/) !== null,
+      //       path: `${key}/${match[5]}`,
+      //       name: match[5],
+      //       date: `${match[3]} ${match[4]}`,
+      //       size: match[2]
+      //     }
+      //     if (entry.isdir) {
+      //       dirs.push(Object.assign({}, entry, { icon: 'folder', lazy: true, body: '' }))
+      //     }
+      //     nodes.push(entry)
+      //   },
+      //   onclose: () => {
+      //     console.log('done listdirs.sh')
+      //     dirs.sort(compare)
+      //     nodes.sort(compare)
+      //     node.nodes = nodes
+      //     done(dirs)
+      //     this.$nextTick(() => {
+      //       if (this.selected === key) this.currentnodes = node.nodes
+      //     })
+      //   }
+      // })
     }
   },
   mounted () {
