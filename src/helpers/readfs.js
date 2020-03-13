@@ -18,7 +18,6 @@ export async function* readdir (dir) {
             name: file,
             isdir,
             onlocal,
-            status: 'local',
             isfile: !isdir,
             stat
           }

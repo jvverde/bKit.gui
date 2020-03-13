@@ -110,6 +110,8 @@ const regexpChgDir = /^[.]d.{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 const regexpChgFile = /^[><]f.(?:s.|.t).{6}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 const regexpDelete = /^[*]deleting\s*[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 
+const [isnew, wasmodified, wasdeleted] = [true, true, true]
+
 export function onRsyncLine ({
   newFile = () => false,
   newDir = () => false,
@@ -128,19 +130,19 @@ export function onRsyncLine ({
     return false
   }
   const isnewfile = (filename) => {
-    newFile({ name: path.basename(filename), path: filename, status: 'new', isfile: true })
+    newFile({ name: path.basename(filename), path: filename, isnew, isfile: true })
   }
   const isnewdir = (filename) => {
-    newDir({ name: path.basename(filename), path: filename, status: 'new', isdir: true })
+    newDir({ name: path.basename(filename), path: filename, isnew, isdir: true })
   }
   const filechanged = (filename) => {
-    chgFile({ name: path.basename(filename), path: filename, status: 'modified', isfile: true })
+    chgFile({ name: path.basename(filename), path: filename, wasmodified, isfile: true })
   }
   const dirchanged = (filename) => {
-    chgDir({ name: path.basename(filename), path: filename, status: 'modified', isdir: true })
+    chgDir({ name: path.basename(filename), path: filename, wasmodified, isdir: true })
   }
   const entrydeleted = (filename) => {
-    deleted({ name: path.basename(filename), path: filename, status: 'deleted' })
+    deleted({ name: path.basename(filename), path: filename, wasdeleted })
   }
   const onreadline = (line) => {
     console.log('Read Line:', line)

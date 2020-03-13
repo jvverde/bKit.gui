@@ -35,7 +35,7 @@
           <item
             v-for="entry in currentfiles"
             :key="entry.path"
-            :entry="entry"
+            v-bind="entry"
             @open="show"
             class="column"/>
           <q-inner-loading :showing="loading">
@@ -141,6 +141,7 @@ export default {
       const currentfiles = this.currentfiles = []
       this.loading = true
       for await (const entry of readdir(fullpath)) {
+        entry.checked = false
         // prevent the situation where dir path is no longer the current path
         if (this.currentPath === fullpath) currentfiles.push(entry)
       }
@@ -148,13 +149,15 @@ export default {
       currentfiles.sort(compare)
       this.checkdir(fullpath)
     },
-    refresh (entries = this.currentfiles) {
+    refresh (entries) {
       entries.sort(compare)
       this.currentfiles = [...entries]
+      // console.log(this.currentfiles)
     },
-    refreshNextTick () {
+    refreshNextTick (currentfiles = this.currentfiles) {
+      this.currentfiles = []
       return this.$nextTick(() => {
-        this.refresh()
+        this.refresh(currentfiles)
       })
     },
     checkdir (fullpath) {
@@ -164,6 +167,7 @@ export default {
 
       const update = (entry) => {
         if (this.currentPath !== fullpath) return // only if it still the current path
+        entry.checked = true
         const index = currentfiles.findIndex(e => e.path === entry.path)
         if (index > -1) {
           const newentry = Object.assign(currentfiles[index], entry)
@@ -191,8 +195,10 @@ export default {
       }
       const done = () => {
         console.log(`Done dKit for ${fullpath}`)
-        if (this.currentPath === fullpath) this.loading = false
-        this.refreshNextTick()
+        if (this.currentPath === fullpath) {
+          this.loading = false
+          // this.refreshNextTick()
+        }
       }
       dkit(fullpath, events, done, discard)
       this.loading = true
