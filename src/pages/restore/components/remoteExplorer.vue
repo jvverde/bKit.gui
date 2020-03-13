@@ -208,6 +208,7 @@ export default {
         `${key}/`
       ], {
         onreadline: (data) => {
+          console.log('Data:', data)
           const match = data.match(regexpSize)
           if (!match) return
           if (match[5] === '.') return // omitt . directory
@@ -223,15 +224,17 @@ export default {
             dirs.push(Object.assign({}, entry, { icon: 'folder', lazy: true, body: '' }))
           }
           nodes.push(entry)
+        },
+        onclose: () => {
+          console.log('done listdirs.sh')
+          dirs.sort(compare)
+          nodes.sort(compare)
+          node.nodes = nodes
+          done(dirs)
+          this.$nextTick(() => {
+            if (this.selected === key) this.currentnodes = node.nodes
+          })
         }
-      }, () => {
-        dirs.sort(compare)
-        nodes.sort(compare)
-        node.nodes = nodes
-        done(dirs)
-        this.$nextTick(() => {
-          if (this.selected === key) this.currentnodes = node.nodes
-        })
       })
     }
   },

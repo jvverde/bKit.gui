@@ -65,6 +65,7 @@ export function bash (scriptname, args, {
     })
   }
 }, q = invokequeue) {
+  console.log('q=', q)
   q.push({ name: scriptname, args, onreadline, onerror }, onclose)
   return null
 }
