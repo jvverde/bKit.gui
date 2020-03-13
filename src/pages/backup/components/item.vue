@@ -147,8 +147,8 @@ export default {
   },
   methods: {
     open () {
-      console.log('open:', this.entry.path)
-      this.$emit('open', this.entry.path)
+      console.log('open:', this.path)
+      this.$emit('open', this.path)
     },
     async getVersions () {
       console.log('getVersions')

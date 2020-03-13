@@ -54,6 +54,7 @@ import tree from './tree'
 import item from './item'
 // import fs from 'fs-extra'
 const path = require('path')
+const fs = require('fs')
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -187,20 +188,22 @@ export default {
       }
       const discard = (name, path) => console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
       listdir(fullpath, update, () => {}, discard)
-      const events = {
-        newDir: updatedir,
-        chgDir: updatedir,
-        newFile: update,
-        chgFile: update
-      }
-      const done = () => {
-        console.log(`Done dKit for ${fullpath}`)
-        if (this.currentPath === fullpath) {
-          this.loading = false
-          // this.refreshNextTick()
+      if (fs.existsSync(fullpath)) {
+        const events = {
+          newDir: updatedir,
+          chgDir: updatedir,
+          newFile: update,
+          chgFile: update
         }
+        const done = () => {
+          console.log(`Done dKit for ${fullpath}`)
+          if (this.currentPath === fullpath) {
+            this.loading = false
+            // this.refreshNextTick()
+          }
+        }
+        dkit(fullpath, events, done, discard)
       }
-      dkit(fullpath, events, done, discard)
       this.loading = true
     }
   }

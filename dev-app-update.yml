@@ -1,0 +1,3 @@
+provider: generic
+url: 'http://gui.bkit.pt/download/'
+updaterCacheDirName: bkit-gui-updater
