@@ -191,26 +191,26 @@ export function listdirs (args, entry, done = () => console.log('List dirs done'
   })
 }
 
-const _dkit = ({ path, events, name }, done) => {
-  console.log(name, path)
-  dkit(path, events, done)
+const _dkit = ({ args, events, name }, done) => {
+  console.log(name, args)
+  dkit(args, events, done)
 }
 
 const _listdirs = ({ args, events, name }, done) => {
-  console.log(name, args[0])
+  console.log(name, args)
   listdirs(args, events, done)
 }
 
+const _discard = (name, path) => console.log(`${name}: ${path} already in queue`)
+
 function makeQueue (action, name) {
   const q = queue(action)
-  return function (args, events,
-    done = () => false,
-    discard = () => console.log(`${name}: ${args[0]} already in queue`)
-  ) {
+  return function (path, args, events, done = () => false, discard = _discard) {
     const items = [...q]
-    if (items.some(item => item.path === args[0])) {
-      discard(name, args[0])
+    if (items.some(item => item.path === path)) {
+      discard(name, path)
     } else {
+      args.push(path)
       q.push({ args, events, name }, done)
     }
   }

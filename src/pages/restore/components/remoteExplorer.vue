@@ -227,7 +227,7 @@ export default {
         }
         nodes.push(entry)
       }
-      listdir([`--rvid=${this.disk.rvid}`, `--snap=${this.currentsnap}`, `${key}/`], update, atend, discard)
+      listdir(`${key}/`, [`--rvid=${this.disk.rvid}`, `--snap=${this.currentsnap}`], update, atend, discard)
       // bkit.bash('./listdirs.sh', [
       //   `--rvid=${this.disk.rvid}`,
       //   `--snap=${this.currentsnap}`,

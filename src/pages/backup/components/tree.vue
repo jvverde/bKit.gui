@@ -229,7 +229,7 @@ export default {
         }
         const done = () => { this.loading = false }
         this.loading = true
-        listdir([this.path], event, done)
+        listdir(this.path, [], event, done)
       }
     },
     async load () {
