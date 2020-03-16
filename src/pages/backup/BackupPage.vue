@@ -99,8 +99,11 @@ export default {
   mounted () {
     bkit.getLocalDisks({
       onclose: () => { this.loading = false },
-      onreadline: (drive) => {
-        this.disks.push(drive)
+      onreadline: (line) => {
+        // const [name, label, uuid, fs] = line.split(/\|/)
+        const [name, ...others] = line.split(/\|/)
+        console.log('extras...', others)
+        this.disks.push(name)
       }
     })
     this.loading = true

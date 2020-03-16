@@ -171,22 +171,23 @@ export function dkit (args, events, done = () => console.log('dkit done')) {
   bash('./dkit.sh', fullargs, actions)
 }
 
-const regexpList = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
+const regexpList = /(?<list>[a-z-]+)\s+(?<size>[0-9,]+)\s+(?<sdate>[0-9/]+)\s+(?<time>[0-9:]+)\s+(?<name>.+)/
 const onbackup = true
 export function listdirs (args, entry, done = () => console.log('List dirs done')) {
-  console.log(`Invoke listdir for ${args[0]}`)
+  const fullpath = args[args.length - 1]
+  console.log(`Invoke listdir for ${fullpath}`)
   bash('./listdirs.sh', args, {
     onclose: done,
     onreadline: (data) => {
       console.log('Listdir:', data)
       const match = data.match(regexpList)
-      if (match && match[5] !== '.') { // only if not current directory
-        const name = match[5]
-        const fullname = path.join(args[0], name)
-        const isdir = match[1].startsWith('d')
-        const isregular = match[1].startsWith('-')
-        const date = `${match[3]} ${match[4]}`
-        const size = match[2]
+      const { groups: { list, size, sdate, time, name } } = match || { groups: {} }
+      console.log('list:', list)
+      if (match && name !== '.') { // only if not current directory
+        const fullname = path.join(fullpath, name)
+        const isdir = list.startsWith('d')
+        const isregular = list.startsWith('-')
+        const date = `${sdate} ${time}`
         entry({ name, onbackup, path: fullname, isdir, isregular, date, size })
       }
     }
@@ -228,7 +229,8 @@ export function enqueueListdir (name = 'ListDir') {
 /* -------------------------------------- */
 
 export function getLocalDisks (events) {
-  return bash('./lib/local/listdisks.sh', [], events, localQueue)
+  // return bash('./lib/local/listdisks.sh', [], events, localQueue)
+  return bash('./lib/getdevs.sh', [], events, localQueue)
 }
 
 export function getDisks ({ onclose, entry }) {
