@@ -59,6 +59,19 @@
 <script>
 // import fileexplorer from './components/fileExplorer'
 // import restore from './components/Restore'
+
+// var developer = {
+//   title: 'Developer',
+//   department: 'I.T.',
+//   location: 'Building 3, 2nd Floor'
+// }
+
+// var techLeadTitle = { title: 'Tech Lead', location: 'new location' }
+
+// var techLead = { ...developer, ...techLeadTitle }
+
+// console.log(techLead)
+
 import localexplorer from './components/localExplorer'
 import * as bkit from 'src/helpers/bkit'
 export default {

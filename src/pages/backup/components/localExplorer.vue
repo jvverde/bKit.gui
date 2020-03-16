@@ -171,7 +171,8 @@ export default {
         entry.checked = true
         const index = currentfiles.findIndex(e => e.path === entry.path)
         if (index > -1) {
-          const newentry = Object.assign(currentfiles[index], entry)
+          // const newentry = Object.assign(currentfiles[index], entry)
+          const newentry = { ...currentfiles[index], ...entry }
           currentfiles.splice(index, 1, newentry)
         } else {
           currentfiles.push(entry)

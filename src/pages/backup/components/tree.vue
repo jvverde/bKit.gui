@@ -223,7 +223,7 @@ export default {
         const event = (entry) => {
           const index = childrens.findIndex(e => e.path === entry.path)
           if (index >= 0) {
-            const children = Object.assign({}, childrens[index], entry)
+            const children = { ...childrens[index], ...entry }
             childrens.splice(index, 1, children)
           } else this.deletedChildrens++
         }
