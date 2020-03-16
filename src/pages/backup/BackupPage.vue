@@ -10,13 +10,12 @@
         dense
         no-caps
         switch-indicator
-        inline-label
         active-bg-color="grey-2"
         active-color="primary">
         <q-tab
           v-for="disk in disks"
-          :key="disk"
-          :name="disk"
+          :key="disk.uuid"
+          :name="disk.uuid"
           icon="far fa-hdd"
           :label="diskname(disk)">
         </q-tab>
@@ -32,10 +31,10 @@
         <q-tab-panels v-model="disktab" animated keep-alive class="bkit-panels">
           <q-tab-panel
             class="bkit-panel"
-            :name="disk"
+            :name="disk.uuid"
             v-for="disk in disks"
-            :key="disk">
-              <localexplorer :mountpoint="disk" @backup="backup"/>
+            :key="disk.uuid">
+              <localexplorer :mountpoint="disk.mountpoint" @backup="backup"/>
           </q-tab-panel>
         </q-tab-panels>
         <q-inner-loading :showing="loading">
@@ -93,17 +92,52 @@ export default {
       console.log('dobackup')
     },
     diskname  (disk) {
-      return disk.replace(/\\$/, '')
+      const name = disk.name.replace(/\\$/, '')
+      if (name && name !== '_' && disk.label && disk.label !== '_') {
+        return `${name} [${disk.label}]`
+      } else if (name && name !== '_') {
+        return `${name}`
+      } else if (disk.label && disk.label !== '_') {
+        return `[${disk.label}]`
+      } else return `(${disk.uuid})`
+    },
+    getDisksOnBackup () {
+      bkit.getDisksOnBackup({
+        onreadline: (rvid) => {
+          console.log('LISTDISK:', rvid)
+          const [letter, uuid, label] = rvid.split('.')
+          const index = this.disks.findIndex(e => e.uuid === uuid)
+          if (index >= 0) {
+            const disk = this.disks[index]
+            console.log('found disk', disk)
+            const disk2 = { ...disk, rvid, letter, present: true }
+            this.disks.splice(index, 1, disk2)
+          } else {
+            this.disks.push({
+              name: letter,
+              rvid,
+              uuid,
+              label,
+              letter,
+              mountpoint: '*',
+              present: false
+            })
+          }
+        }
+      })
     }
   },
   mounted () {
     bkit.getLocalDisks({
-      onclose: () => { this.loading = false },
+      onclose: () => {
+        this.loading = false
+        this.getDisksOnBackup()
+      },
       onreadline: (line) => {
         // const [name, label, uuid, fs] = line.split(/\|/)
-        const [name, ...others] = line.split(/\|/)
-        console.log('extras...', others)
-        this.disks.push(name)
+        const [mountpoint, label, uuid, fs] = line.split(/\|/)
+        const name = mountpoint
+        this.disks.push({ name, mountpoint, label, uuid, fs })
       }
     })
     this.loading = true

@@ -229,8 +229,11 @@ export function enqueueListdir (name = 'ListDir') {
 /* -------------------------------------- */
 
 export function getLocalDisks (events) {
-  // return bash('./lib/local/listdisks.sh', [], events, localQueue)
   return bash('./lib/getdevs.sh', [], events, localQueue)
+}
+
+export function getDisksOnBackup (events) {
+  return bash('./listdisks.sh', [], events, remoteQueue)
 }
 
 export function getDisks ({ onclose, entry }) {
