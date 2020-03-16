@@ -19,7 +19,7 @@ if (process.platform === 'win32') {
 
 const bKitPath = ipcRenderer.sendSync('getbKitPath')
 
-import { Notify } from 'quasar'
+import { warn } from './notify'
 
 export function user () {
   return username
@@ -51,23 +51,25 @@ export function shell () {
   fd.unref()
 }
 
-const invokequeue = queue(invoke)
+const defaultQueue = queue(invoke) // default queue to serialize requests
+export const localQueue = queue(invoke) // queue for run local scripts
+export const remoteQueue = queue(invoke) // queue for run remote scripts
 
 export function bash (scriptname, args, {
   onclose = () => console.log('Close', scriptname),
-  onreadline = () => {},
-  onerror = (err) => {
-    console.error(`Error calling script ${scriptname}: ${err}`)
-    Notify.create({
-      message: `${scriptname}: ${err}`,
-      multiline: true,
-      icon: 'warning'
-    })
-  }
-}, q = invokequeue) {
-  // console.log('q=', q)
+  onreadline = () => false,
+  onerror = (err) => warn(`Error calling script ${scriptname}: ${err}`)
+}, q = defaultQueue) {
   q.push({ name: scriptname, args, onreadline, onerror }, onclose)
   return null
+}
+
+export function newBashQueue () {
+  return queue(invoke)
+}
+
+export function newQueue (task) {
+  return queue(task)
 }
 
 /* ------------------- */
@@ -208,7 +210,7 @@ function makeQueue (action, name) {
   return function (path, args, events, done = () => false, discard = _discard) {
     const items = [...q]
     if (items.some(item => item.path === path)) {
-      discard(name, path)
+      discard(name, path) // discard request for the same path
     } else {
       args.push(path)
       q.push({ args, events, name }, done)
@@ -222,4 +224,37 @@ export function enqueuedkit (name = 'dKit') {
 
 export function enqueueListdir (name = 'ListDir') {
   return makeQueue(_listdirs, name)
+}
+/* -------------------------------------- */
+
+export function getLocalDisks (events) {
+  return bash('./lib/local/listdisks.sh', [], events, localQueue)
+}
+
+export function getDisks ({ onclose, entry }) {
+  bash('./listdisks.sh', [], {
+    onclose,
+    onreadline: (rvid) => {
+      console.log('LISTDISK:', rvid)
+      let [ letter, uuid, label, , ] = rvid.split('.')
+      let name = ''
+      if (letter !== '_') {
+        name = letter + ':'
+        if (label !== '_') name += ` [${label}]`
+      } else if (label !== '_') {
+        name = label
+      } else {
+        name = uuid
+      }
+      entry({
+        name,
+        rvid,
+        uuid,
+        label,
+        letter,
+        mountpoint: '*',
+        present: false
+      })
+    }
+  }, remoteQueue)
 }

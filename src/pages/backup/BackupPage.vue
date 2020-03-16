@@ -65,7 +65,7 @@ export default {
   name: 'Backup',
   data () {
     return {
-      loading: true,
+      loading: false,
       splitter: 95,
       disktab: '',
       disks: [],
@@ -84,18 +84,13 @@ export default {
     }
   },
   mounted () {
-    bkit.bash('./lib/local/listdisks.sh', [], {
-      onclose: (code) => {
-        this.$nextTick(() => {
-          this.loading = false
-          // if (this.disks.length === 1) this.select(0)
-        })
-      },
+    bkit.getLocalDisks({
+      onclose: () => { this.loading = false },
       onreadline: (drive) => {
-        console.log('list local disks:', drive)
         this.disks.push(drive)
       }
     })
+    this.loading = true
   }
 }
 </script>
