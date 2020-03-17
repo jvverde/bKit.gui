@@ -5,7 +5,6 @@
       <span class="text-center">Local Disks</span>
       <q-tabs
         v-model="disktab"
-        align="left"
         vertical
         dense
         no-caps
@@ -17,6 +16,7 @@
           :key="disk.uuid"
           :name="disk.uuid"
           icon="far fa-hdd"
+          :alert="alert(disk)"
           :label="diskname(disk)">
         </q-tab>
       </q-tabs>
@@ -91,8 +91,15 @@ export default {
     backup () {
       console.log('dobackup')
     },
+    alert (disk) {
+      if (disk.present === true) {
+        return 'green'
+      } else if (disk.present === false) {
+        return 'red'
+      } else return false
+    },
     diskname  (disk) {
-      const name = disk.name.replace(/\\$/, '')
+      const name = disk.name.replace(/\\$|\/$/, '')
       if (name && name !== '_' && disk.label && disk.label !== '_') {
         return `${name} [${disk.label}]`
       } else if (name && name !== '_') {
@@ -119,7 +126,7 @@ export default {
               uuid,
               label,
               letter,
-              mountpoint: '*',
+              mountpoint: '',
               present: false
             })
           }
