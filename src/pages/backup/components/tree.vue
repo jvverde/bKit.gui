@@ -165,6 +165,9 @@ export default {
     name () {
       return this.isroot ? this.path : path.basename(this.path)
     },
+    rvid () {
+      return this.entry.rvid
+    },
     leaf () {
       return !this.isdir
     },
@@ -217,6 +220,7 @@ export default {
       })
     },
     checkBackup () {
+      if (!this.rvid) return
       const childrens = this.childrens
       if (this.isroot || (this.isdir && this.onbackup)) {
         // Only if it is root or otherwise the parent (this) is on backup and is a directory

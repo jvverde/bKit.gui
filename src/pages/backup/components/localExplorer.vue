@@ -86,19 +86,23 @@ export default {
   data () {
     return {
       verticalSplitter: 55,
-      watcher: chokidar.watch(this.mountpoint, chokidarOptions),
+      watcher: undefined,
       sep: path.sep,
       selectedNode: false,
       currentPath: '',
       loading: false,
       currentfiles: [],
-      root: { isdir: true, isroot: true, path: this.mountpoint }
+      root: { isdir: true, isroot: true, path: this.mountpoint, rvid: this.rvid }
     }
   },
   props: {
     mountpoint: {
       type: String,
       required: true
+    },
+    rvid: {
+      type: String,
+      default: undefined
     }
   },
   components: {
@@ -109,11 +113,17 @@ export default {
     currentPath: async function (dir, oldir) {
       console.log(`${this.currentPath} [${oldir} => ${dir}]`)
       this.load(dir)
-      await this.watcher.close()
-      this.watcher.add(dir)
-      this.watcher.on('all', (event, path) => {
-        this.load(dir)
-      })
+      if (this.mountpoint) { // only if is a local drive/disk
+        if (this.watcher) {
+          await this.watcher.close()
+          this.watcher.add(dir)
+        } else {
+          this.watcher = chokidar.watch(dir, chokidarOptions)
+        }
+        this.watcher.on('all', (event, path) => {
+          this.load(dir)
+        })
+      }
     }
   },
   computed: {
@@ -162,6 +172,7 @@ export default {
       })
     },
     checkdir (fullpath) {
+      if (!this.rvid) return
       if (this.currentPath !== fullpath) return // only if it still the current path
       // console.log(`Check ${fullpath} status on server`)
       const currentfiles = this.currentfiles
@@ -171,7 +182,6 @@ export default {
         entry.checked = true
         const index = currentfiles.findIndex(e => e.path === entry.path)
         if (index > -1) {
-          // const newentry = Object.assign(currentfiles[index], entry)
           const newentry = { ...currentfiles[index], ...entry }
           currentfiles.splice(index, 1, newentry)
         } else {

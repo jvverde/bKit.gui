@@ -34,7 +34,7 @@
             :name="disk.uuid"
             v-for="disk in disks"
             :key="disk.uuid">
-              <localexplorer :mountpoint="disk.mountpoint" @backup="backup"/>
+              <localexplorer v-bind="disk" @backup="backup"/>
           </q-tab-panel>
         </q-tab-panels>
         <q-inner-loading :showing="loading">
@@ -101,12 +101,12 @@ export default {
     diskname  (disk) {
       const name = disk.name.replace(/\\$|\/$/, '')
       if (name && name !== '_' && disk.label && disk.label !== '_') {
-        return `${name} [${disk.label}]`
+        return `${disk.label} (${name})`
       } else if (name && name !== '_') {
         return `${name}`
       } else if (disk.label && disk.label !== '_') {
-        return `[${disk.label}]`
-      } else return `(${disk.uuid})`
+        return `${disk.label}`
+      } else return `[${disk.uuid}]`
     },
     getDisksOnBackup () {
       bkit.getDisksOnBackup({
@@ -115,20 +115,10 @@ export default {
           const [letter, uuid, label] = rvid.split('.')
           const index = this.disks.findIndex(e => e.uuid === uuid)
           if (index >= 0) {
-            const disk = this.disks[index]
-            console.log('found disk', disk)
-            const disk2 = { ...disk, rvid, letter, present: true }
-            this.disks.splice(index, 1, disk2)
+            const updatedisk = { ...this.disks[index], rvid, letter, present: true }
+            this.disks.splice(index, 1, updatedisk) // as requested by Vue reactiveness
           } else {
-            this.disks.push({
-              name: letter,
-              rvid,
-              uuid,
-              label,
-              letter,
-              mountpoint: '',
-              present: false
-            })
+            this.disks.push({ name: letter, rvid, uuid, label, letter, mountpoint: undefined, present: false })
           }
         }
       })
@@ -141,7 +131,6 @@ export default {
         this.getDisksOnBackup()
       },
       onreadline: (line) => {
-        // const [name, label, uuid, fs] = line.split(/\|/)
         const [mountpoint, label, uuid, fs] = line.split(/\|/)
         const name = mountpoint
         this.disks.push({ name, mountpoint, label, uuid, fs })
