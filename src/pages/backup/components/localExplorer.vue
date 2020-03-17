@@ -24,7 +24,9 @@
         <q-list class="rounded-borders">
           <tree
             :entry="root"
-            :currentNode.sync="currentPath"
+            :mountpoint="mountpoint"
+            :rvid="rvid"
+            :displayNode.sync="currentPath"
             :selected.sync="selectedNode"
             @show="show"/>
         </q-list>
@@ -84,6 +86,7 @@ const dkit = bkit.enqueuedkit('dKit on localexplorer')
 export default {
   name: 'localexplorer',
   data () {
+    const [isdir, isroot, path] = [true, true, this.mountpoint]
     return {
       verticalSplitter: 55,
       watcher: undefined,
@@ -92,7 +95,7 @@ export default {
       currentPath: '',
       loading: false,
       currentfiles: [],
-      root: { isdir: true, isroot: true, path: this.mountpoint, rvid: this.rvid }
+      root: { isdir, isroot, path }
     }
   },
   props: {
@@ -136,7 +139,7 @@ export default {
     }
   },
   mounted () {
-    this.show(this.mountpoint)
+    // this.show(this.mountpoint)
   },
   methods: {
     stepto (index) {

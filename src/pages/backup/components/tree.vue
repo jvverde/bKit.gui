@@ -49,7 +49,9 @@
         <!-- dirs -->
         <tree
           :entry="folder"
-          :currentNode.sync="selectedNode"
+          :mountpoint="mountpoint"
+          :rvid="rvid"
+          :displayNode.sync="selectedNode"
           :selected.sync="folder.selected"
           @update:selected="childSelect"
           @show="path => $emit('show', path)"
@@ -58,7 +60,9 @@
         <!-- files-->
         <tree
           :entry="file"
-          :currentNode.sync="selectedNode"
+          :mountpoint="mountpoint"
+          :rvid="rvid"
+          :displayNode.sync="selectedNode"
           :selected.sync="file.selected"
           @update:selected="childSelect"
           @show="path => $emit('show', path)"
@@ -72,6 +76,7 @@
 
 import { readdir } from 'src/helpers/readfs'
 const path = require('path')
+const slash = require('slash')
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -98,8 +103,12 @@ const chokidarOptions = {
   persistent: true
 }
 
+const fs = require('fs')
 import * as bkit from 'src/helpers/bkit'
-const listdir = bkit.enqueueListdir('Listdir on tree')
+const listdir = bkit.enqueueListdir('tree->Listdir')
+const dkit = bkit.enqueuedkit('tree->dKit')
+
+const discard = (name, path) => console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
 
 export default {
   name: 'tree',
@@ -122,9 +131,17 @@ export default {
       type: Boolean,
       default: false
     },
-    currentNode: {
+    displayNode: { // path of current displayed node
       type: String,
       required: true
+    },
+    mountpoint: {
+      type: String,
+      required: true
+    },
+    rvid: {
+      type: String,
+      default: undefined
     }
   },
   computed: {
@@ -143,14 +160,14 @@ export default {
       }
     },
     isSelected () {
-      return this.path === this.currentNode
+      return this.path === this.displayNode
     },
     selectedNode: {
       get () {
-        return this.currentNode
+        return this.displayNode
       },
       set (val) {
-        this.$emit('update:currentNode', val)
+        this.$emit('update:displayNode', val)
       }
     },
     isdir () {
@@ -164,9 +181,6 @@ export default {
     },
     name () {
       return this.isroot ? this.path : path.basename(this.path)
-    },
-    rvid () {
-      return this.entry.rvid
     },
     leaf () {
       return !this.isdir
@@ -183,9 +197,9 @@ export default {
       // console.log(`Watch selectet change to ${val} on ${this.path}`)
       if (val !== null) this.childrens.forEach(c => { c.selected = val })
     },
-    currentNode: function (fullpath) {
+    displayNode: function (fullpath) {
       if (!this.leaf && fullpath.includes(this.path)) {
-        // console.log(`Watch currentNode change to ${fullpath} on ${this.path}`)
+        // console.log(`Watch displayNode change to ${fullpath} on ${this.path}`)
         this.showChildrens()
       }
     },
@@ -219,34 +233,60 @@ export default {
         this.childrens = childrens
       })
     },
-    checkBackup () {
-      if (!this.rvid) return
+    updateChildrens (entry) {
       const childrens = this.childrens
-      if (this.isroot || (this.isdir && this.onbackup)) {
-        // Only if it is root or otherwise the parent (this) is on backup and is a directory
-        const event = (entry) => {
-          const index = childrens.findIndex(e => e.path === entry.path)
-          if (index >= 0) {
-            const children = { ...childrens[index], ...entry }
-            childrens.splice(index, 1, children)
-          } else this.deletedChildrens++
-        }
-        const done = () => { this.loading = false }
-        this.loading = true
-        listdir(this.path, [], event, done)
-      }
-    },
-    async load () {
-      const childrens = []
-      this.loading = true
-      for await (const entry of readdir(this.path)) {
-        entry.selected = this.selected
+      const index = childrens.findIndex(e => e.path === entry.path)
+      if (index >= 0) {
+        const children = { ...childrens[index], ...entry }
+        childrens.splice(index, 1, children)
+      } else {
         childrens.push(entry)
       }
       childrens.sort(compare)
+    },
+    sync () {
+      if (!this.isroot && !(this.isdir && this.onbackup)) return
+      if (!this.mountpoint || !fs.existsSync(this.path)) return
+      const event = (entry) => {
+        if (path.dirname(entry.path) !== this.path || entry.path === this.mountpoint) {
+          // ignore all parents and the mountpoint
+          console.log(`Discard entry ${entry.path} on ${this.path}`)
+          return
+        }
+        this.updateChildrens(entry)
+      }
+      const done = () => { this.loading = false }
+      const events = { newDir: event, chgDir: event, newFile: event, chgFile: event }
+      dkit(this.path, [], events, done, discard)
+      this.loading = true
+    },
+    checkBackup () {
+      if (!this.rvid) return
+      if (this.isroot || (this.isdir && this.onbackup)) {
+        // Only if it is root or otherwise the parent (this) is on backup and is a directory
+        const event = (entry) => {
+          entry.path = path.join(this.mountpoint, entry.path)
+          console.log('Listdir Entry.path:', entry.path)
+          this.updateChildrens(entry)
+        }
+        const done = () => { this.loading = false }
+        this.loading = true
+        let relative = path.relative(this.mountpoint, this.path)
+        relative = slash(path.posix.normalize(`/${relative}/`))
+        listdir(relative, [ `--rvid=${this.rvid}` ], event, done, discard)
+      }
+    },
+    async load () {
+      this.childrens = []
+      this.loading = true
+      for await (const entry of readdir(this.path)) {
+        entry.selected = this.selected // inherit select status from parent
+        this.updateChildrens(entry)
+      }
       this.loading = false
-      await this.updateInNextTick(childrens)
-      this.checkBackup(childrens)
+      // await this.updateInNextTick(childrens)
+      this.checkBackup()
+      this.sync()
       this.loaded = true
     }
   },
