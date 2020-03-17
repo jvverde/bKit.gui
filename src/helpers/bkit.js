@@ -204,7 +204,7 @@ const _listdirs = ({ args, events, name }, done) => {
   listdirs(args, events, done)
 }
 
-const _discard = (name, path) => console.log(`${name}: ${path} already in queue`)
+const _discard = (name, path) => console.warn(`${name}: ${path} already in queue`)
 
 function makeQueue (action, name) {
   const q = queue(action)

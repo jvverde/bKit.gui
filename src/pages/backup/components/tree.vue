@@ -29,7 +29,10 @@
         <q-item-section no-wrap :class="{ isSelected: isSelected }" @click.stop="see">
           <q-item-label>
             {{name}}
-            <q-icon name="done" v-if="onbackup"/>
+            <q-icon name="done_all" color="green" v-if="isUpdate"/>
+            <q-icon name="call_merge" color="cyan" v-else-if="wasmodified"/>
+            <q-icon name="call_missed" color="orange" v-else-if="isnew"/>
+            <q-icon name="error_outline" color="red" v-else-if="wasdeleted"/>
           </q-item-label>
         </q-item-section>
 
@@ -105,10 +108,18 @@ const chokidarOptions = {
 
 const fs = require('fs')
 import * as bkit from 'src/helpers/bkit'
-const listdir = bkit.enqueueListdir('tree->Listdir')
-const dkit = bkit.enqueuedkit('tree->dKit')
-
-const discard = (name, path) => console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
+const listdir = bkit.enqueueListdir('tree->Listdir') // enqueued request but discard duplicate paths
+const dkit = bkit.enqueuedkit('tree->dKit') // enqueued request but discard duplicate paths
+function listdirAsync (path, args, event) {
+  return new Promise((resolve, reject) => {
+    listdir(path, args, event, resolve)
+  })
+}
+function dkitAsync (path, args, events) {
+  return new Promise((resolve, reject) => {
+    dkit(path, args, events, resolve)
+  })
+}
 
 export default {
   name: 'tree',
@@ -190,7 +201,12 @@ export default {
     },
     onbackup () { // We should be very carefully with this one
       return !!this.entry.onbackup
-    }
+    },
+    wasdeleted () { return this.onbackup && !this.entry.onlocal },
+    isfiltered () { return !this.onbackup && this.entry.onlocal },
+    isnew () { return this.entry.isnew },
+    wasmodified () { return this.entry.wasmodified },
+    isUpdate () { return this.onbackup && this.entry.onlocal && !this.isnew && !this.wasmodified }
   },
   watch: {
     selected: function (val) {
@@ -205,10 +221,10 @@ export default {
     },
     isOpen: function (val) {
       // console.log(`isOpen change to ${val} on ${this.path}`)
-      if (val && !this.loaded) this.load()
+      if (val && !this.loaded) this.loaddir()
     },
     onbackup: function (val) {
-      if (val && this.isOpen) this.checkBackup()
+      if (val && this.isOpen) this.loaddir()
     }
   },
   methods: {
@@ -244,7 +260,7 @@ export default {
       }
       childrens.sort(compare)
     },
-    sync () {
+    async cmpdir () {
       if (!this.isroot && !(this.isdir && this.onbackup)) return
       if (!this.mountpoint || !fs.existsSync(this.path)) return
       const event = (entry) => {
@@ -255,28 +271,37 @@ export default {
         }
         this.updateChildrens(entry)
       }
-      const done = () => { this.loading = false }
-      const events = { newDir: event, chgDir: event, newFile: event, chgFile: event }
-      dkit(this.path, [], events, done, discard)
       this.loading = true
+      const events = { newDir: event, chgDir: event, newFile: event, chgFile: event }
+      try {
+        await dkitAsync(this.path, [], events)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        this.loading = false
+      }
     },
-    checkBackup () {
+    async readbackup () {
       if (!this.rvid) return
       if (this.isroot || (this.isdir && this.onbackup)) {
         // Only if it is root or otherwise the parent (this) is on backup and is a directory
+        this.loading = true
         const event = (entry) => {
           entry.path = path.join(this.mountpoint, entry.path)
-          console.log('Listdir Entry.path:', entry.path)
           this.updateChildrens(entry)
         }
-        const done = () => { this.loading = false }
-        this.loading = true
         let relative = path.relative(this.mountpoint, this.path)
         relative = slash(path.posix.normalize(`/${relative}/`))
-        listdir(relative, [ `--rvid=${this.rvid}` ], event, done, discard)
+        try {
+          await listdirAsync(relative, [ `--rvid=${this.rvid}` ], event)
+        } catch (err) {
+          console.error(err)
+        } finally {
+          this.loading = false
+        }
       }
     },
-    async load () {
+    async readdir () {
       this.childrens = []
       this.loading = true
       for await (const entry of readdir(this.path)) {
@@ -285,8 +310,11 @@ export default {
       }
       this.loading = false
       // await this.updateInNextTick(childrens)
-      this.checkBackup()
-      this.sync()
+    },
+    async loaddir () {
+      await this.readdir()
+      await this.readbackup()
+      await this.cmpdir()
       this.loaded = true
     }
   },
@@ -295,7 +323,7 @@ export default {
     if (this.isdir) {
       chokidar.watch(this.path, chokidarOptions).on('all', (event, path) => {
         // console.log(`[${this.path}]Event ${event} for ${path}`)
-        this.load()
+        this.loaddir()
       })
     }
   }
