@@ -58,7 +58,7 @@ export const remoteQueue = queue(invoke) // queue for run remote scripts
 export function bash (scriptname, args, {
   onclose = () => console.log('Close', scriptname),
   onreadline = () => false,
-  onerror = (err) => warn(`Error calling script ${scriptname}: ${err}`)
+  onerror = (err) => warn(`Error calling script ${scriptname}: ${err}`, true)
 }, q = defaultQueue) {
   q.push({ name: scriptname, args, onreadline, onerror }, onclose)
   return null
@@ -182,7 +182,6 @@ export function listdirs (args, entry, done = () => console.log('List dirs done'
       console.log('Listdir:', data)
       const match = data.match(regexpList)
       const { groups: { list, size, sdate, time, name } } = match || { groups: {} }
-      console.log('list:', list)
       if (match && name !== '.') { // only if not current directory
         const fullname = path.join(fullpath, name)
         const isdir = list.startsWith('d')
@@ -195,23 +194,23 @@ export function listdirs (args, entry, done = () => console.log('List dirs done'
 }
 
 const _dkit = ({ args, events, name }, done) => {
-  console.log(name, args)
+  // console.log(name, args)
   dkit(args, events, done)
 }
 
 const _listdirs = ({ args, events, name }, done) => {
-  console.log(name, args)
+  // console.log(name, args)
   listdirs(args, events, done)
 }
 
-const _discard = (name, path) => console.warn(`${name}: ${path} already in queue`)
+const _discard = (msg) => console.warn(`${msg.name}: ${msg.path} already in queue`)
 
-function makeQueue (action, name) {
+function makeQueue (action, name) { // create a queue where duplicated requests will be discarded
   const q = queue(action)
   return function (path, args, events, done = () => false, discard = _discard) {
     const items = [...q]
     if (items.some(item => item.path === path)) {
-      discard(name, path) // discard request for the same path
+      discard({ name, path }) // discard request for the same path
     } else {
       args.push(path)
       q.push({ args, events, name }, done)

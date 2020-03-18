@@ -77,9 +77,11 @@
 </template>
 <script>
 
-import { readdir } from 'src/helpers/readfs'
 const path = require('path')
 const slash = require('slash')
+const fs = require('fs')
+import { readdir } from 'src/helpers/readfs'
+import * as bkit from 'src/helpers/bkit'
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -106,8 +108,6 @@ const chokidarOptions = {
   persistent: true
 }
 
-const fs = require('fs')
-import * as bkit from 'src/helpers/bkit'
 const listdir = bkit.enqueueListdir('tree->Listdir') // enqueued request but discard duplicate paths
 const dkit = bkit.enqueuedkit('tree->dKit') // enqueued request but discard duplicate paths
 function listdirAsync (path, args, event) {
@@ -261,6 +261,7 @@ export default {
       childrens.sort(compare)
     },
     async cmpdir () {
+      if (!this.rvid) return
       if (!this.isroot && !(this.isdir && this.onbackup)) return
       if (!this.mountpoint || !fs.existsSync(this.path)) return
       const event = (entry) => {
@@ -273,36 +274,30 @@ export default {
       }
       this.loading = true
       const events = { newDir: event, chgDir: event, newFile: event, chgFile: event }
-      try {
-        await dkitAsync(this.path, [], events)
-      } catch (err) {
-        console.error(err)
-      } finally {
-        this.loading = false
-      }
+      return dkitAsync(this.path, [], events)
+        .then(code => console.log('dkit done with code', code))
+        .catch(error => console.error('Error:', error))
+        .finally(() => { this.loading = false })
     },
     async readbackup () {
       if (!this.rvid) return
-      if (this.isroot || (this.isdir && this.onbackup)) {
-        // Only if it is root or otherwise the parent (this) is on backup and is a directory
-        this.loading = true
-        const event = (entry) => {
-          entry.path = path.join(this.mountpoint, entry.path)
-          this.updateChildrens(entry)
-        }
-        let relative = path.relative(this.mountpoint, this.path)
-        relative = slash(path.posix.normalize(`/${relative}/`))
-        try {
-          await listdirAsync(relative, [ `--rvid=${this.rvid}` ], event)
-        } catch (err) {
-          console.error(err)
-        } finally {
-          this.loading = false
-        }
+      if (!this.isroot && !(this.isdir && this.onbackup)) return
+      // Only if it is root or otherwise the parent (this) is on backup and is a directory
+      this.loading = true
+      const event = (entry) => {
+        entry.path = path.join(this.mountpoint, entry.path)
+        this.updateChildrens(entry)
       }
+      let relative = this.mountpoint ? path.relative(this.mountpoint, this.path) : this.path
+      relative = slash(path.posix.normalize(`/${relative}/`))
+      relative = path.posix.normalize(relative)
+      return listdirAsync(relative, [ `--rvid=${this.rvid}` ], event)
+        .then(code => console.log('listdir done with code ', code))
+        .catch(error => console.error('Error:', error))
+        .finally(() => { this.loading = false })
     },
     async readdir () {
-      this.childrens = []
+      if (!this.mountpoint || !fs.existsSync(this.path)) return
       this.loading = true
       for await (const entry of readdir(this.path)) {
         entry.selected = this.selected // inherit select status from parent
@@ -312,9 +307,10 @@ export default {
       // await this.updateInNextTick(childrens)
     },
     async loaddir () {
+      this.childrens = []
       await this.readdir()
-      await this.readbackup()
       await this.cmpdir()
+      await this.readbackup()
       this.loaded = true
     }
   },

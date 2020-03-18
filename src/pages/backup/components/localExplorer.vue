@@ -101,7 +101,7 @@ export default {
   props: {
     mountpoint: {
       type: String,
-      required: true
+      default: ''
     },
     rvid: {
       type: String,
