@@ -113,7 +113,7 @@ const regexpChgDir = /^[.]d.{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 const regexpChgFile = /^[><]f.(?:s.|.t).{6}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 const regexpDelete = /^[*]deleting\s*[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 
-const [isnew, wasmodified, wasdeleted] = [true, true, true]
+const [isnew, wasmodified, wasdeleted, isdir, isfile, onbackup] = Array(6).fill(true)
 
 export function onRsyncLine ({
   newFile = () => false,
@@ -133,19 +133,19 @@ export function onRsyncLine ({
     return false
   }
   const isnewfile = (filename) => {
-    newFile({ name: path.basename(filename), path: filename, isnew, isfile: true })
+    newFile({ name: path.basename(filename), path: filename, isnew, isfile })
   }
   const isnewdir = (filename) => {
-    newDir({ name: path.basename(filename), path: filename, isnew, isdir: true })
+    newDir({ name: path.basename(filename), path: filename, isnew, isdir })
   }
   const filechanged = (filename) => {
-    chgFile({ name: path.basename(filename), path: filename, wasmodified, isfile: true })
+    chgFile({ name: path.basename(filename), path: filename, wasmodified, isfile, onbackup })
   }
   const dirchanged = (filename) => {
-    chgDir({ name: path.basename(filename), path: filename, wasmodified, isdir: true })
+    chgDir({ name: path.basename(filename), path: filename, wasmodified, isdir, onbackup })
   }
   const entrydeleted = (filename) => {
-    deleted({ name: path.basename(filename), path: filename, wasdeleted })
+    deleted({ name: path.basename(filename), path: filename, wasdeleted, onbackup })
   }
   const onreadline = (line) => {
     console.log('Read Line:', line)
@@ -165,6 +165,7 @@ export function onRsyncLine ({
 
 export function dkit (args, events, done = () => console.log('dkit done')) {
   // console.log('events', events)
+  console.log(`Invoke dkit with args`, args)
   const actions = onRsyncLine(events, done)
   // const args = ['--no-recursive', '--delete', '--dirs', `${fullpath}`]
   const fullargs = ['--no-recursive', '--dirs', ...args]
@@ -172,10 +173,10 @@ export function dkit (args, events, done = () => console.log('dkit done')) {
 }
 
 const regexpList = /(?<list>[a-z-]+)\s+(?<size>[0-9,]+)\s+(?<sdate>[0-9/]+)\s+(?<time>[0-9:]+)\s+(?<name>.+)/
-const onbackup = true
+
 export function listdirs (args, entry, done = () => console.log('List dirs done')) {
   const fullpath = args[args.length - 1]
-  console.log(`Invoke listdir for ${fullpath}`)
+  console.log(`Invoke listdir with args`, args)
   bash('./listdirs.sh', args, {
     onclose: done,
     onreadline: (data) => {
@@ -208,12 +209,13 @@ const _discard = (msg) => console.warn(`${msg.name}: ${msg.path} already in queu
 function makeQueue (action, name) { // create a queue where duplicated requests will be discarded
   const q = queue(action)
   return function (path, args, events, done = () => false, discard = _discard) {
+    args.push(path)
     const items = [...q]
-    if (items.some(item => item.path === path)) {
+    const str = args.join('')
+    if (items.some(item => item.str === str)) {
       discard({ name, path }) // discard request for the same path
     } else {
-      args.push(path)
-      q.push({ args, events, name }, done)
+      q.push({ args, str, events, name }, done)
     }
   }
 }

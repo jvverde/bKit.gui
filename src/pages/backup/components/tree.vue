@@ -54,6 +54,7 @@
           :entry="folder"
           :mountpoint="mountpoint"
           :rvid="rvid"
+          :snap="snap"
           :displayNode.sync="selectedNode"
           :selected.sync="folder.selected"
           @update:selected="childSelect"
@@ -65,6 +66,7 @@
           :entry="file"
           :mountpoint="mountpoint"
           :rvid="rvid"
+          :snap="snap"
           :displayNode.sync="selectedNode"
           :selected.sync="file.selected"
           @update:selected="childSelect"
@@ -153,6 +155,10 @@ export default {
     rvid: {
       type: String,
       default: undefined
+    },
+    snap: {
+      type: String,
+      default: ''
     }
   },
   computed: {
@@ -200,13 +206,16 @@ export default {
       return this.open && this.isdir
     },
     onbackup () { // We should be very carefully with this one
-      return !!this.entry.onbackup
+      return !!this.entry.onbackup // && !!this.entry.verified
     },
-    wasdeleted () { return this.onbackup && !this.entry.onlocal },
-    isfiltered () { return !this.onbackup && this.entry.onlocal },
-    isnew () { return this.entry.isnew },
-    wasmodified () { return this.entry.wasmodified },
-    isUpdate () { return this.onbackup && this.entry.onlocal && !this.isnew && !this.wasmodified }
+    onlocal () {
+      return !!this.entry.onlocal
+    },
+    wasdeleted () { return this.onbackup && !this.onlocal },
+    isfiltered () { return !this.onbackup && this.onlocal && !this.entry.isnew },
+    isnew () { return !this.onbackup && this.onlocal && this.entry.isnew },
+    wasmodified () { return this.onbackup && this.onlocal && this.entry.wasmodified },
+    isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified }
   },
   watch: {
     selected: function (val) {
@@ -223,8 +232,18 @@ export default {
       // console.log(`isOpen change to ${val} on ${this.path}`)
       if (val && !this.loaded) this.loaddir()
     },
-    onbackup: function (val) {
-      if (val && this.isOpen) this.loaddir()
+    onbackup: async function (val) {
+      if (val && this.loaded) {
+        console.log('onbackup changed for', this.path)
+        this.checkOnBackup()
+      }
+    },
+    snap: async function () {
+      if (this.loaded) {
+        console.log('snap changed for', this.path)
+        if (!this.isroot) this.entry.onbackup = false
+        this.checkOnBackup()
+      }
     }
   },
   methods: {
@@ -243,11 +262,6 @@ export default {
     see () {
       this.selectedNode = this.path
       this.$emit('show', this.path)
-    },
-    updateInNextTick (childrens) {
-      return this.$nextTick(() => {
-        this.childrens = childrens
-      })
     },
     updateChildrens (entry) {
       const childrens = this.childrens
@@ -274,7 +288,9 @@ export default {
       }
       this.loading = true
       const events = { newDir: event, chgDir: event, newFile: event, chgFile: event }
-      return dkitAsync(this.path, [], events)
+      const args = []
+      if (this.snap) args.push(`--snap=${this.snap}`)
+      return dkitAsync(this.path, args, events)
         .then(code => console.log('dkit done with code', code))
         .catch(error => console.error('Error:', error))
         .finally(() => { this.loading = false })
@@ -291,7 +307,9 @@ export default {
       let relative = this.mountpoint ? path.relative(this.mountpoint, this.path) : this.path
       relative = slash(path.posix.normalize(`/${relative}/`))
       relative = path.posix.normalize(relative)
-      return listdirAsync(relative, [ `--rvid=${this.rvid}` ], event)
+      const args = [ `--rvid=${this.rvid}` ]
+      if (this.snap) args.push(`--snap=${this.snap}`)
+      return listdirAsync(relative, args, event)
         .then(code => console.log('listdir done with code ', code))
         .catch(error => console.error('Error:', error))
         .finally(() => { this.loading = false })
@@ -304,13 +322,31 @@ export default {
         this.updateChildrens(entry)
       }
       this.loading = false
-      // await this.updateInNextTick(childrens)
+    },
+    unverified () {
+      this.childrens.forEach(c => { c.onbackup = false })
+    },
+    cleanup () {
+      this.childrens
+        .map((e, i) => (e.onbackup || e.onlocal) ? false : i)
+        .filter(e => e !== false)
+        .reverse()
+        .forEach(index => {
+          console.log(`I am about to remove index ${index}`, this.childrens[index])
+          this.childrens.splice(index, 1)
+        })
+    },
+    async checkOnBackup () {
+      if (!this.isroot && !(this.isdir && this.onbackup)) return
+      this.unverified()
+      await this.readbackup()
+      await this.cmpdir()
+      this.cleanup()
     },
     async loaddir () {
       this.childrens = []
       await this.readdir()
-      await this.cmpdir()
-      await this.readbackup()
+      await this.checkOnBackup()
       this.loaded = true
     }
   },
@@ -318,7 +354,7 @@ export default {
     if (this.isroot) this.showChildrens()
     if (this.isdir) {
       chokidar.watch(this.path, chokidarOptions).on('all', (event, path) => {
-        // console.log(`[${this.path}]Event ${event} for ${path}`)
+        console.log(`[${this.path}]Event ${event} for ${path}`)
         this.loaddir()
       })
     }

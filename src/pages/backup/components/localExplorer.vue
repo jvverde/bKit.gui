@@ -1,5 +1,10 @@
 <template>
   <div class="bkit-explorer relative-position">
+    <q-toolbar class="bkit-toolbar" v-if="rvid">
+      <keep-alive>
+        <snaps :rvid="rvid" v-on:usesnap="usesnap"></snaps>
+      </keep-alive>
+    </q-toolbar>
     <q-toolbar inset>
       <q-breadcrumbs gutter="xs" separator-color="amber" :separator="sep">
         <q-breadcrumbs-el
@@ -26,6 +31,7 @@
             :entry="root"
             :mountpoint="mountpoint"
             :rvid="rvid"
+            :snap="snap"
             :displayNode.sync="currentPath"
             :selected.sync="selectedNode"
             @show="show"/>
@@ -54,6 +60,7 @@
 import * as bkit from 'src/helpers/bkit'
 import tree from './tree'
 import item from './item'
+import snaps from './Snaps'
 // import fs from 'fs-extra'
 const path = require('path')
 const fs = require('fs')
@@ -87,6 +94,7 @@ export default {
   name: 'localexplorer',
   data () {
     const [isdir, isroot, path] = [true, true, this.mountpoint]
+    const [onbackup, verified] = [!!this.rvid, !!this.rvid]
     return {
       verticalSplitter: 55,
       watcher: undefined,
@@ -95,7 +103,8 @@ export default {
       currentPath: '',
       loading: false,
       currentfiles: [],
-      root: { isdir, isroot, path }
+      root: { isdir, isroot, path, onbackup, verified },
+      snap: ''
     }
   },
   props: {
@@ -109,6 +118,7 @@ export default {
     }
   },
   components: {
+    snaps,
     tree,
     item
   },
@@ -142,6 +152,10 @@ export default {
     // this.show(this.mountpoint)
   },
   methods: {
+    usesnap (snap, rvid) {
+      this.snap = snap
+      console.log('usesnap', snap, rvid)
+    },
     stepto (index) {
       const fullpath = path.join(this.mountpoint, this.steps.slice(0, index).join('/'))
       console.log('go to', fullpath)
