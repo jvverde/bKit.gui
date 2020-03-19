@@ -30,9 +30,9 @@
           <q-item-label>
             {{name}}
             <q-icon name="done_all" color="green" v-if="isUpdate"/>
-            <q-icon name="call_merge" color="cyan" v-else-if="wasmodified"/>
-            <q-icon name="call_missed" color="orange" v-else-if="isnew"/>
-            <q-icon name="error_outline" color="red" v-else-if="wasdeleted"/>
+            <q-icon name="call_merge" color="cyan" v-else-if="wasmodified" class="flip-vertical"/>
+            <q-icon name="arrow_downward" color="orange" v-else-if="isnew"/>
+            <q-icon name="arrow_upward" color="red" v-else-if="wasdeleted"/>
           </q-item-label>
         </q-item-section>
 
@@ -213,8 +213,8 @@ export default {
     },
     wasdeleted () { return this.onbackup && !this.onlocal },
     isfiltered () { return !this.onbackup && this.onlocal && !this.entry.isnew },
-    isnew () { return !this.onbackup && this.onlocal && this.entry.isnew },
-    wasmodified () { return this.onbackup && this.onlocal && this.entry.wasmodified },
+    isnew () { return !this.onbackup && this.onlocal && !!this.entry.isnew },
+    wasmodified () { return this.onbackup && this.onlocal && !!this.entry.wasmodified },
     isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified }
   },
   watch: {
@@ -234,15 +234,27 @@ export default {
     },
     onbackup: async function (val) {
       if (val && this.loaded) {
-        console.log('onbackup changed for', this.path)
-        this.checkOnBackup()
+        console.log('onbackup changed to true for', this.path)
+        this.checkDirOnBackup()
+      } else if (!val && this.loaded) {
+        console.log('onbackup changed to false for', this.path)
+        this.unverified()
       }
     },
     snap: async function () {
       if (this.loaded) {
-        console.log('snap changed for', this.path)
-        if (!this.isroot) this.entry.onbackup = false
-        this.checkOnBackup()
+        console.log('Snap changed for', this.path)
+        // if (!this.isroot) this.entry.onbackup = false
+        if (this.isroot) this.checkDirOnBackup()
+      }
+    },
+    isnew: async function (val, old) {
+      console.log('is new changed for', this.path, val, old)
+      if (val && this.isdir) {
+        this.childrens.filter(e => e.onlocal).forEach(c => {
+          console.log('set to new', c.path, c)
+          c.isnew = true
+        })
       }
     }
   },
@@ -275,9 +287,10 @@ export default {
       childrens.sort(compare)
     },
     async cmpdir () {
-      if (!this.rvid) return
-      if (!this.isroot && !(this.isdir && this.onbackup)) return
+      if (!this.rvid || !this.isdir) return
+      // it doesn't make any sense unless it is a dir and a remote volume ID (rvid) exists
       if (!this.mountpoint || !fs.existsSync(this.path)) return
+      // As well it only make sense if file exists localy and on the corresponding disk
       const event = (entry) => {
         if (path.dirname(entry.path) !== this.path || entry.path === this.mountpoint) {
           // ignore all parents and the mountpoint
@@ -296,9 +309,8 @@ export default {
         .finally(() => { this.loading = false })
     },
     async readbackup () {
-      if (!this.rvid) return
-      if (!this.isroot && !(this.isdir && this.onbackup)) return
-      // Only if it is root or otherwise the parent (this) is on backup and is a directory
+      if (!this.isdir || !this.onbackup) return
+      // Only does this if it is a directory and itself is on backup
       this.loading = true
       const event = (entry) => {
         entry.path = path.join(this.mountpoint, entry.path)
@@ -316,6 +328,7 @@ export default {
     },
     async readdir () {
       if (!this.mountpoint || !fs.existsSync(this.path)) return
+      // Only if directory exists on local disk and it correspond to the backup
       this.loading = true
       for await (const entry of readdir(this.path)) {
         entry.selected = this.selected // inherit select status from parent
@@ -336,8 +349,9 @@ export default {
           this.childrens.splice(index, 1)
         })
     },
-    async checkOnBackup () {
-      if (!this.isroot && !(this.isdir && this.onbackup)) return
+    async checkDirOnBackup () {
+      if (!this.isdir || !this.onbackup) return
+      // Doesn't make sense for files or if itself doesn't exist on backup
       this.unverified()
       await this.readbackup()
       await this.cmpdir()
@@ -346,7 +360,7 @@ export default {
     async loaddir () {
       this.childrens = []
       await this.readdir()
-      await this.checkOnBackup()
+      await this.checkDirOnBackup()
       this.loaded = true
     }
   },

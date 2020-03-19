@@ -94,7 +94,7 @@ export default {
   name: 'localexplorer',
   data () {
     const [isdir, isroot, path] = [true, true, this.mountpoint]
-    const [onbackup, verified] = [!!this.rvid, !!this.rvid]
+    const onbackup = !!this.rvid
     return {
       verticalSplitter: 55,
       watcher: undefined,
@@ -103,7 +103,7 @@ export default {
       currentPath: '',
       loading: false,
       currentfiles: [],
-      root: { isdir, isroot, path, onbackup, verified },
+      root: { isdir, isroot, path, onbackup },
       snap: ''
     }
   },
