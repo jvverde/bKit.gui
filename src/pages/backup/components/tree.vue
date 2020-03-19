@@ -206,7 +206,7 @@ export default {
       return this.open && this.isdir
     },
     onbackup () { // We should be very carefully with this one
-      return !!this.entry.onbackup // && !!this.entry.verified
+      return !!this.entry.onbackup // && !!this.entry.verifiedChildrens
     },
     onlocal () {
       return !!this.entry.onlocal
@@ -229,32 +229,25 @@ export default {
       }
     },
     isOpen: function (val) {
-      // console.log(`isOpen change to ${val} on ${this.path}`)
       if (val && !this.loaded) this.loaddir()
     },
     onbackup: async function (val) {
-      if (val && this.loaded) {
-        console.log('onbackup changed to true for', this.path)
-        this.checkDirOnBackup()
-      } else if (!val && this.loaded) {
-        console.log('onbackup changed to false for', this.path)
-        this.unverified()
+      if (this.loaded) {
+        if (val) {
+          this.checkDirOnBackup()
+        } else {
+          this.verifiedChildrens(false)
+        }
       }
     },
     snap: async function () {
-      if (this.loaded) {
-        console.log('Snap changed for', this.path)
-        // if (!this.isroot) this.entry.onbackup = false
-        if (this.isroot) this.checkDirOnBackup()
+      if (this.loaded && this.isroot) {
+        this.checkDirOnBackup()
       }
     },
-    isnew: async function (val, old) {
-      console.log('is new changed for', this.path, val, old)
-      if (val && this.isdir) {
-        this.childrens.filter(e => e.onlocal).forEach(c => {
-          console.log('set to new', c.path, c)
-          c.isnew = true
-        })
+    isnew: async function (val) {
+      if (val && this.isdir && this.loaded) {
+        this.checkDirOnBackup()
       }
     }
   },
@@ -291,6 +284,7 @@ export default {
       // it doesn't make any sense unless it is a dir and a remote volume ID (rvid) exists
       if (!this.mountpoint || !fs.existsSync(this.path)) return
       // As well it only make sense if file exists localy and on the corresponding disk
+      console.log('cmpdir', this.path)
       const event = (entry) => {
         if (path.dirname(entry.path) !== this.path || entry.path === this.mountpoint) {
           // ignore all parents and the mountpoint
@@ -311,6 +305,7 @@ export default {
     async readbackup () {
       if (!this.isdir || !this.onbackup) return
       // Only does this if it is a directory and itself is on backup
+      console.log('readbackup', this.path)
       this.loading = true
       const event = (entry) => {
         entry.path = path.join(this.mountpoint, entry.path)
@@ -336,26 +331,24 @@ export default {
       }
       this.loading = false
     },
-    unverified () {
-      this.childrens.forEach(c => { c.onbackup = false })
+    verifiedChildrens (val = true) {
+      this.childrens.forEach(c => { c.onbackup = val })
     },
-    cleanup () {
+    cleanupChildrens () {
       this.childrens
-        .map((e, i) => (e.onbackup || e.onlocal) ? false : i)
-        .filter(e => e !== false)
-        .reverse()
-        .forEach(index => {
-          console.log(`I am about to remove index ${index}`, this.childrens[index])
-          this.childrens.splice(index, 1)
-        })
+        .map((e, i) => (e.onbackup || e.onlocal) ? false : i) // mark childrens not in local or in backup
+        .filter(e => e !== false) // remove unmarked chidrens
+        .reverse() // This is very importante!!! WE need to start from the last position
+        .forEach(index => this.childrens.splice(index, 1)) // remove marked(=not existing) childrens
     },
     async checkDirOnBackup () {
-      if (!this.isdir || !this.onbackup) return
-      // Doesn't make sense for files or if itself doesn't exist on backup
-      this.unverified()
+      if (!this.isdir) return
+      // Doesn't make sense for files
+      console.log('checkDirOnBackup', this.path)
+      this.verifiedChildrens(false)
       await this.readbackup()
       await this.cmpdir()
-      this.cleanup()
+      this.cleanupChildrens()
     },
     async loaddir () {
       this.childrens = []
