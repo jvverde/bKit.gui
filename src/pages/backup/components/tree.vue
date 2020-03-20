@@ -123,6 +123,11 @@ function dkitAsync (path, args, events) {
   })
 }
 
+// import { makeItCacheable } from 'src/helpers/cache'
+
+// const listdirAsync = makeItCacheable(_listdirAsync)
+// const dkitAsync = makeItCacheable(_dkitAsync)
+
 export default {
   name: 'tree',
   data () {

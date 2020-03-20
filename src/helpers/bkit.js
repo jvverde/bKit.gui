@@ -5,6 +5,7 @@ const { spawn, execSync } = require('child_process')
 const readline = require('readline')
 const { ipcRenderer } = require('electron')
 import queue from 'async/queue'
+import { warn } from './notify'
 
 if (process.platform === 'win32') {
   try {
@@ -18,8 +19,6 @@ if (process.platform === 'win32') {
 }
 
 const bKitPath = ipcRenderer.sendSync('getbKitPath')
-
-import { warn } from './notify'
 
 export function user () {
   return username
@@ -194,14 +193,19 @@ export function listdirs (args, entry, done = () => console.log('List dirs done'
   })
 }
 
+import { makeItCacheable } from './cache'
+
+const cachedListdirs = makeItCacheable(listdirs)
+const cachedDkit = makeItCacheable(dkit)
+
 const _dkit = ({ args, events, name }, done) => {
   // console.log(name, args)
-  dkit(args, events, done)
+  cachedDkit(args, events, done)
 }
 
 const _listdirs = ({ args, events, name }, done) => {
   // console.log(name, args)
-  listdirs(args, events, done)
+  cachedListdirs(args, events, done)
 }
 
 const _discard = (msg) => console.warn(`${msg.name}: ${msg.path} already in queue`)
