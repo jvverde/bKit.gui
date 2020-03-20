@@ -38,7 +38,6 @@ export function makeItCacheable (fn) {
           store.events = []
           for (let [name, event] of Object.entries(events)) {
             myevents[name] = function (...args) {
-              console.log(`Event ${name}`, args)
               store.events.push({ name, args })
               event(...args)
             }
@@ -51,7 +50,6 @@ export function makeItCacheable (fn) {
             store.done = code
             cache.write(key, store)
           }
-          console.log('Done', code)
           done(code)
         }
         return target.apply(thisArg, [args, myevents, mydone])
