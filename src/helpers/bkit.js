@@ -41,6 +41,28 @@ function invoke ({ name, args, onreadline, onerror }, done) {
   fd.stderr.on('data', onerror)
 }
 
+export function asyncInvoke (name, args) {
+  return new Promise((resolve, reject) => {
+    const lines = []
+    const onreadline = line => lines.push(line)
+    const done = () => resolve(lines)
+    const onerror = reject
+    invoke({ name, args, onreadline, onerror }, done)
+  })
+}
+
+import Queue from './queue'
+const defaultAsyncQueue = new Queue()
+
+export function asyncEnqueue (name, args, queue = defaultAsyncQueue) {
+  queue.enqueue((name, args) => asyncInvoke(name, args))
+}
+
+const asyncQueue4Remote = new Queue()
+export function asynGetDisksOnBackup () {
+  return asyncEnqueue('./listdisks.sh', [], asyncQueue4Remote)
+}
+
 export function shell () {
   const fd = spawn(
     TERM,

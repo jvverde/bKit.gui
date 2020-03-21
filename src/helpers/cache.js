@@ -4,10 +4,10 @@ import LRUcache from './LRU'
 export function makeItCacheable (fn) {
   const cache = new LRUcache(20)
   return new Proxy(fn, {
-    apply: (target, thisArg, [args, events = {}, done = () => false]) => {
+    apply: (target, thisArg, [args, events, done]) => {
       let key = target.name + args.join('') + Object.keys(events).join('')
       const hit = cache.read(key)
-      if (hit) {
+      if (hit) { // is a HIT
         console.log('Hit', key)
         if (events instanceof Function) {
           (hit.event || []).forEach(arg => {
@@ -21,10 +21,10 @@ export function makeItCacheable (fn) {
           })
           return done(hit.done)
         } else {
-          // Just in case. It isn't going to happen (unless the caller don't set events argument)
+          console.warn("Just in case. It isn't going to happen", hit)
           return target.apply(thisArg, [args, events, done])
         }
-      } else {
+      } else { // Is a MISS
         console.log('Miss', key)
         const store = {}
         let myevents = {} // it may be changed bellow to become a Function
@@ -43,6 +43,7 @@ export function makeItCacheable (fn) {
             }
           }
         } else {
+          console.warn("It isn't supposed to enter here", args)
           myevents = events
         }
         const mydone = function (code) {

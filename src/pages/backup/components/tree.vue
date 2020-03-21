@@ -238,20 +238,22 @@ export default {
     },
     onbackup: async function (val) {
       if (this.loaded) {
-        if (val) {
-          this.checkDirOnBackup()
-        } else {
-          this.verifiedChildrens(false)
-        }
+        this.checkDirOnBackup()
       }
     },
     snap: async function () {
-      if (this.loaded && this.isroot) {
+      // if (this.loaded && this.isroot) {
+      if (this.loaded) {
         this.checkDirOnBackup()
       }
     },
     isnew: async function (val) {
-      if (val && this.isdir && this.loaded) {
+      if (this.loaded) {
+        this.checkDirOnBackup()
+      }
+    },
+    loaded: function (val) {
+      if (val) {
         this.checkDirOnBackup()
       }
     }
@@ -358,7 +360,7 @@ export default {
     async loaddir () {
       this.childrens = []
       await this.readdir()
-      await this.checkDirOnBackup()
+      // await this.checkDirOnBackup()
       this.loaded = true
     }
   },

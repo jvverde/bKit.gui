@@ -48,7 +48,7 @@ export default class LRU {
 
       return value
     } else {
-      return undefined
+      return undefined // MISS
     }
   }
 
