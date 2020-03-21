@@ -67,8 +67,11 @@ export function asyncEnqueue (name, args, queue = defaultAsyncQueue) {
 //  .then(disk => console.log('ENQUED RVID:', disk))
 
 const asyncQueue4Remote = new Queue()
-export function asyncGetDisksOnBackup () {
-  return asyncEnqueue('./listdisks.sh', [], asyncQueue4Remote)
+
+export async function* listDisksOnBackup () {
+  for (const disk of await asyncEnqueue('./listdisks.sh', [], asyncQueue4Remote)) {
+    yield disk
+  }
 }
 
 export function shell () {

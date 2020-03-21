@@ -108,7 +108,7 @@ export default {
         return `${disk.label}`
       } else return `[${disk.uuid}]`
     },
-    getDisksOnBackup () {
+    async getDisksOnBackup () {
       // bkit.getDisksOnBackup({
       //   onreadline: (rvid) => {
       //     console.log('LISTDISK:', rvid)
@@ -122,22 +122,19 @@ export default {
       //     }
       //   }
       // })
-      bkit.asyncGetDisksOnBackup()
-        .then(disks => {
-          console.log('Disks', disks)
-        })
-      console.log('mark1')
-      bkit.asyncGetDisksOnBackup()
-        .then(disks => {
-          console.log('Disks2', disks)
-        })
-      console.log('mark2')
-      bkit.asyncGetDisksOnBackup()
-        .then(disks => {
-          console.log('Disks3', disks)
-          bkit.asyncGetDisksOnBackup()
-        })
-      console.log('mark3')
+      const disks = bkit.listDisksOnBackup()
+      const disk2 = bkit.listDisksOnBackup()
+      const disk3 = bkit.listDisksOnBackup()
+      for await (const rvid of disks) {
+        console.log('RVID', rvid)
+      }
+      for await (const rvid of disk2) {
+        console.log('RVID2', rvid)
+      }
+      for await (const rvid of disk3) {
+        console.log('RVID3', rvid)
+      }
+      console.log('Start')
     }
   },
   mounted () {
