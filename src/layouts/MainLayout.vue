@@ -94,7 +94,7 @@
 
 const os = require('os')
 const { ipcRenderer, remote: { app } } = require('electron')
-import * as bkit from 'src/helpers/bkit'
+import { getServer, user, shell } from 'src/helpers/bkit'
 
 ipcRenderer.on('message', (event, text) => {
   console.log('Event:', event)
@@ -107,29 +107,24 @@ export default {
   data () {
     return {
       leftDrawerOpen: false,
-      user: bkit.user(),
+      user: user(),
       version: app.getVersion(),
       hostname: os.hostname(),
       server: ''
     }
   },
   mounted () {
-    bkit.bash('./server.sh', [], {
-      onclose: () => console.log('Close server'),
-      onreadline: (data) => {
+    getServer()
+      .then(data => {
         console.log('Server:', data)
-        const name = (`${data}` || '').replace(/(\n|\r)+$/g, '').replace(/\|/g, '.')
-        this.$nextTick(() => {
-          this.server = name
-          // this.$router.push('/server')
-        })
-      }
-    })
+        const name = data instanceof Array ? data[0] : `${data}`
+        this.server = name
+      })
   },
   methods: {
     terminal () {
       console.log('open a shell')
-      bkit.shell()
+      shell()
     },
     debug () {
       console.log('open debug window')

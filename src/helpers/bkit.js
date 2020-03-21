@@ -65,17 +65,32 @@ export function asyncEnqueue (name, args, queue = defaultAsyncQueue) {
 
 // asyncEnqueue('./listdisks.sh', [])
 //  .then(disk => console.log('ENQUED RVID:', disk))
+
 import acache from './asyncache'
 
-const asyncache = acache(asyncEnqueue)
+const asyncQueue4Remote = new Queue() // This is intend to queue remote request
+const asyncQueue4Local = new Queue() // This is intend to queue local request
 
-const asyncQueue4Remote = new Queue()
+const asyncache = acache(asyncEnqueue) // Use to go through cache before a possible enqueue
+
 export async function* listDisksOnBackup () {
   for (const disk of await asyncache('./listdisks.sh', [], asyncQueue4Remote)) {
     yield disk
   }
 }
 
+// We don't use cache for local requests, so we enqueue it directly
+export async function* listLocalDisks () {
+  for (const disk of await asyncEnqueue('./lib/getdevs.sh', [], asyncQueue4Local)) {
+    yield disk
+  }
+}
+
+export async function getServer () {
+  return asyncEnqueue('./server.sh', [], asyncQueue4Local)
+}
+
+/* ------------------------------------------------- */ 
 export function shell () {
   const fd = spawn(
     TERM,

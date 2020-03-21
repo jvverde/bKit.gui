@@ -72,7 +72,7 @@
 // console.log(techLead)
 
 import localexplorer from './components/localExplorer'
-import * as bkit from 'src/helpers/bkit'
+import { listDisksOnBackup, listLocalDisks } from 'src/helpers/bkit'
 export default {
   name: 'Backup',
   data () {
@@ -109,7 +109,7 @@ export default {
       } else return `[${disk.uuid}]`
     },
     async getDisksOnBackup () {
-      for await (const rvid of bkit.listDisksOnBackup()) {
+      for await (const rvid of listDisksOnBackup()) {
         console.log('RVID:', rvid)
         const [letter, uuid, label] = rvid.split('.')
         const index = this.disks.findIndex(e => e.uuid === uuid)
@@ -120,22 +120,21 @@ export default {
           this.disks.push({ name: letter, rvid, uuid, label, letter, mountpoint: undefined, present: false })
         }
       }
-      console.log('Start')
-    }
-  },
-  mounted () {
-    bkit.getLocalDisks({
-      onclose: () => {
-        this.loading = false
-        this.getDisksOnBackup()
-      },
-      onreadline: (line) => {
-        const [mountpoint, label, uuid, fs] = line.split(/\|/)
+    },
+    async getLocalDisks () {
+      for await (const disk of listLocalDisks()) {
+        console.log('Local disk', disk)
+        const [mountpoint, label, uuid, fs] = disk.split(/\|/)
         const name = mountpoint
         this.disks.push({ name, mountpoint, label, uuid, fs })
       }
-    })
+    }
+  },
+  async mounted () {
     this.loading = true
+    await this.getLocalDisks()
+    await this.getDisksOnBackup()
+    this.loading = false
   }
 }
 </script>
