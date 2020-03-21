@@ -109,30 +109,16 @@ export default {
       } else return `[${disk.uuid}]`
     },
     async getDisksOnBackup () {
-      // bkit.getDisksOnBackup({
-      //   onreadline: (rvid) => {
-      //     console.log('LISTDISK:', rvid)
-      //     const [letter, uuid, label] = rvid.split('.')
-      //     const index = this.disks.findIndex(e => e.uuid === uuid)
-      //     if (index >= 0) {
-      //       const updatedisk = { ...this.disks[index], rvid, letter, present: true }
-      //       this.disks.splice(index, 1, updatedisk) // as requested by Vue reactiveness
-      //     } else {
-      //       this.disks.push({ name: letter, rvid, uuid, label, letter, mountpoint: undefined, present: false })
-      //     }
-      //   }
-      // })
-      const disks = bkit.listDisksOnBackup()
-      const disk2 = bkit.listDisksOnBackup()
-      const disk3 = bkit.listDisksOnBackup()
-      for await (const rvid of disks) {
-        console.log('RVID', rvid)
-      }
-      for await (const rvid of disk2) {
-        console.log('RVID2', rvid)
-      }
-      for await (const rvid of disk3) {
-        console.log('RVID3', rvid)
+      for await (const rvid of bkit.listDisksOnBackup()) {
+        console.log('RVID:', rvid)
+        const [letter, uuid, label] = rvid.split('.')
+        const index = this.disks.findIndex(e => e.uuid === uuid)
+        if (index >= 0) {
+          const updatedisk = { ...this.disks[index], rvid, letter, present: true }
+          this.disks.splice(index, 1, updatedisk) // as requested by Vue reactiveness
+        } else {
+          this.disks.push({ name: letter, rvid, uuid, label, letter, mountpoint: undefined, present: false })
+        }
       }
       console.log('Start')
     }
