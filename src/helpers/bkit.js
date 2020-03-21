@@ -25,6 +25,7 @@ export function user () {
 }
 
 function invoke ({ name, args, onreadline, onerror }, done) {
+  console.log(`Spawn ${name} with args`, args)
   const fd = spawn(
     BASH,
     [name, ...args],
@@ -51,15 +52,22 @@ export function asyncInvoke (name, args) {
   })
 }
 
+// asyncInvoke('./listdisks.sh', [])
+//  .then(disk => console.log('RVID:', disk))
+
 import Queue from './queue'
 const defaultAsyncQueue = new Queue()
 
 export function asyncEnqueue (name, args, queue = defaultAsyncQueue) {
-  queue.enqueue((name, args) => asyncInvoke(name, args))
+  const key = name + args.join('')
+  return queue.enqueue(() => asyncInvoke(name, args), key)
 }
 
+// asyncEnqueue('./listdisks.sh', [])
+//  .then(disk => console.log('ENQUED RVID:', disk))
+
 const asyncQueue4Remote = new Queue()
-export function asynGetDisksOnBackup () {
+export function asyncGetDisksOnBackup () {
   return asyncEnqueue('./listdisks.sh', [], asyncQueue4Remote)
 }
 

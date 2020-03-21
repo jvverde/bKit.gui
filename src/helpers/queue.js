@@ -1,23 +1,32 @@
 // From https://medium.com/@karenmarkosyan/how-to-manage-promises-into-dynamic-queue-with-vanilla-javascript-9d0d1f8d4df5
 export default class Queue {
-  constructor(limit = 1) {
+  constructor (limit = 1) {
     this.queue = []
     this.pendingPromise = false
     this.limit = limit
   }
 
-  enqueue(promise) {
+  enqueue (promise, key = undefined) {
     return new Promise((resolve, reject) => {
-      this.queue.push({
-          promise,
-          resolve,
-          reject,
-      })
-      this.dequeue()
+      this.queue.push({ promise, resolve, reject, key })
+      this._run()
     })
   }
 
-  dequeue() {
+  _extractDuplicateItems (key) {
+    if (!key) return []
+    const result = []
+    let i = this.queue.length
+    while (i--) {
+      if (this.queue[i].key === key) {
+        result.push(this.queue[i])
+        this.queue.splice(i, 1)
+      }
+    }
+    return result
+  }
+
+  _run () {
     if (this.workingOnPromise) {
       return false
     }
@@ -25,24 +34,22 @@ export default class Queue {
     if (!item) {
       return false
     }
-    try {
-      this.workingOnPromise = true
-      item.promise()
-        .then((value) => {
-          this.workingOnPromise = false
-          item.resolve(value)
-          this.dequeue()
-        })
-        .catch(err => {
-          this.workingOnPromise = false
-          item.reject(err)
-          this.dequeue()
-        })
-    } catch (err) {
-      this.workingOnPromise = false
-      item.reject(err)
-      this.dequeue()
-    }
+    this.workingOnPromise = true
+    item.promise()
+      .then(value => {
+        item.resolve(value)
+        // also resolve duplicate requests
+        this._extractDuplicateItems(item.key).forEach(e => e.resolve(value))
+      })
+      .catch(value => {
+        item.reject(value)
+        // also reject duplicate requests
+        this._extractDuplicateItems(item.key).forEach(e => e.reject(value))
+      })
+      .finally(() => {
+        this.workingOnPromise = false
+        this._run()
+      })
     return true
   }
 }
