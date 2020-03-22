@@ -20,7 +20,7 @@ export default class LRU {
 
   // Write Node to head of LinkedList
   // update cache with Node key and Node reference
-  write (key, value) {
+  _insert (key, value) {
     this._ensureLimit()
 
     if (!this.head) {
@@ -36,6 +36,13 @@ export default class LRU {
     this.size++
   }
 
+  write (key, value) {
+    if (this.cache[key]) { // if already in cache
+      this._remove(key) // remove it first
+    }
+    this._insert(key, value) // always insert at head
+  }
+
   // Read from cache map and make that node as new Head of LinkedList
   read (key) {
     if (this.cache[key]) {
@@ -44,7 +51,7 @@ export default class LRU {
       // node removed from it's position and cache
       this._remove(key)
       // write node again to the head of LinkedList to make it most recently used
-      this.write(key, value)
+      this._insert(key, value)
 
       return value
     } else {
