@@ -110,24 +110,6 @@ const chokidarOptions = {
   persistent: true
 }
 
-// const listdir = bkit.enqueueListdir('tree->Listdir') // enqueued request but discard duplicate paths
-const dkit = bkit.enqueuedkit('tree->dKit') // enqueued request but discard duplicate paths
-// function listdirAsync (path, args, event) {
-//   return new Promise((resolve, reject) => {
-//     listdir(path, args, event, resolve)
-//   })
-// }
-function dkitAsync (path, args, events) {
-  return new Promise((resolve, reject) => {
-    dkit(path, args, events, resolve)
-  })
-}
-
-// import { makeItCacheable } from 'src/helpers/cache'
-
-// const listdirAsync = makeItCacheable(_listdirAsync)
-// const dkitAsync = makeItCacheable(_dkitAsync)
-
 export default {
   name: 'tree',
   data () {
@@ -211,7 +193,7 @@ export default {
       return this.open && this.isdir
     },
     onbackup () { // We should be very carefully with this one
-      return !!this.entry.onbackup // && !!this.entry.verifiedChildrens
+      return !!this.entry.onbackup // && !!this.entry.markAsUnverified
     },
     onlocal () {
       return !!this.entry.onlocal
@@ -234,7 +216,9 @@ export default {
       }
     },
     isOpen: function (val) {
-      if (val && !this.loaded) this.loaddir()
+      if (val && !this.loaded) {
+        this.loaddir()
+      }
     },
     onbackup: async function (val) {
       if (this.loaded) {
@@ -275,39 +259,29 @@ export default {
       this.selectedNode = this.path
       this.$emit('show', this.path)
     },
-    updateChildrens (entry) {
-      const childrens = this.childrens
-      const index = childrens.findIndex(e => e.path === entry.path)
-      if (index >= 0) {
-        const children = { ...childrens[index], ...entry }
-        childrens.splice(index, 1, children)
-      } else {
-        childrens.push(entry)
-      }
-      childrens.sort(compare)
-    },
-    async cmpdir () {
+    async diffDir () {
       if (!this.rvid || !this.isdir) return
-      // it doesn't make any sense unless it is a dir and a remote volume ID (rvid) exists
+      // Tt doesn't make any sense unless it is a dir and a remote volume ID (rvid) exists
       if (!this.mountpoint || !fs.existsSync(this.path)) return
-      // As well it only make sense if file exists localy and on the corresponding disk
-      console.log('cmpdir', this.path)
-      const event = (entry) => {
-        if (path.dirname(entry.path) !== this.path || entry.path === this.mountpoint) {
-          // ignore all parents and the mountpoint
-          console.log(`Discard entry ${entry.path} on ${this.path}`)
-          return
-        }
-        this.updateChildrens(entry)
-      }
+      // As well it only make sense if dir exists localy on the corresponding disk
+      console.log('diffDir', this.path)
+
       this.loading = true
-      const events = { newDir: event, chgDir: event, newFile: event, chgFile: event }
+
       const args = []
       if (this.snap) args.push(`--snap=${this.snap}`)
-      return dkitAsync(this.path, args, events)
-        .then(code => console.log('dkit done with code', code))
-        .catch(error => console.error('Error:', error))
-        .finally(() => { this.loading = false })
+      args.push(this.path)
+
+      const entries = await bkit.dKit(args)
+      entries.forEach(entry => {
+        if (path.dirname(entry.path) !== this.path || entry.path === this.mountpoint) {
+          console.log(`Discard self-or-ancestor ${entry.path} of ${this.path}`)
+        } else {
+          this.updateChildrens(entry)
+        }
+      })
+
+      this.loading = false
     },
     async readDirOnBackup () {
       if (!this.isdir || !this.onbackup) return
@@ -326,7 +300,7 @@ export default {
 
       const entries = await bkit.listDirs(args)
       entries.forEach(entry => {
-        entry.path = path.join(this.mountpoint, entry.path)
+        entry.path = path.join(this.path, entry.name)
         this.updateChildrens(entry)
       })
 
@@ -342,24 +316,39 @@ export default {
       }
       this.loading = false
     },
-    verifiedChildrens (val = true) {
-      this.childrens.forEach(c => { c.onbackup = val })
+    updateChildrens (entry) {
+      entry.verified = true
+      this.$nextTick(() => {
+        const childrens = this.childrens
+        const index = childrens.findIndex(e => e.path === entry.path)
+        if (index >= 0) {
+          const children = { ...childrens[index], ...entry }
+          childrens.splice(index, 1, children)
+        } else {
+          childrens.push(entry)
+        }
+        childrens.sort(compare)
+      })
     },
-    cleanupChildrens () {
-      this.childrens
-        .map((e, i) => (e.onbackup || e.onlocal) ? false : i) // mark childrens not in local or in backup
-        .filter(e => e !== false) // remove unmarked chidrens
-        .reverse() // This is very importante!!! WE need to start from the last position
-        .forEach(index => this.childrens.splice(index, 1)) // remove marked(=not existing) childrens
+    markAsUnverified () {
+      this.childrens.forEach(c => { c.verified = false })
+    },
+    rmUnverifield () {
+      let i = this.childrens.length
+      while (i--) {
+        if (!this.childrens[i].verified) {
+          this.childrens.splice(i, 1)
+        }
+      }
     },
     async checkDirOnBackup () {
       if (!this.isdir) return
       // Doesn't make sense for files
       console.log('checkDirOnBackup', this.path)
-      this.verifiedChildrens(false)
+      this.markAsUnverified(false)
       await this.readDirOnBackup()
-      await this.cmpdir()
-      this.cleanupChildrens()
+      await this.diffDir()
+      this.rmUnverifield(false)
     },
     async loaddir () {
       this.childrens = []

@@ -95,26 +95,24 @@ export async function getServer () {
 
 const regexpList = /(?<list>[a-z-]+)\s+(?<size>[0-9,]+)\s+(?<sdate>[0-9/]+)\s+(?<time>[0-9:]+)\s+(?<name>.+)/
 
-function* line2entry ([...lines], fullpath) {
-  for (const line in lines) {
+function* line2entry ([...lines]) {
+  for (const line of lines) {
     console.log('List Line:', line)
     const match = line.match(regexpList)
     const { groups: { list, size, sdate, time, name } } = match || { groups: {} }
     if (match && name !== '.') { // only if not current directory
-      const fullname = path.join(fullpath, name)
       const isdir = list.startsWith('d')
       const isregular = list.startsWith('-')
       const date = `${sdate} ${time}`
-      yield { name, onbackup, path: fullname, isdir, isregular, date, size }
+      yield { name, onbackup, isdir, isregular, date, size }
     }
   }
 }
 
 async function _listDirs (args) {
-  const fullpath = args[args.length - 1]
   console.log(`invokeBash listdir with args`, args)
   const lines = await enqueue2bash('./listdirs.sh', args, asyncQueue4Remote)
-  return [...line2entry(lines, fullpath)]
+  return [...line2entry(lines)]
 }
 
 // Proxy listdir to cache the (already matched) results
@@ -139,7 +137,7 @@ export async function dKit (args) {
 
 function* rsync2entry (lines) {
   let filename
-  const match = (line, exp, dispatch) => {
+  const match = (line, exp) => {
     const isaMatch = line.match(exp)
     if (isaMatch) {
       filename = isaMatch[3]
@@ -148,7 +146,7 @@ function* rsync2entry (lines) {
     return false
   }
 
-  for (const line in lines) {
+  for (const line of lines) {
     console.log('Read Line:', line)
     if (match(line, regexpNewFile)) {
       yield { name: path.basename(filename), path: filename, isnew, isfile }
