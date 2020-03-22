@@ -110,13 +110,13 @@ const chokidarOptions = {
   persistent: true
 }
 
-const listdir = bkit.enqueueListdir('tree->Listdir') // enqueued request but discard duplicate paths
+// const listdir = bkit.enqueueListdir('tree->Listdir') // enqueued request but discard duplicate paths
 const dkit = bkit.enqueuedkit('tree->dKit') // enqueued request but discard duplicate paths
-function listdirAsync (path, args, event) {
-  return new Promise((resolve, reject) => {
-    listdir(path, args, event, resolve)
-  })
-}
+// function listdirAsync (path, args, event) {
+//   return new Promise((resolve, reject) => {
+//     listdir(path, args, event, resolve)
+//   })
+// }
 function dkitAsync (path, args, events) {
   return new Promise((resolve, reject) => {
     dkit(path, args, events, resolve)
@@ -312,21 +312,24 @@ export default {
     async readbackup () {
       if (!this.isdir || !this.onbackup) return
       // Only does this if it is a directory and itself is on backup
+
       console.log('readbackup', this.path)
       this.loading = true
-      const event = (entry) => {
-        entry.path = path.join(this.mountpoint, entry.path)
-        this.updateChildrens(entry)
-      }
+
       let relative = this.mountpoint ? path.relative(this.mountpoint, this.path) : this.path
       relative = slash(path.posix.normalize(`/${relative}/`))
       relative = path.posix.normalize(relative)
+
       const args = [ `--rvid=${this.rvid}` ]
       if (this.snap) args.push(`--snap=${this.snap}`)
-      return listdirAsync(relative, args, event)
-        .then(code => console.log('listdir done with code ', code))
-        .catch(error => console.error('Error:', error))
-        .finally(() => { this.loading = false })
+      args.push(relative)
+
+      for await (const entry of await bkit.listDirs(args)) {
+        entry.path = path.join(this.mountpoint, entry.path)
+        this.updateChildrens(entry)
+      }
+
+      this.loading = false
     },
     async readdir () {
       if (!this.mountpoint || !fs.existsSync(this.path)) return

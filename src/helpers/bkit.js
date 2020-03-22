@@ -66,15 +66,15 @@ export function asyncEnqueue (name, args, queue = defaultAsyncQueue) {
 // asyncEnqueue('./listdisks.sh', [])
 //  .then(disk => console.log('ENQUED RVID:', disk))
 
-import acache from './asyncache'
+import { exclusiveProxy } from './proxy'
 
 const asyncQueue4Remote = new Queue() // This is intend to queue remote request
 const asyncQueue4Local = new Queue() // This is intend to queue local request
 
-const asyncache = acache(asyncEnqueue) // Use to go through cache before a possible enqueue
+const proxy2Queue = exclusiveProxy(asyncEnqueue, 50) // Go through proxy before a possible enqueue
 
 export async function* listDisksOnBackup () {
-  for (const disk of await asyncache('./listdisks.sh', [], asyncQueue4Remote)) {
+  for (const disk of await proxy2Queue('./listdisks.sh', [], asyncQueue4Remote)) {
     yield disk
   }
 }
@@ -90,7 +90,43 @@ export async function getServer () {
   return asyncEnqueue('./server.sh', [], asyncQueue4Local)
 }
 
-/* ------------------------------------------------- */ 
+export async function* listDirs (args) {
+  const fullpath = args[args.length - 1]
+  console.log(`Invoke listdir with args`, args)
+  for (const dir of await proxy2Queue('./listdirs.sh', args, asyncQueue4Remote)) {
+    console.log('ListDir:', dir)
+    const match = dir.match(regexpList)
+    const { groups: { list, size, sdate, time, name } } = match || { groups: {} }
+    if (match && name !== '.') { // only if not current directory
+      const fullname = path.join(fullpath, name)
+      const isdir = list.startsWith('d')
+      const isregular = list.startsWith('-')
+      const date = `${sdate} ${time}`
+      yield { name, onbackup, path: fullname, isdir, isregular, date, size }
+    }
+  }
+}
+
+export function ____Listdirs (args, entry, done = () => console.log('List dirs done')) {
+  const fullpath = args[args.length - 1]
+  console.log(`Invoke listdir with args`, args)
+  bash('./listdirs.sh', args, {
+    onclose: done,
+    onreadline: (data) => {
+      console.log('Listdir:', data)
+      const match = data.match(regexpList)
+      const { groups: { list, size, sdate, time, name } } = match || { groups: {} }
+      if (match && name !== '.') { // only if not current directory
+        const fullname = path.join(fullpath, name)
+        const isdir = list.startsWith('d')
+        const isregular = list.startsWith('-')
+        const date = `${sdate} ${time}`
+        entry({ name, onbackup, path: fullname, isdir, isregular, date, size })
+      }
+    }
+  })
+}
+/* ------------------------------------------------- */
 export function shell () {
   const fd = spawn(
     TERM,
