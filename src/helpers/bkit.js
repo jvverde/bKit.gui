@@ -24,7 +24,8 @@ export function user () {
   return username
 }
 
-function invoke ({ name, args, onreadline, onerror }, done) {
+// This is a adapter to invoke bash
+function invokeBash ({ name, args, onreadline, onerror }, done) {
   console.log(`Spawn ${name} with args`, args)
   const fd = spawn(
     BASH,
@@ -42,28 +43,29 @@ function invoke ({ name, args, onreadline, onerror }, done) {
   fd.stderr.on('data', onerror)
 }
 
-export function asyncInvoke (name, args) {
+// Provide a promise to invoke bash
+export function asyncInvokeBash (name, args) {
   return new Promise((resolve, reject) => {
     const lines = []
     const onreadline = line => lines.push(line)
     const done = () => resolve(lines)
     const onerror = reject
-    invoke({ name, args, onreadline, onerror }, done)
+    invokeBash({ name, args, onreadline, onerror }, done)
   })
 }
 
-// asyncInvoke('./listdisks.sh', [])
+// asyncInvokeBash('./listdisks.sh', [])
 //  .then(disk => console.log('RVID:', disk))
 
 import Queue from './queue'
 const defaultAsyncQueue = new Queue()
 
-export function asyncEnqueue (name, args, queue = defaultAsyncQueue) {
+export function enqueue2bash (name, args, queue = defaultAsyncQueue) {
   const key = name + args.join('')
-  return queue.enqueue(() => asyncInvoke(name, args), key)
+  return queue.enqueue(() => asyncInvokeBash(name, args), key)
 }
 
-// asyncEnqueue('./listdisks.sh', [])
+// enqueue2bash('./listdisks.sh', [])
 //  .then(disk => console.log('ENQUED RVID:', disk))
 
 import { exclusiveProxy } from './proxy'
@@ -71,61 +73,53 @@ import { exclusiveProxy } from './proxy'
 const asyncQueue4Remote = new Queue() // This is intend to queue remote request
 const asyncQueue4Local = new Queue() // This is intend to queue local request
 
-const proxy2Queue = exclusiveProxy(asyncEnqueue, 50) // Go through proxy before a possible enqueue
+// Proxy (via to Queue) to Bash
+const proxy2Q2bash = exclusiveProxy(enqueue2bash, { size: 50, name: 'bash' })
 
 export async function* listDisksOnBackup () {
-  for (const disk of await proxy2Queue('./listdisks.sh', [], asyncQueue4Remote)) {
+  for (const disk of await proxy2Q2bash('./listdisks.sh', [], asyncQueue4Remote)) {
     yield disk
   }
 }
 
-// We don't use cache for local requests, so we enqueue it directly
 export async function* listLocalDisks () {
-  for (const disk of await asyncEnqueue('./lib/getdevs.sh', [], asyncQueue4Local)) {
+  // We don't use cache for local requests, so we enqueue it directly
+  for (const disk of await enqueue2bash('./lib/getdevs.sh', [], asyncQueue4Local)) {
     yield disk
   }
 }
 
 export async function getServer () {
-  return asyncEnqueue('./server.sh', [], asyncQueue4Local)
+  return enqueue2bash('./server.sh', [], asyncQueue4Local)
 }
 
-export async function* listDirs (args) {
+const regexpList = /(?<list>[a-z-]+)\s+(?<size>[0-9,]+)\s+(?<sdate>[0-9/]+)\s+(?<time>[0-9:]+)\s+(?<name>.+)/
+
+async function _listDirs (args) {
   const fullpath = args[args.length - 1]
-  console.log(`Invoke listdir with args`, args)
-  for (const dir of await proxy2Queue('./listdirs.sh', args, asyncQueue4Remote)) {
-    console.log('ListDir:', dir)
-    const match = dir.match(regexpList)
+  console.log(`invokeBash listdir with args`, args)
+  const lines = await enqueue2bash('./listdirs.sh', args, asyncQueue4Remote)
+  return lines.map(line => {
+    console.log('ListDir:', line)
+    const match = line.match(regexpList)
     const { groups: { list, size, sdate, time, name } } = match || { groups: {} }
     if (match && name !== '.') { // only if not current directory
       const fullname = path.join(fullpath, name)
       const isdir = list.startsWith('d')
       const isregular = list.startsWith('-')
       const date = `${sdate} ${time}`
-      yield { name, onbackup, path: fullname, isdir, isregular, date, size }
-    }
-  }
+      return { name, onbackup, path: fullname, isdir, isregular, date, size }
+    } else return undefined
+  }).filter(e => e)
 }
 
-export function ____Listdirs (args, entry, done = () => console.log('List dirs done')) {
-  const fullpath = args[args.length - 1]
-  console.log(`Invoke listdir with args`, args)
-  bash('./listdirs.sh', args, {
-    onclose: done,
-    onreadline: (data) => {
-      console.log('Listdir:', data)
-      const match = data.match(regexpList)
-      const { groups: { list, size, sdate, time, name } } = match || { groups: {} }
-      if (match && name !== '.') { // only if not current directory
-        const fullname = path.join(fullpath, name)
-        const isdir = list.startsWith('d')
-        const isregular = list.startsWith('-')
-        const date = `${sdate} ${time}`
-        entry({ name, onbackup, path: fullname, isdir, isregular, date, size })
-      }
-    }
-  })
+// Proxy listdir
+const proxy2list = exclusiveProxy(_listDirs, { size: 50, name: 'listdir' })
+
+export async function listDirs (args) {
+  return proxy2list(args)
 }
+
 /* ------------------------------------------------- */
 export function shell () {
   const fd = spawn(
@@ -136,9 +130,9 @@ export function shell () {
   fd.unref()
 }
 
-const defaultQueue = queue(invoke) // default queue to serialize requests
-export const localQueue = queue(invoke) // queue for run local scripts
-export const remoteQueue = queue(invoke) // queue for run remote scripts
+const defaultQueue = queue(invokeBash) // default queue to serialize requests
+export const localQueue = queue(invokeBash) // queue for run local scripts
+export const remoteQueue = queue(invokeBash) // queue for run remote scripts
 
 export function bash (scriptname, args, {
   onclose = () => console.log('Close', scriptname),
@@ -150,7 +144,7 @@ export function bash (scriptname, args, {
 }
 
 export function newBashQueue () {
-  return queue(invoke)
+  return queue(invokeBash)
 }
 
 export function newQueue (task) {
@@ -250,18 +244,16 @@ export function onRsyncLine ({
 
 export function dkit (args, events, done = () => console.log('dkit done')) {
   // console.log('events', events)
-  console.log(`Invoke dkit with args`, args)
+  console.log(`invokeBash dkit with args`, args)
   const actions = onRsyncLine(events, done)
   // const args = ['--no-recursive', '--delete', '--dirs', `${fullpath}`]
   const fullargs = ['--no-recursive', '--dirs', ...args]
   bash('./dkit.sh', fullargs, actions)
 }
 
-const regexpList = /(?<list>[a-z-]+)\s+(?<size>[0-9,]+)\s+(?<sdate>[0-9/]+)\s+(?<time>[0-9:]+)\s+(?<name>.+)/
-
 export function listdirs (args, entry, done = () => console.log('List dirs done')) {
   const fullpath = args[args.length - 1]
-  console.log(`Invoke listdir with args`, args)
+  console.log(`invokeBash listdir with args`, args)
   bash('./listdirs.sh', args, {
     onclose: done,
     onreadline: (data) => {

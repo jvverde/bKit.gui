@@ -309,11 +309,11 @@ export default {
         .catch(error => console.error('Error:', error))
         .finally(() => { this.loading = false })
     },
-    async readbackup () {
+    async readDirOnBackup () {
       if (!this.isdir || !this.onbackup) return
       // Only does this if it is a directory and itself is on backup
 
-      console.log('readbackup', this.path)
+      console.log('readDirOnBackup', this.path)
       this.loading = true
 
       let relative = this.mountpoint ? path.relative(this.mountpoint, this.path) : this.path
@@ -324,10 +324,11 @@ export default {
       if (this.snap) args.push(`--snap=${this.snap}`)
       args.push(relative)
 
-      for await (const entry of await bkit.listDirs(args)) {
+      const entries = await bkit.listDirs(args)
+      entries.forEach(entry => {
         entry.path = path.join(this.mountpoint, entry.path)
         this.updateChildrens(entry)
-      }
+      })
 
       this.loading = false
     },
@@ -356,7 +357,7 @@ export default {
       // Doesn't make sense for files
       console.log('checkDirOnBackup', this.path)
       this.verifiedChildrens(false)
-      await this.readbackup()
+      await this.readDirOnBackup()
       await this.cmpdir()
       this.cleanupChildrens()
     },
