@@ -83,7 +83,7 @@ const path = require('path')
 const slash = require('slash')
 const fs = require('fs')
 import { readdir } from 'src/helpers/readfs'
-import * as bkit from 'src/helpers/bkit'
+import { dKit, listDirs } from 'src/helpers/bkit'
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -272,7 +272,7 @@ export default {
       if (this.snap) args.push(`--snap=${this.snap}`)
       args.push(this.path)
 
-      const entries = await bkit.dKit(args)
+      const entries = await dKit(args)
       entries.forEach(entry => {
         if (path.dirname(entry.path) !== this.path || entry.path === this.mountpoint) {
           console.log(`Discard self-or-ancestor ${entry.path} of ${this.path}`)
@@ -298,7 +298,7 @@ export default {
       if (this.snap) args.push(`--snap=${this.snap}`)
       args.push(relative)
 
-      const entries = await bkit.listDirs(args)
+      const entries = await listDirs(args)
       entries.forEach(entry => {
         entry.path = path.join(this.path, entry.name)
         this.updateChildrens(entry)

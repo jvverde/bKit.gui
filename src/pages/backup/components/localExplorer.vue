@@ -88,7 +88,7 @@ const chokidarOptions = {
 }
 
 const listdir = bkit.enqueueListdir('Listdir on localexplorer')
-const dkit = bkit.enqueuedkit('dKit on localexplorer')
+// const dkit = bkit.enqueuedkit('dKit on localexplorer')
 
 export default {
   name: 'localexplorer',
@@ -149,7 +149,7 @@ export default {
     }
   },
   mounted () {
-    // this.show(this.mountpoint)
+    this.show(this.mountpoint)
   },
   methods: {
     usesnap (snap, rvid) {
@@ -188,10 +188,12 @@ export default {
         this.refresh(currentfiles)
       })
     },
-    checkdir (fullpath) {
+    async checkdir (fullpath) {
       if (!this.rvid) return
       if (this.currentPath !== fullpath) return // only if it still the current path
       // console.log(`Check ${fullpath} status on server`)
+
+      this.loading = true
       const currentfiles = this.currentfiles
 
       const update = (entry) => {
@@ -206,33 +208,52 @@ export default {
           currentfiles.sort(compare)
         }
       }
-      const updatedir = (entry) => {
-        if (path.dirname(entry.path) !== fullpath || entry.path === this.mountpoint) {
-          // ignore all parents and the mountpoint
-          console.log('Discard dir', entry.path)
-          return
-        }
-        update(entry)
-      }
+      // const updatedir = (entry) => {
+      //   if (path.dirname(entry.path) !== fullpath || entry.path === this.mountpoint) {
+      //     // ignore all parents and the mountpoint
+      //     console.log('Discard dir', entry.path)
+      //     return
+      //   }
+      //   update(entry)
+      // }
       const discard = (name, path) => console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
       listdir(fullpath, [], update, () => {}, discard)
       if (fs.existsSync(fullpath)) {
-        const events = {
-          newDir: updatedir,
-          chgDir: updatedir,
-          newFile: update,
-          chgFile: update
-        }
-        const done = () => {
-          console.log(`Done dKit for ${fullpath}`)
-          if (this.currentPath === fullpath) {
-            this.loading = false
-            // this.refreshNextTick()
+        // const events = {
+        //   newDir: updatedir,
+        //   chgDir: updatedir,
+        //   newFile: update,
+        //   chgFile: update
+        // }
+        // const done = () => {
+        //   console.log(`Done dKit for ${fullpath}`)
+        //   if (this.currentPath === fullpath) {
+        //     this.loading = false
+        //     // this.refreshNextTick()
+        //   }
+        // }
+        // dkit(fullpath, [], events, done, discard)
+        const args = this.snap ? [`--snap=${this.snap}`, fullpath] : [fullpath]
+        const entries = await bkit.dKit(args)
+        entries.forEach(entry => {
+          if (this.currentPath !== fullpath) return // only if it still the current path
+          if (path.dirname(entry.path) !== fullpath || entry.path === this.mountpoint) {
+            // ignore all parents and the mountpoint
+            console.log('Discard dir', entry.path)
+            return
           }
-        }
-        dkit(fullpath, [], events, done, discard)
+          entry.checked = true
+          const index = currentfiles.findIndex(e => e.path === entry.path)
+          if (index > -1) {
+            const newentry = { ...currentfiles[index], ...entry }
+            currentfiles.splice(index, 1, newentry)
+          } else {
+            currentfiles.push(entry)
+            currentfiles.sort(compare)
+          }
+        })
       }
-      this.loading = true
+      this.loading = false
     }
   }
 }

@@ -42,6 +42,7 @@ export default class Queue {
         this._extractDuplicateItems(item.key).forEach(e => e.resolve(value))
       })
       .catch(value => {
+        console.error(`Queue catch error: (${value})`, value)
         item.reject(value)
         // also reject duplicate requests
         this._extractDuplicateItems(item.key).forEach(e => e.reject(value))

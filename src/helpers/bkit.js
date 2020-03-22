@@ -33,14 +33,18 @@ function invokeBash ({ name, args, onreadline, onerror }, done) {
     { cwd: bKitPath, windowsHide: true }
   )
   fd.on('close', (code) => {
+    console.log(`Done spawn ${name} with args`, args)
     done(code)
   })
+  fd.on('error', onerror)
   const rl = readline.createInterface({
     input: fd.stdout,
     output: process.stdout
   })
   rl.on('line', onreadline)
-  fd.stderr.on('data', onerror)
+  fd.stderr.on('data', (err) => {
+    console.warn(`Errors from bash script ${name}: ${err}`, err)
+  })
 }
 
 // Provide a promise to invoke bash
