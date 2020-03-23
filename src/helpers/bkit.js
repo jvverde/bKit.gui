@@ -25,6 +25,15 @@ export function user () {
   return username
 }
 
+export function shell () {
+  const fd = spawn(
+    TERM,
+    [],
+    { cwd: bKitPath, windowsHide: false, detached: true, stdio: 'ignore' }
+  )
+  fd.unref()
+}
+
 // This is a adapter to invoke bash
 function invokeBash ({ name, args, onreadline, onerror }, done) {
   console.log(`Spawn ${name} with args`, args)
@@ -48,6 +57,14 @@ function invokeBash ({ name, args, onreadline, onerror }, done) {
   })
 }
 
+export function bash (scriptname, args, {
+  onclose = () => console.log('Close', scriptname),
+  onreadline = () => false,
+  onerror = (err) => warn(`Error calling script ${scriptname}: ${err}`, true)
+}) {
+  return invokeBash({ name: scriptname, args, onreadline, onerror }, onclose)
+}
+
 // Provide a promise to invoke bash
 export function asyncInvokeBash (name, args) {
   return new Promise((resolve, reject) => {
@@ -58,25 +75,24 @@ export function asyncInvokeBash (name, args) {
     invokeBash({ name, args, onreadline, onerror }, done)
   })
 }
-
 // asyncInvokeBash('./listdisks.sh', [])
 //  .then(disk => console.log('RVID:', disk))
 
+/* ------------------ define queues and proxis/caches --------------- */
 import Queue from './queue'
-const defaultAsyncQueue = new Queue()
+const asyncQueue4Remote = new Queue() // This is intend to queue remote request
+const asyncQueue4Local = new Queue() // This is intend to queue local request
+const defaultAsyncQueue = new Queue() // To be used for everything else
 
+// Enqueue bash scripts
 export function enqueue2bash (name, args, queue = defaultAsyncQueue) {
   const key = name + args.join('')
   return queue.enqueue(() => asyncInvokeBash(name, args), key)
 }
-
 // enqueue2bash('./listdisks.sh', [])
 //  .then(disk => console.log('ENQUED RVID:', disk))
 
 import { exclusiveProxy } from './proxy'
-
-const asyncQueue4Remote = new Queue() // This is intend to queue remote request
-const asyncQueue4Local = new Queue() // This is intend to queue local request
 
 // Proxy (via to Queue) to Bash
 const proxy2Q2bash = exclusiveProxy(enqueue2bash, { size: 50, name: 'bash' })
@@ -88,7 +104,7 @@ export async function* listDisksOnBackup () {
 }
 
 export async function* listLocalDisks () {
-  // We don't use cache for local requests, so we enqueue it directly
+  // We don't use cache/proxy for local requests, so we enqueue it directly
   for (const disk of await enqueue2bash('./lib/getdevs.sh', [], asyncQueue4Local)) {
     yield disk
   }
@@ -181,69 +197,7 @@ export async function dKit (args) {
   return proxy2dkit(args)
 }
 
-/* ------------------------------------------------- */
-export function shell () {
-  const fd = spawn(
-    TERM,
-    [],
-    { cwd: bKitPath, windowsHide: false, detached: true, stdio: 'ignore' }
-  )
-  fd.unref()
-}
-
-// const defaultQueue = queue(invokeBash) // default queue to serialize requests
-// export const localQueue = queue(invokeBash) // queue for run local scripts
-// export const remoteQueue = queue(invokeBash) // queue for run remote scripts
-
-export function bash (scriptname, args, {
-  onclose = () => console.log('Close', scriptname),
-  onreadline = () => false,
-  onerror = (err) => warn(`Error calling script ${scriptname}: ${err}`, true)
-}) {
-  return invokeBash({ name: scriptname, args, onreadline, onerror }, onclose)
-}
-
-// export function newBashQueue () {
-//   return queue(invokeBash)
-// }
-
-// export function newQueue (task) {
-//   return queue(task)
-// }
-
-/* ------------------- */
-
-// const terminate = require('terminate')
-
-// export function stop (process) {
-//   if (process && process.bkitclosed) {
-//     console.log('Process already closed')
-//     return
-//   }
-//   if (!process) {
-//     console.error('Process cannot be null or undefined')
-//     return
-//   }
-//   terminate(process.pid, (err) => {
-//     if (err) {
-//       console.error('Oopsy: ' + err)
-//     } else {
-//       console.log('Process stop done')
-//     }
-//   })
-// }
-// Windows workaroud to kill a process
-// var spawn = require('child_process').spawn
-// spawn("taskkill", ["/pid", child.pid, '/f', '/t']);
-// export function remove (url) {
-//   delete wsList[url]
-// }
-// export function get (url) {
-//   return wsList[url]
-// }
-
-// <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
-
+/* ------------------Old Code, but still used by restore components ----------- */
 export function onRsyncLine ({
   newFile = () => false,
   newDir = () => false,
@@ -321,44 +275,6 @@ export function listdirs (args, entry, done = () => console.log('List dirs done'
   })
 }
 
-// import { makeItCacheable } from './cache'
-
-// const cachedListdirs = makeItCacheable(listdirs)
-// const cachedDkit = makeItCacheable(dkit)
-
-// const _dkit = ({ args, events, name }, done) => {
-//   // console.log(name, args)
-//   cachedDkit(args, events, done)
-// }
-
-// const _listdirs = ({ args, events, name }, done) => {
-//   // console.log(name, args)
-//   cachedListdirs(args, events, done)
-// }
-
-// const _discard = (msg) => console.warn(`${msg.name}: ${msg.path} already in queue`)
-
-// function makeQueue (action, name) { // create a queue where duplicated requests will be discarded
-//   const q = queue(action)
-//   return function (path, args, events, done = () => false, discard = _discard) {
-//     args.push(path)
-//     const items = [...q]
-//     const str = args.join('')
-//     if (items.some(item => item.str === str)) {
-//       discard({ name, path }) // discard request for the same path
-//     } else {
-//       q.push({ args, str, events, name }, done)
-//     }
-//   }
-// }
-
-// export function enqueuedkit (name = 'dKit') {
-//   return makeQueue(_dkit, name)
-// }
-
-// export function enqueueListdir (name = 'ListDir') {
-//   return makeQueue(_listdirs, name)
-// }
 /* -------------------------------------- */
 
 export function getLocalDisks (events) {
