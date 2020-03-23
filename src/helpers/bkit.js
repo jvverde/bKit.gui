@@ -4,7 +4,8 @@ let username = require('os').userInfo().username
 const { spawn, execSync } = require('child_process')
 const readline = require('readline')
 const { ipcRenderer } = require('electron')
-import queue from 'async/queue'
+const path = require('path')
+
 import { warn } from './notify'
 
 if (process.platform === 'win32') {
@@ -97,6 +98,7 @@ export async function getServer () {
   return enqueue2bash('./server.sh', [], asyncQueue4Local)
 }
 
+/* ---------------------listdir--------------------- */
 const regexpList = /(?<list>[a-z-]+)\s+(?<size>[0-9,]+)\s+(?<sdate>[0-9/]+)\s+(?<time>[0-9:]+)\s+(?<name>.+)/
 
 function* line2entry ([...lines]) {
@@ -126,18 +128,16 @@ export async function listDirs (args) {
   return proxy2list(args)
 }
 
-async function _dKit (args) {
-  console.log(`invokeBash listdir with args`, args)
-  const fullargs = ['--no-recursive', '--dirs', ...args]
-  const rsynclines = await enqueue2bash('./dkit.sh', fullargs, asyncQueue4Remote)
-  return [...rsync2entry(rsynclines)]
-}
+/* ---------------------dKit--------------------- */
+const regexpNewFile = /^[><]f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpChgDir = /^[.]d.{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+// <f.st......|2020/02/23-18:24:04|1652|/home/jvv/projectos/bkit/apps/client/package.json
+// <f..t......
+const regexpChgFile = /^[><]f.(?:s.|.t).{6}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
+const regexpDelete = /^[*]deleting\s*[|]([^|]*)[|]([^|]*)[|]([^|]*)/
 
-const proxy2dkit = exclusiveProxy(_dKit, { size: 50, name: 'dkit' })
-
-export async function dKit (args) {
-  return proxy2dkit(args)
-}
+const [isnew, wasmodified, wasdeleted, isdir, isfile, onbackup] = Array(6).fill(true)
 
 function* rsync2entry (lines) {
   let filename
@@ -168,6 +168,19 @@ function* rsync2entry (lines) {
   }
 }
 
+async function _dKit (args) {
+  console.log(`invokeBash listdir with args`, args)
+  const fullargs = ['--no-recursive', '--dirs', ...args]
+  const rsynclines = await enqueue2bash('./dkit.sh', fullargs, asyncQueue4Remote)
+  return [...rsync2entry(rsynclines)]
+}
+
+const proxy2dkit = exclusiveProxy(_dKit, { size: 50, name: 'dkit' })
+
+export async function dKit (args) {
+  return proxy2dkit(args)
+}
+
 /* ------------------------------------------------- */
 export function shell () {
   const fd = spawn(
@@ -178,26 +191,25 @@ export function shell () {
   fd.unref()
 }
 
-const defaultQueue = queue(invokeBash) // default queue to serialize requests
-export const localQueue = queue(invokeBash) // queue for run local scripts
-export const remoteQueue = queue(invokeBash) // queue for run remote scripts
+// const defaultQueue = queue(invokeBash) // default queue to serialize requests
+// export const localQueue = queue(invokeBash) // queue for run local scripts
+// export const remoteQueue = queue(invokeBash) // queue for run remote scripts
 
 export function bash (scriptname, args, {
   onclose = () => console.log('Close', scriptname),
   onreadline = () => false,
   onerror = (err) => warn(`Error calling script ${scriptname}: ${err}`, true)
-}, q = defaultQueue) {
-  q.push({ name: scriptname, args, onreadline, onerror }, onclose)
-  return null
+}) {
+  return invokeBash({ name: scriptname, args, onreadline, onerror }, onclose)
 }
 
-export function newBashQueue () {
-  return queue(invokeBash)
-}
+// export function newBashQueue () {
+//   return queue(invokeBash)
+// }
 
-export function newQueue (task) {
-  return queue(task)
-}
+// export function newQueue (task) {
+//   return queue(task)
+// }
 
 /* ------------------- */
 
@@ -230,17 +242,7 @@ export function newQueue (task) {
 //   return wsList[url]
 // }
 
-const path = require('path')
 // <f+++++++++|2020/02/22-16:05:08|99|/home/jvv/projectos/bkit/apps/webapp.oldversion/.eslintignore
-const regexpNewFile = /^[><]f[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-const regexpNewDir = /^cd[+]{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-const regexpChgDir = /^[.]d.{9}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-// <f.st......|2020/02/23-18:24:04|1652|/home/jvv/projectos/bkit/apps/client/package.json
-// <f..t......
-const regexpChgFile = /^[><]f.(?:s.|.t).{6}[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-const regexpDelete = /^[*]deleting\s*[|]([^|]*)[|]([^|]*)[|]([^|]*)/
-
-const [isnew, wasmodified, wasdeleted, isdir, isfile, onbackup] = Array(6).fill(true)
 
 export function onRsyncLine ({
   newFile = () => false,
@@ -319,52 +321,52 @@ export function listdirs (args, entry, done = () => console.log('List dirs done'
   })
 }
 
-import { makeItCacheable } from './cache'
+// import { makeItCacheable } from './cache'
 
-const cachedListdirs = makeItCacheable(listdirs)
-const cachedDkit = makeItCacheable(dkit)
+// const cachedListdirs = makeItCacheable(listdirs)
+// const cachedDkit = makeItCacheable(dkit)
 
-const _dkit = ({ args, events, name }, done) => {
-  // console.log(name, args)
-  cachedDkit(args, events, done)
-}
+// const _dkit = ({ args, events, name }, done) => {
+//   // console.log(name, args)
+//   cachedDkit(args, events, done)
+// }
 
-const _listdirs = ({ args, events, name }, done) => {
-  // console.log(name, args)
-  cachedListdirs(args, events, done)
-}
+// const _listdirs = ({ args, events, name }, done) => {
+//   // console.log(name, args)
+//   cachedListdirs(args, events, done)
+// }
 
-const _discard = (msg) => console.warn(`${msg.name}: ${msg.path} already in queue`)
+// const _discard = (msg) => console.warn(`${msg.name}: ${msg.path} already in queue`)
 
-function makeQueue (action, name) { // create a queue where duplicated requests will be discarded
-  const q = queue(action)
-  return function (path, args, events, done = () => false, discard = _discard) {
-    args.push(path)
-    const items = [...q]
-    const str = args.join('')
-    if (items.some(item => item.str === str)) {
-      discard({ name, path }) // discard request for the same path
-    } else {
-      q.push({ args, str, events, name }, done)
-    }
-  }
-}
+// function makeQueue (action, name) { // create a queue where duplicated requests will be discarded
+//   const q = queue(action)
+//   return function (path, args, events, done = () => false, discard = _discard) {
+//     args.push(path)
+//     const items = [...q]
+//     const str = args.join('')
+//     if (items.some(item => item.str === str)) {
+//       discard({ name, path }) // discard request for the same path
+//     } else {
+//       q.push({ args, str, events, name }, done)
+//     }
+//   }
+// }
 
-export function enqueuedkit (name = 'dKit') {
-  return makeQueue(_dkit, name)
-}
+// export function enqueuedkit (name = 'dKit') {
+//   return makeQueue(_dkit, name)
+// }
 
-export function enqueueListdir (name = 'ListDir') {
-  return makeQueue(_listdirs, name)
-}
+// export function enqueueListdir (name = 'ListDir') {
+//   return makeQueue(_listdirs, name)
+// }
 /* -------------------------------------- */
 
 export function getLocalDisks (events) {
-  return bash('./lib/getdevs.sh', [], events, localQueue)
+  return bash('./lib/getdevs.sh', [], events)
 }
 
 export function getDisksOnBackup (events) {
-  return bash('./listdisks.sh', [], events, remoteQueue)
+  return bash('./listdisks.sh', [], events)
 }
 
 export function getDisks ({ onclose, entry }) {
@@ -392,5 +394,5 @@ export function getDisks ({ onclose, entry }) {
         present: false
       })
     }
-  }, remoteQueue)
+  })
 }
