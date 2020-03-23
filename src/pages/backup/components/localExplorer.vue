@@ -150,7 +150,7 @@ export default {
     }
   },
   mounted () {
-    this.show(this.mountpoint)
+    // this.show(this.mountpoint)
   },
   methods: {
     usesnap (snap, rvid) {

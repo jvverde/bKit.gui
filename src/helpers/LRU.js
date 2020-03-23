@@ -68,6 +68,7 @@ export default class LRU {
 
   _remove (key) {
     const node = this.cache[key]
+    if (!node) return false
 
     if (node.prev !== null) {
       node.prev.next = node.next
@@ -83,6 +84,11 @@ export default class LRU {
 
     delete this.cache[key]
     this.size--
+  }
+
+  remove (key) {
+    console.log('Try to Invalidade key', key)
+    this._remove(key)
   }
 
   clear () {

@@ -93,7 +93,7 @@ export function enqueue2bash (name, args, queue = defaultAsyncQueue) {
 // enqueue2bash('./listdisks.sh', [])
 //  .then(disk => console.log('ENQUED RVID:', disk))
 
-import { exclusiveProxy } from './proxy'
+import { exclusiveProxy, InvalidateCache } from './proxy'
 
 // Proxy (via to Queue) to Bash
 const proxy2Q2bash = exclusiveProxy(enqueue2bash, { size: 50, name: 'bash' })
@@ -133,7 +133,7 @@ function* line2entry ([...lines]) {
 }
 
 async function _listDirs (args) {
-  console.log(`invokeBash listdir with args`, args)
+  console.log(`invokeBash _listdir with args`, args)
   const lines = await enqueue2bash('./listdirs.sh', args, asyncQueue4Remote)
   return [...line2entry(lines)]
 }
@@ -185,17 +185,23 @@ function* rsync2entry (lines) {
   }
 }
 
-async function _dKit (args) {
-  console.log(`invokeBash listdir with args`, args)
-  const fullargs = ['--no-recursive', '--dirs', ...args]
+async function _dKit (args, path) {
+  console.log(`invokeBash _dkit for ${path} with args`, args)
+  const fullargs = ['--no-recursive', '--dirs', ...args, path]
   const rsynclines = await enqueue2bash('./dkit.sh', fullargs, asyncQueue4Remote)
   return [...rsync2entry(rsynclines)]
 }
 
 const proxy2dkit = exclusiveProxy(_dKit, { size: 50, name: 'dkit' })
 
-export async function dKit (path, args) {
-  return proxy2dkit([...args, path])
+const _invalidateCache = new InvalidateCache()
+
+export async function dKit (path, args, invalidateCache = false) {
+  if (invalidateCache) {
+    return proxy2dkit(_invalidateCache, args, path)
+  } else {
+    return proxy2dkit(args, path)
+  }
 }
 
 /* ------------------Old Code, but still used by restore components ----------- */

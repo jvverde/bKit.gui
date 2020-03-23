@@ -1,5 +1,5 @@
 'use strict'
-
+const deepclone = require('lodash.clonedeep')
 function deepFreeze (object) {
   // Retrieve the property names defined on object
   var propNames = Object.getOwnPropertyNames(object)
@@ -28,6 +28,9 @@ class CacheException extends Error {
   }
 }
 
+export class InvalidateCache {
+}
+
 const _global = new LRUcache(10)
 
 export default function proxyIt (fn, { cache = _global, name = 'default' }) {
@@ -36,18 +39,30 @@ export default function proxyIt (fn, { cache = _global, name = 'default' }) {
   }
   return new Proxy(fn, {
     apply: async (target, thisArg, args) => {
-      let key = target.name + args.join('')
+      const invalidateCache = args[0] instanceof InvalidateCache
+
+      if (invalidateCache) {
+        args.shift()
+      }
+
+      const key = target.name + args.join('')
+
+      if (invalidateCache) {
+        console.log(target.name, 'invalidateCache', key)
+        cache.remove(key)
+      }
+
       const hit = cache.read(key)
       if (hit) { // is a HIT
-        console.log(`Cache ${name} Hit`, key)
-        return hit
+        console.log(target.name, `Cache ${name} Hit`, key)
+        return deepclone(hit)
       } else { // Is a MISS
-        console.log(`Cache ${name} Miss`, key)
+        console.log(target.name, `Cache ${name} Miss`, key)
         try {
           const result = await target.apply(thisArg, args)
           deepFreeze(result)
           cache.write(key, result)
-          return result
+          return deepclone(result)
         } catch (err) {
           console.error(`Proxy error, with key ${key}: (${err})`, err)
         }

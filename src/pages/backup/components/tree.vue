@@ -119,6 +119,7 @@ export default {
       stat: null,
       deletedChildrens: 0,
       loaded: false,
+      invalidateCache: true,
       childrens: []
     }
   },
@@ -202,7 +203,11 @@ export default {
     isfiltered () { return !this.onbackup && this.onlocal && !this.entry.isnew },
     isnew () { return !this.onbackup && this.onlocal && !!this.entry.isnew },
     wasmodified () { return this.onbackup && this.onlocal && !!this.entry.wasmodified },
-    isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified }
+    isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified },
+    token () {
+      const r = Math.random().toString(36).substring(2)
+      return [this.path, this.snap, this.rvid, r].join('')
+    }
   },
   watch: {
     selected: function (val) {
@@ -238,6 +243,7 @@ export default {
     },
     loaded: function (val) {
       if (val) {
+        this.invalidateCache = true
         this.checkDirOnBackup()
       }
     }
@@ -269,7 +275,8 @@ export default {
       this.loading = true
       const args = this.snap ? [`--snap=${this.snap}`] : []
 
-      const entries = await dKit(this.path, args)
+      const entries = await dKit(this.path, args, this.invalidateCache)
+      this.invalidateCache = false
 
       entries.forEach(entry => {
         if (path.dirname(entry.path) !== this.path || entry.path === this.mountpoint) {
@@ -314,7 +321,7 @@ export default {
       this.loading = false
     },
     updateChildrens (entry) {
-      entry.verified = true
+      entry.verified = this.token
       const childrens = this.childrens
       const index = childrens.findIndex(e => e.path === entry.path)
       if (index >= 0) {
@@ -326,16 +333,17 @@ export default {
       childrens.sort(compare)
     },
     markAsUnverified () {
-      // local files still always verified
-      this.childrens.filter(e => !e.onlocal).forEach(c => {
-        c.verified = false
+      this.childrens.forEach(c => {
         c.wasmodified = c.isnew = c.wasdeleted = c.onbackup = undefined
       })
+      // local files still always verified
+      this.childrens.filter(e => e.onlocal).forEach(c => { c.verified = this.token })
+      this.childrens.filter(e => !e.onlocal).forEach(c => { c.verified = false })
     },
     rmUnverifield () {
       let i = this.childrens.length
       while (i--) {
-        if (!this.childrens[i].verified) {
+        if (this.childrens[i].verified !== this.token) {
           this.childrens.splice(i, 1)
         }
       }
@@ -344,10 +352,10 @@ export default {
       if (!this.isdir) return
       // Doesn't make sense for files
       console.log('checkDirOnBackup', this.path)
-      this.markAsUnverified(false)
-      await this.readDirOnBackup()
-      await this.diffDir()
-      this.rmUnverifield(false)
+      this.markAsUnverified()
+      await this.diffDir() // This only give diferences between local and remote. It doesn't include deleted
+      await this.readDirOnBackup() // This give us all files on remote dir. The diference will be the deleted ones
+      this.rmUnverifield()
     },
     async loaddir () {
       this.childrens = []
