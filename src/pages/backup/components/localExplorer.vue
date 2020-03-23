@@ -57,13 +57,14 @@
 <script>
 
 // import { warn } from 'src/helpers/notify'
-import * as bkit from 'src/helpers/bkit'
+import { listDirs, dKit } from 'src/helpers/bkit'
 import tree from './tree'
 import item from './item'
 import snaps from './Snaps'
 // import fs from 'fs-extra'
 const path = require('path')
 const fs = require('fs')
+const slash = require('slash')
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -87,7 +88,7 @@ const chokidarOptions = {
   persistent: true
 }
 
-const listdir = bkit.enqueueListdir('Listdir on localexplorer')
+// const listdir = bkit.enqueueListdir('Listdir on localexplorer')
 // const dkit = bkit.enqueuedkit('dKit on localexplorer')
 
 export default {
@@ -196,7 +197,39 @@ export default {
       this.loading = true
       const currentfiles = this.currentfiles
 
-      const update = (entry) => {
+      // const update = (entry) => {
+      //   if (this.currentPath !== fullpath) return // only if it still the current path
+      //   entry.checked = true
+      //   const index = currentfiles.findIndex(e => e.path === entry.path)
+      //   if (index > -1) {
+      //     const newentry = { ...currentfiles[index], ...entry }
+      //     currentfiles.splice(index, 1, newentry)
+      //   } else {
+      //     currentfiles.push(entry)
+      //     currentfiles.sort(compare)
+      //   }
+      // }
+      // const updatedir = (entry) => {
+      //   if (path.dirname(entry.path) !== fullpath || entry.path === this.mountpoint) {
+      //     // ignore all parents and the mountpoint
+      //     console.log('Discard dir', entry.path)
+      //     return
+      //   }
+      //   update(entry)
+      // }
+      // const discard = (name, path) => console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
+      // listdir(fullpath, [], update, () => {}, discard)
+      let relative = this.mountpoint ? path.relative(this.mountpoint, fullpath) : fullpath
+      relative = slash(path.posix.normalize(`/${relative}/`))
+      relative = path.posix.normalize(relative)
+
+      const args = [ `--rvid=${this.rvid}` ]
+      if (this.snap) args.push(`--snap=${this.snap}`)
+      args.push(relative)
+
+      const dirs = await listDirs(args)
+
+      dirs.forEach(entry => {
         if (this.currentPath !== fullpath) return // only if it still the current path
         entry.checked = true
         const index = currentfiles.findIndex(e => e.path === entry.path)
@@ -207,17 +240,7 @@ export default {
           currentfiles.push(entry)
           currentfiles.sort(compare)
         }
-      }
-      // const updatedir = (entry) => {
-      //   if (path.dirname(entry.path) !== fullpath || entry.path === this.mountpoint) {
-      //     // ignore all parents and the mountpoint
-      //     console.log('Discard dir', entry.path)
-      //     return
-      //   }
-      //   update(entry)
-      // }
-      const discard = (name, path) => console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
-      listdir(fullpath, [], update, () => {}, discard)
+      })
       if (fs.existsSync(fullpath)) {
         // const events = {
         //   newDir: updatedir,
@@ -234,7 +257,7 @@ export default {
         // }
         // dkit(fullpath, [], events, done, discard)
         const args = this.snap ? [`--snap=${this.snap}`, fullpath] : [fullpath]
-        const entries = await bkit.dKit(args)
+        const entries = await dKit(args)
         entries.forEach(entry => {
           if (this.currentPath !== fullpath) return // only if it still the current path
           if (path.dirname(entry.path) !== fullpath || entry.path === this.mountpoint) {

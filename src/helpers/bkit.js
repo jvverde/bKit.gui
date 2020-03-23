@@ -33,7 +33,7 @@ function invokeBash ({ name, args, onreadline, onerror }, done) {
     { cwd: bKitPath, windowsHide: true }
   )
   fd.on('close', (code) => {
-    console.log(`Done spawn ${name} with args`, args)
+    // console.log(`Done spawn ${name} with args`, args)
     done(code)
   })
   fd.on('error', onerror)
