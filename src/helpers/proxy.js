@@ -1,3 +1,22 @@
+'use strict'
+
+function deepFreeze (object) {
+  // Retrieve the property names defined on object
+  var propNames = Object.getOwnPropertyNames(object)
+
+  // Freeze properties before freezing self
+
+  for (let name of propNames) {
+    let value = object[name]
+
+    if (value && typeof value === 'object') {
+      deepFreeze(value)
+    }
+  }
+
+  return Object.freeze(object)
+}
+
 // From : https://medium.com/@niwaa/using-es6-proxy-to-meta-program-in-javascript-implement-caching-logging-etc-577e253b3e05
 import LRUcache from './LRU'
 
@@ -26,6 +45,7 @@ export default function proxyIt (fn, { cache = _global, name = 'default' }) {
         console.log(`Cache ${name} Miss`, key)
         try {
           const result = await target.apply(thisArg, args)
+          deepFreeze(result)
           cache.write(key, result)
           return result
         } catch (err) {

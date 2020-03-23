@@ -203,9 +203,8 @@ export default {
 
       const args = [ `--rvid=${this.rvid}` ]
       if (this.snap) args.push(`--snap=${this.snap}`)
-      args.push(relative)
 
-      const dirs = await listDirs(args)
+      const dirs = await listDirs(relative, args)
 
       dirs.forEach(entry => {
         if (this.currentPath !== fullpath) return // only if it still the current path
@@ -220,9 +219,9 @@ export default {
         }
       })
       if (fs.existsSync(fullpath)) { // call diffDir only if the dir exists on local disk
-        const args = this.snap ? [`--snap=${this.snap}`, fullpath] : [fullpath]
+        const args = this.snap ? [`--snap=${this.snap}`] : []
 
-        const entries = await dKit(args)
+        const entries = await dKit(fullpath, args)
 
         entries.forEach(entry => {
           if (this.currentPath !== fullpath) return // only if it still the current path

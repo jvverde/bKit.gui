@@ -1,4 +1,5 @@
 // let wsList = {}
+'use strict'
 let [BASH, TERM] = ['bash', 'xterm']
 let username = require('os').userInfo().username
 const { spawn, execSync } = require('child_process')
@@ -138,10 +139,10 @@ async function _listDirs (args) {
 }
 
 // Proxy listdir to cache the (already matched) results
-const proxy2list = exclusiveProxy(_listDirs, { size: 50, name: 'listdir' })
+const proxy2listdir = exclusiveProxy(_listDirs, { size: 50, name: 'listdir' })
 
-export async function listDirs (args) {
-  return proxy2list(args)
+export async function listDirs (path, args) {
+  return proxy2listdir([...args, path])
 }
 
 /* ---------------------dKit--------------------- */
@@ -193,8 +194,8 @@ async function _dKit (args) {
 
 const proxy2dkit = exclusiveProxy(_dKit, { size: 50, name: 'dkit' })
 
-export async function dKit (args) {
-  return proxy2dkit(args)
+export async function dKit (path, args) {
+  return proxy2dkit([...args, path])
 }
 
 /* ------------------Old Code, but still used by restore components ----------- */

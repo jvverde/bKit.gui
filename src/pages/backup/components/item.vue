@@ -95,7 +95,7 @@ export default {
       colorosOf: {
         deleted: 'red',
         update: 'green',
-        new: 'indigo-5',
+        new: 'orange',
         modified: 'teal-3',
         filtered: 'grey-4',
         unchecked: 'grey'

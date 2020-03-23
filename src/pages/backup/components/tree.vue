@@ -267,12 +267,10 @@ export default {
       console.log('diffDir', this.path)
 
       this.loading = true
+      const args = this.snap ? [`--snap=${this.snap}`] : []
 
-      const args = []
-      if (this.snap) args.push(`--snap=${this.snap}`)
-      args.push(this.path)
+      const entries = await dKit(this.path, args)
 
-      const entries = await dKit(args)
       entries.forEach(entry => {
         if (path.dirname(entry.path) !== this.path || entry.path === this.mountpoint) {
           console.log(`Discard self-or-ancestor ${entry.path} of ${this.path}`)
@@ -296,9 +294,8 @@ export default {
 
       const args = [ `--rvid=${this.rvid}` ]
       if (this.snap) args.push(`--snap=${this.snap}`)
-      args.push(relative)
 
-      const entries = await listDirs(args)
+      const entries = await listDirs(relative, args)
       entries.forEach(entry => {
         entry.path = path.join(this.path, entry.name)
         this.updateChildrens(entry)
@@ -318,20 +315,22 @@ export default {
     },
     updateChildrens (entry) {
       entry.verified = true
-      this.$nextTick(() => {
-        const childrens = this.childrens
-        const index = childrens.findIndex(e => e.path === entry.path)
-        if (index >= 0) {
-          const children = { ...childrens[index], ...entry }
-          childrens.splice(index, 1, children)
-        } else {
-          childrens.push(entry)
-        }
-        childrens.sort(compare)
-      })
+      const childrens = this.childrens
+      const index = childrens.findIndex(e => e.path === entry.path)
+      if (index >= 0) {
+        const children = { ...childrens[index], ...entry }
+        childrens.splice(index, 1, children)
+      } else {
+        childrens.push(entry)
+      }
+      childrens.sort(compare)
     },
     markAsUnverified () {
-      this.childrens.forEach(c => { c.verified = false })
+      // local files still always verified
+      this.childrens.filter(e => !e.onlocal).forEach(c => {
+        c.verified = false
+        c.wasmodified = c.isnew = c.wasdeleted = c.onbackup = undefined
+      })
     },
     rmUnverifield () {
       let i = this.childrens.length
@@ -353,7 +352,6 @@ export default {
     async loaddir () {
       this.childrens = []
       await this.readdir()
-      // await this.checkDirOnBackup()
       this.loaded = true
     }
   },
