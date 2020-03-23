@@ -197,28 +197,6 @@ export default {
       this.loading = true
       const currentfiles = this.currentfiles
 
-      // const update = (entry) => {
-      //   if (this.currentPath !== fullpath) return // only if it still the current path
-      //   entry.checked = true
-      //   const index = currentfiles.findIndex(e => e.path === entry.path)
-      //   if (index > -1) {
-      //     const newentry = { ...currentfiles[index], ...entry }
-      //     currentfiles.splice(index, 1, newentry)
-      //   } else {
-      //     currentfiles.push(entry)
-      //     currentfiles.sort(compare)
-      //   }
-      // }
-      // const updatedir = (entry) => {
-      //   if (path.dirname(entry.path) !== fullpath || entry.path === this.mountpoint) {
-      //     // ignore all parents and the mountpoint
-      //     console.log('Discard dir', entry.path)
-      //     return
-      //   }
-      //   update(entry)
-      // }
-      // const discard = (name, path) => console.log(`Slow down doing ${name} for ${path}, another call is already in progress`)
-      // listdir(fullpath, [], update, () => {}, discard)
       let relative = this.mountpoint ? path.relative(this.mountpoint, fullpath) : fullpath
       relative = slash(path.posix.normalize(`/${relative}/`))
       relative = path.posix.normalize(relative)
@@ -241,23 +219,11 @@ export default {
           currentfiles.sort(compare)
         }
       })
-      if (fs.existsSync(fullpath)) {
-        // const events = {
-        //   newDir: updatedir,
-        //   chgDir: updatedir,
-        //   newFile: update,
-        //   chgFile: update
-        // }
-        // const done = () => {
-        //   console.log(`Done dKit for ${fullpath}`)
-        //   if (this.currentPath === fullpath) {
-        //     this.loading = false
-        //     // this.refreshNextTick()
-        //   }
-        // }
-        // dkit(fullpath, [], events, done, discard)
+      if (fs.existsSync(fullpath)) { // call diffDir only if the dir exists on local disk
         const args = this.snap ? [`--snap=${this.snap}`, fullpath] : [fullpath]
+
         const entries = await dKit(args)
+
         entries.forEach(entry => {
           if (this.currentPath !== fullpath) return // only if it still the current path
           if (path.dirname(entry.path) !== fullpath || entry.path === this.mountpoint) {
