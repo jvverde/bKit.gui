@@ -197,7 +197,7 @@ const proxy2dkit = exclusiveProxy(_dKit, { size: 50, name: 'dkit' })
 const _invalidateCache = new InvalidateCache()
 
 export async function dKit (path, args, invalidateCache = false) {
-  if (invalidateCache) {
+  if (invalidateCache === 5) {
     return proxy2dkit(_invalidateCache, args, path)
   } else {
     return proxy2dkit(args, path)

@@ -335,16 +335,15 @@ export default {
     markAsUnverified () {
       this.childrens.forEach(c => {
         c.wasmodified = c.isnew = c.wasdeleted = c.onbackup = undefined
+        if (!c.onlocal) c.verified = false
       })
-      // local files still always verified
-      this.childrens.filter(e => e.onlocal).forEach(c => { c.verified = this.token })
-      this.childrens.filter(e => !e.onlocal).forEach(c => { c.verified = false })
     },
     rmUnverifield () {
       let i = this.childrens.length
       while (i--) {
+        if (this.childrens[i].onlocal) continue // local files should never be removed
         if (this.childrens[i].verified !== this.token) {
-          this.childrens.splice(i, 1)
+          this.childrens.splice(i, 1) // remove it from list
         }
       }
     },
