@@ -118,7 +118,7 @@ export default {
       loading: false,
       stat: null,
       deletedChildrens: 0,
-      loaded: false,
+      loaded: false, // the inital stat is unloaded
       invalidateCache: true,
       childrens: []
     }
@@ -222,12 +222,7 @@ export default {
     },
     isOpen: function (val) {
       if (val && !this.loaded) {
-        this.loaddir()
-      }
-    },
-    onbackup: async function (val) {
-      if (this.loaded) {
-        this.checkDirOnBackup()
+        this.opendir()
       }
     },
     snap: async function () {
@@ -236,14 +231,13 @@ export default {
         this.checkDirOnBackup()
       }
     },
-    isnew: async function (val) {
+    onbackup: async function (val) {
       if (this.loaded) {
         this.checkDirOnBackup()
       }
     },
-    loaded: function (val) {
-      if (val) {
-        this.invalidateCache = true
+    isnew: async function (val) {
+      if (this.loaded) {
         this.checkDirOnBackup()
       }
     }
@@ -285,7 +279,6 @@ export default {
           this.updateChildrens(entry)
         }
       })
-
       this.loading = false
     },
     async readDirOnBackup () {
@@ -308,16 +301,6 @@ export default {
         this.updateChildrens(entry)
       })
 
-      this.loading = false
-    },
-    async readdir () {
-      if (!this.mountpoint || !fs.existsSync(this.path)) return
-      // Only if directory exists on local disk and it correspond to the backup
-      this.loading = true
-      for await (const entry of readdir(this.path)) {
-        entry.selected = this.selected // inherit select status from parent
-        this.updateChildrens(entry)
-      }
       this.loading = false
     },
     updateChildrens (entry) {
@@ -349,25 +332,41 @@ export default {
     },
     async checkDirOnBackup () {
       if (!this.isdir) return
-      // Doesn't make sense for files
       console.log('checkDirOnBackup', this.path)
       this.markAsUnverified()
       await this.diffDir() // This only give diferences between local and remote. It doesn't include deleted
       await this.readDirOnBackup() // This give us all files on remote dir. The diference will be the deleted ones
       this.rmUnverifield()
     },
-    async loaddir () {
+    async readdir () {
+      if (!this.mountpoint || !fs.existsSync(this.path) || !this.isdir) return
+      // Only if directory exists on local disk and it correspond to the backup
+      this.loading = true
+      for await (const entry of readdir(this.path)) {
+        entry.selected = this.selected // inherit select status from parent
+        this.updateChildrens(entry)
+      }
+      this.loading = false
+    },
+    async opendir () {
+      if (!this.isdir) return
       this.childrens = []
       await this.readdir()
-      this.loaded = true
+      await this.checkDirOnBackup()
+      this.loaded = true // Remember that is load and allow avoid reload again
+    },
+    async refresh () {
+      await this.readdir()
+      await this.checkDirOnBackup()
     }
   },
   mounted () {
     if (this.isroot) this.showChildrens()
     if (this.isdir) {
-      chokidar.watch(this.path, chokidarOptions).on('all', (event, path) => {
+      chokidar.watch(this.path, chokidarOptions).on('all', async (event, path) => {
         console.log(`[${this.path}]Event ${event} for ${path}`)
-        this.loaddir()
+        this.invalidateCache = true // Don't use the cache is local files has been changed
+        await this.refresh()
       })
     }
   }
