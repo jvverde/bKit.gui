@@ -213,28 +213,27 @@ const listdirQueue = new QueueLast()
 const dkitQueue = new QueueLast()
 
 export async function listDirOfSnap (path, snap, rvid, otherargs = [], queue = listdirQueue) {
-  const key = path + rvid + otherargs.join('')
+  const key = rvid + path + otherargs.join('')
   const args = [`--rvid=${rvid}`, ...otherargs]
   if (snap) args.push(`--snap=${snap}`)
   const promise = () => listDirs(path, args) // A future promise as required by queue.enqueue
-  return queue.enqueue(promise, key)
+  return queue.enqueue(promise, key, `snap:${snap}`)
 }
 
-export async function diffList (path, snap, rvid, {
-    args = [],
-    queue = dkitQueue,
-    invalidateCache = false
+export async function diffList (path, snap, {
+  args = [],
+  queue = dkitQueue,
+  invalidateCache = false
 }) {
-  const key = path + rvid + args.join('')
-  args = [`--rvid=${rvid}`, ...args]
+  const key = path + args.join('')
   if (snap) args.push(`--snap=${snap}`)
   if (invalidateCache) {
     // In this case it needs to go directly to the proxy/cache to invalidade it
-    // Otherwise this may be canceled by future request
+    // Otherwise this may be canceled by a future request
     return dKit(path, args)
-  } else { 
+  } else {
     const promise = () => dKit(path, args) // A future promise as required by queue.enqueue
-    return queue.enqueue(promise, key)
+    return queue.enqueue(promise, key, `snap:${snap}`)
   }
 }
 

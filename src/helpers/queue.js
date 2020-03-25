@@ -57,12 +57,12 @@ export default class Queue {
 }
 
 export class QueueLast extends Queue {
-  enqueue (promise, key) {
+  enqueue (promise, key, info) {
     return new Promise((resolve, reject) => {
       const aborted = this.queue.filter(e => e.key === key)
       this.queue = this.queue.filter(e => e.key !== key)
-      this.queue.push({ promise, resolve, reject, key })
-      aborted.forEach(e => e.reject(`Replaced ${key}`))
+      this.queue.push({ promise, resolve, reject, key, info })
+      aborted.forEach(e => e.reject({ msg: `Replaced ${key}`, info: e.info }))
       this._run()
     })
   }

@@ -83,7 +83,7 @@ const path = require('path')
 const slash = require('slash')
 const fs = require('fs')
 import { readdir } from 'src/helpers/readfs'
-import { dKit, listDirs, listDirOfSnap } from 'src/helpers/bkit'
+import { diffList, listDirOfSnap } from 'src/helpers/bkit'
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -267,19 +267,23 @@ export default {
       console.log('diffDir', this.path)
 
       this.loading = true
-      const args = this.snap ? [`--snap=${this.snap}`] : []
 
-      const entries = await dKit(this.path, args, this.invalidateCache)
-      this.invalidateCache = false
-
-      entries.forEach(entry => {
-        if (path.dirname(entry.path) !== this.path || entry.path === this.mountpoint) {
-          console.log(`Discard self-or-ancestor ${entry.path} of ${this.path}`)
-        } else {
-          this.updateChildrens(entry)
-        }
-      })
-      this.loading = false
+      const { invalidateCache, snap } = this
+      diffList(this.path, snap, { invalidateCache })
+        .then(entries => {
+          entries.forEach(entry => {
+            if (path.dirname(entry.path) !== this.path || entry.path === this.mountpoint) {
+              console.log(`Discard self-or-ancestor ${entry.path} of ${this.path}`)
+            } else {
+              this.updateChildrens(entry)
+            }
+          })
+          this.invalidateCache = false
+          this.loading = false
+        })
+        .catch(err => {
+          console.warn(`DiffList ${err.msg} on ${snap}`, err.info)
+        })
     },
     async readDirOnBackup () {
       if (!this.isdir || !this.onbackup) return
@@ -292,24 +296,17 @@ export default {
       relative = slash(path.posix.normalize(`/${relative}/`))
       relative = path.posix.normalize(relative)
 
-      // const args = [ `--rvid=${this.rvid}` ]
-      // if (this.snap) args.push(`--snap=${this.snap}`)
-
-      // const entries = await listDirs(relative, args)
-      if (!listDirs) console.log('xxxxxxxxxxxxxxxxxxxxxxxxxx')
-
       listDirOfSnap(relative, this.snap, this.rvid)
         .then(entries => {
           entries.forEach(entry => {
             entry.path = path.join(this.path, entry.name)
             this.updateChildrens(entry)
           })
+          this.loading = false
         })
         .catch(err => {
-          console.warn(`${err} for ${this.path} on ${this.snap}`)
+          console.warn(`Listdir ${err.msg} for on ${this.snap}`, err.info)
         })
-
-      this.loading = false
     },
     updateChildrens (entry) {
       entry.verified = this.token
