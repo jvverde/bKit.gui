@@ -100,8 +100,15 @@ export class QueueLast extends Queue {
       const aborted = this.queue.filter(e => e.key === key)
       this.queue = this.queue.filter(e => e.key !== key)
       this.queue.push({ promise, resolve, reject, key, info })
-      aborted.forEach(e => e.reject({ msg: `Replaced ${key}`, info: e.info }))
+      aborted.forEach(e => e.reject(new QueueException('Replaced', `${e.info}[${key}]`)))
       this._run()
     })
+  }
+}
+
+class QueueException extends Error {
+  constructor (name, message) {
+    super(message)
+    this.name = name
   }
 }

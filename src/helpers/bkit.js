@@ -220,7 +220,7 @@ export async function listDirOfSnap (path, snap, rvid, {
   args = [`--rvid=${rvid}`, ...args]
   if (snap) args.push(`--snap=${snap}`)
   const promise = () => listDirs(path, args) // A future promise as required by queue.enqueue
-  return queue.enqueue(promise, key, `snap:${snap}`)
+  return queue.enqueue(promise, key, snap)
 }
 
 export async function diffList (path, snap, {
@@ -236,7 +236,7 @@ export async function diffList (path, snap, {
     return dKit(path, args)
   } else {
     const promise = () => dKit(path, args) // A future promise as required by queue.enqueue
-    return queue.enqueue(promise, key, `snap:${snap}`)
+    return queue.enqueue(promise, key, snap)
   }
 }
 

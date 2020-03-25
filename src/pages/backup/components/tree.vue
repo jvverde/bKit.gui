@@ -287,7 +287,8 @@ export default {
           this.invalidateCache = false
         })
         .catch(err => {
-          console.warn(`DiffList ${err.msg} on ${snap}`, err.info)
+          if (err.name) console.warn(`DiffList ${err.name} ${err.message} for ${snap}[${path}]`)
+          else throw err
         })
         .finally(() => this.loading--)
     },
@@ -311,7 +312,8 @@ export default {
           })
         })
         .catch(err => {
-          console.warn(`Listdir ${err.msg} for on ${snap}`, err.info, err)
+          if (err.name) console.warn(`Listdir ${err.name} ${err.message} for ${snap}[${path}]`)
+          else throw err
         })
         .finally(() => this.loading--)
     },
