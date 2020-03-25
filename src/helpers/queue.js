@@ -40,6 +40,7 @@ export default class Queue {
         item.resolve(value)
         // also resolve duplicate requests
         this._extractDuplicateItems(item.key).forEach(e => e.resolve(value))
+        return Promise.resolve(value)
       })
       .catch(value => {
         console.error(`Queue catch error: (${value})`, value)
@@ -52,5 +53,17 @@ export default class Queue {
         this._run()
       })
     return true
+  }
+}
+
+export class QueueLast extends Queue {
+  enqueue (promise, key) {
+    return new Promise((resolve, reject) => {
+      const aborted = this.queue.filter(e => e.key === key)
+      this.queue = this.queue.filter(e => e.key !== key)
+      this.queue.push({ promise, resolve, reject, key })
+      aborted.forEach(e => e.reject(`Replaced ${key}`))
+      this._run()
+    })
   }
 }

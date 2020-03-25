@@ -80,7 +80,7 @@ export function asyncInvokeBash (name, args) {
 //  .then(disk => console.log('RVID:', disk))
 
 /* ------------------ define queues and proxis/caches --------------- */
-import Queue from './queue'
+import Queue, { QueueLast } from './queue'
 const asyncQueue4Remote = new Queue() // This is intend to queue remote request
 const asyncQueue4Local = new Queue() // This is intend to queue local request
 const defaultAsyncQueue = new Queue() // To be used for everything else
@@ -143,6 +143,19 @@ const proxy2listdir = exclusiveProxy(_listDirs, { size: 50, name: 'listdir' })
 
 export async function listDirs (path, args) {
   return proxy2listdir([...args, path])
+}
+
+/* another level of queue */
+// We want somethinh near to the high level caller,
+// in order to dismiss previous request for the same path and same RVID but a different snap
+const defaultAsyncQueueLast = new QueueLast()
+
+export async function listDirOfSnap (path, snap, rvid, otherargs = [], queue = defaultAsyncQueueLast) {
+  const key = 'listDirOfSnap' + path + rvid + otherargs.join('')
+  const args = [`--rvid=${rvid}`, ...otherargs]
+  if (snap) args.push(`--snap=${snap}`)
+  // queue = defaultAsyncQueue
+  return queue.enqueue(() => listDirs(path, args), key)
 }
 
 /* ---------------------dKit--------------------- */
