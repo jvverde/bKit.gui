@@ -223,12 +223,42 @@ export async function listDirOfSnap (path, snap, rvid, {
   return queue.enqueue(promise, key, snap)
 }
 
-export async function diffList (path, snap, {
+export async function diffListOfSnap (path, snap, {
   args = [],
   queue = dkitQueue,
   invalidateCache = false
 } = {}) {
   const key = path + args.join('')
+  if (snap) args.push(`--snap=${snap}`)
+  if (invalidateCache) {
+    // In this case it needs to go directly to the proxy/cache to invalidade it
+    // Otherwise this may be canceled by a future request
+    return dKit(path, args)
+  } else {
+    const promise = () => dKit(path, args) // A future promise as required by queue.enqueue
+    return queue.enqueue(promise, key, snap)
+  }
+}
+
+const queue4last = new QueueLast()
+
+export async function listLastDir (path, snap, rvid, {
+  args = [],
+  queue = queue4last
+} = {}) {
+  const key = 'listLastDir'
+  args = [`--rvid=${rvid}`, ...args]
+  if (snap) args.push(`--snap=${snap}`)
+  const promise = () => listDirs(path, args) // A future promise as required by queue.enqueue
+  return queue.enqueue(promise, key, snap)
+}
+
+export async function diffLastDir (path, snap, {
+  args = [],
+  queue = queue4last,
+  invalidateCache = false
+} = {}) {
+  const key = 'diffLastDir'
   if (snap) args.push(`--snap=${snap}`)
   if (invalidateCache) {
     // In this case it needs to go directly to the proxy/cache to invalidade it

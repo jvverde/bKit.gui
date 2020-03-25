@@ -83,7 +83,7 @@ const { relative, join, basename, posix, dirname } = require('path')
 const slash = require('slash')
 const fs = require('fs')
 import { readdir } from 'src/helpers/readfs'
-import { diffList, listDirOfSnap } from 'src/helpers/bkit'
+import { diffListOfSnap, listDirOfSnap } from 'src/helpers/bkit'
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -275,7 +275,7 @@ export default {
 
       this.loading++
 
-      diffList(path, snap, { invalidateCache })
+      diffListOfSnap(path, snap, { invalidateCache })
         .then(entries => {
           entries.forEach(entry => {
             if (dirname(entry.path) !== path || entry.path === mountpoint) {

@@ -46,7 +46,7 @@
             v-bind="entry"
             @open="show"
             class="column"/>
-          <q-inner-loading :showing="loading">
+          <q-inner-loading :showing="isloading">
             <q-spinner-ios size="100px" color="primary"/>
           </q-inner-loading>
         </div>
@@ -57,12 +57,12 @@
 <script>
 
 // import { warn } from 'src/helpers/notify'
-import { listDirs, dKit } from 'src/helpers/bkit'
+import { listLastDir, diffLastDir } from 'src/helpers/bkit'
 import tree from './tree'
 import item from './item'
 import snaps from './Snaps'
 // import fs from 'fs-extra'
-const path = require('path')
+const { relative, join, sep, dirname, posix } = require('path')
 const fs = require('fs')
 const slash = require('slash')
 
@@ -99,10 +99,10 @@ export default {
     return {
       verticalSplitter: 55,
       watcher: undefined,
-      sep: path.sep,
+      sep: sep,
       selectedNode: false,
       currentPath: '',
-      loading: false,
+      loading: 0,
       currentfiles: [],
       root: { isdir, isroot, path, onbackup },
       snap: ''
@@ -141,16 +141,19 @@ export default {
     }
   },
   computed: {
+    isloading () {
+      return this.loading !== 0
+    },
     steps: function () {
-      const relative = path.relative(this.mountpoint, this.currentPath)
-      return this.currentPath !== '' ? `${relative}`.split(path.sep) : []
+      const rel = relative(this.mountpoint, this.currentPath)
+      return this.currentPath !== '' ? `${rel}`.split(sep) : []
     },
     drive: function () {
       return this.mountpoint.replace(/[\\/]+$/, '')
     }
   },
   mounted () {
-    // this.show(this.mountpoint)
+    this.show(this.mountpoint)
   },
   methods: {
     usesnap (snap, rvid) {
@@ -158,7 +161,7 @@ export default {
       console.log('usesnap', snap, rvid)
     },
     stepto (index) {
-      const fullpath = path.join(this.mountpoint, this.steps.slice(0, index).join('/'))
+      const fullpath = join(this.mountpoint, this.steps.slice(0, index).join('/'))
       console.log('go to', fullpath)
       this.show(fullpath)
     },
@@ -168,13 +171,13 @@ export default {
     async load (fullpath) {
       console.log('Load', fullpath)
       const currentfiles = this.currentfiles = []
-      this.loading = true
+      this.loading++
       for await (const entry of readdir(fullpath)) {
         entry.checked = false
         // prevent the situation where dir path is no longer the current path
         if (this.currentPath === fullpath) currentfiles.push(entry)
       }
-      this.loading = false
+      this.loading--
       currentfiles.sort(compare)
       this.checkdir(fullpath)
     },
@@ -190,58 +193,67 @@ export default {
       })
     },
     async checkdir (fullpath) {
-      if (!this.rvid) return
-      if (this.currentPath !== fullpath) return // only if it still the current path
+      const { snap, rvid, path, mountpoint, currentPath, currentfiles } = this
+      if (!rvid) return
+      if (currentPath !== fullpath) return // only if it still the current path
       // console.log(`Check ${fullpath} status on server`)
 
       this.loading = true
-      const currentfiles = this.currentfiles
 
-      let relative = this.mountpoint ? path.relative(this.mountpoint, fullpath) : fullpath
-      relative = slash(path.posix.normalize(`/${relative}/`))
-      relative = path.posix.normalize(relative)
+      let mountRelative = mountpoint ? relative(mountpoint, fullpath) : fullpath
+      mountRelative = slash(posix.normalize(`/${mountRelative}/`))
+      mountRelative = posix.normalize(mountRelative)
 
-      const args = [ `--rvid=${this.rvid}` ]
-      if (this.snap) args.push(`--snap=${this.snap}`)
-
-      const dirs = await listDirs(relative, args)
-
-      dirs.forEach(entry => {
-        if (this.currentPath !== fullpath) return // only if it still the current path
-        entry.checked = true
-        const index = currentfiles.findIndex(e => e.path === entry.path)
-        if (index > -1) {
-          const newentry = { ...currentfiles[index], ...entry }
-          currentfiles.splice(index, 1, newentry)
-        } else {
-          currentfiles.push(entry)
-          currentfiles.sort(compare)
-        }
-      })
-      if (fs.existsSync(fullpath)) { // call diffDir only if the dir exists on local disk
-        const args = this.snap ? [`--snap=${this.snap}`] : []
-
-        const entries = await dKit(fullpath, args)
-
-        entries.forEach(entry => {
-          if (this.currentPath !== fullpath) return // only if it still the current path
-          if (path.dirname(entry.path) !== fullpath || entry.path === this.mountpoint) {
-            // ignore all parents and the mountpoint
-            console.log('Discard dir', entry.path)
-            return
-          }
-          entry.checked = true
-          const index = currentfiles.findIndex(e => e.path === entry.path)
-          if (index > -1) {
-            const newentry = { ...currentfiles[index], ...entry }
-            currentfiles.splice(index, 1, newentry)
-          } else {
-            currentfiles.push(entry)
-            currentfiles.sort(compare)
-          }
+      // const dirs = await listDirs(relative, args)
+      await listLastDir(mountRelative, snap, rvid)
+        .then(dirs => {
+          dirs.forEach(entry => {
+            if (currentPath !== fullpath) return // only if it still the current path
+            entry.checked = true
+            const index = currentfiles.findIndex(e => e.path === entry.path)
+            if (index > -1) {
+              const newentry = { ...currentfiles[index], ...entry }
+              currentfiles.splice(index, 1, newentry)
+            } else {
+              currentfiles.push(entry)
+              currentfiles.sort(compare)
+            }
+          })
         })
+        .catch(err => {
+          if (err.name) console.warn(`Listdir ${err.name} ${err.message} for ${snap}[${path}]`)
+          else throw err
+        })
+        .finally(() => (this.loading = false))
+
+      if (fs.existsSync(fullpath)) { // call diffDir only if the dir exists on local disk
+        this.loading = true
+        diffLastDir(fullpath, snap)
+          .then(entries => {
+            entries.forEach(entry => {
+              if (currentPath !== fullpath) return // only if it still the current path
+              if (dirname(entry.path) !== fullpath || entry.path === mountpoint) {
+                // ignore all parents and the mountpoint
+                console.log('Discard dir', entry.path)
+                return
+              }
+              entry.checked = true
+              const index = currentfiles.findIndex(e => e.path === entry.path)
+              if (index > -1) {
+                const newentry = { ...currentfiles[index], ...entry }
+                currentfiles.splice(index, 1, newentry)
+              } else {
+                currentfiles.push(entry)
+                currentfiles.sort(compare)
+              }
+            })
+          })
+          .catch(err => {
+            if (err.name) console.warn(`Listdir ${err.name} ${err.message} for ${snap}[${path}]`)
+            else throw err
+          })
+          .finally(() => (this.loading = false))
       }
-      this.loading = false
     }
   }
 }
