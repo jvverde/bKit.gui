@@ -6,6 +6,61 @@ export default class Queue {
     this.limit = limit
   }
 
+  enqueue (promise) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ promise, resolve, reject })
+      this._run()
+    })
+  }
+
+  _extractDuplicateItems (key) {
+    if (!key) return []
+    const result = []
+    let i = this.queue.length
+    while (i--) {
+      if (this.queue[i].key === key) {
+        result.push(this.queue[i])
+        this.queue.splice(i, 1)
+      }
+    }
+    return result
+  }
+
+  _resolve (item, value) {
+    item.resolve(value)
+  }
+
+  _reject (item, value) {
+    item.reject(value)
+  }
+
+  _run () {
+    if (this.workingOnPromise) {
+      return false
+    }
+    const item = this.queue.shift()
+    if (!item) {
+      return false
+    }
+    this.workingOnPromise = true
+    item.promise()
+      .then(value => {
+        this._resolve(item, value)
+        return Promise.resolve(value)
+      })
+      .catch(value => {
+        console.error(`Queue catch error: (${value})`, value)
+        this._reject(item, value)
+      })
+      .finally(() => {
+        this.workingOnPromise = false
+        this._run()
+      })
+    return true
+  }
+}
+
+export class QueueByKey extends Queue {
   enqueue (promise, key = undefined) {
     return new Promise((resolve, reject) => {
       this.queue.push({ promise, resolve, reject, key })
@@ -26,33 +81,16 @@ export default class Queue {
     return result
   }
 
-  _run () {
-    if (this.workingOnPromise) {
-      return false
-    }
-    const item = this.queue.shift()
-    if (!item) {
-      return false
-    }
-    this.workingOnPromise = true
-    item.promise()
-      .then(value => {
-        item.resolve(value)
-        // also resolve duplicate requests
-        this._extractDuplicateItems(item.key).forEach(e => e.resolve(value))
-        return Promise.resolve(value)
-      })
-      .catch(value => {
-        console.error(`Queue catch error: (${value})`, value)
-        item.reject(value)
-        // also reject duplicate requests
-        this._extractDuplicateItems(item.key).forEach(e => e.reject(value))
-      })
-      .finally(() => {
-        this.workingOnPromise = false
-        this._run()
-      })
-    return true
+  _resolve (item, value) {
+    item.resolve(value)
+    // also resolve duplicate requests
+    this._extractDuplicateItems(item.key).forEach(e => e.resolve(value))
+  }
+
+  _reject (item, value) {
+    item.reject(value)
+    // also reject duplicate requests
+    this._extractDuplicateItems(item.key).forEach(e => e.reject(value))
   }
 }
 

@@ -80,10 +80,10 @@ export function asyncInvokeBash (name, args) {
 //  .then(disk => console.log('RVID:', disk))
 
 /* ------------------ define queues and proxis/caches --------------- */
-import Queue, { QueueLast } from './queue'
-const queue4Remote = new Queue() // This is intend to queue remote request
-const queue4Local = new Queue() // This is intend to queue local request
-const defaultQueue = new Queue() // To be used for everything else
+import { QueueLast, QueueByKey } from './queue'
+const queue4Remote = new QueueByKey() // This is intend to queue remote request
+const queue4Local = new QueueByKey() // This is intend to queue local request
+const defaultQueue = new QueueByKey() // To be used for everything else
 
 // Enqueue bash scripts
 export function enqueue2bash (name, args, queue = defaultQueue) {
@@ -204,7 +204,7 @@ export async function dKit (path, args, invalidateCache = false) {
   }
 }
 
-/* A 2nd-level  queue */
+/* *************************** A 2nd-level queue *************************** */
 // We want somethinh near to the high level caller,
 // in order to dismiss previous request for the same path and same RVID but a different snap
 // The idea is to discard unfinished requests for previous snaps
@@ -212,9 +212,12 @@ export async function dKit (path, args, invalidateCache = false) {
 const listdirQueue = new QueueLast()
 const dkitQueue = new QueueLast()
 
-export async function listDirOfSnap (path, snap, rvid, otherargs = [], queue = listdirQueue) {
-  const key = rvid + path + otherargs.join('')
-  const args = [`--rvid=${rvid}`, ...otherargs]
+export async function listDirOfSnap (path, snap, rvid, {
+  args = [],
+  queue = listdirQueue
+} = {}) {
+  const key = rvid + path + args.join('')
+  args = [`--rvid=${rvid}`, ...args]
   if (snap) args.push(`--snap=${snap}`)
   const promise = () => listDirs(path, args) // A future promise as required by queue.enqueue
   return queue.enqueue(promise, key, `snap:${snap}`)
@@ -224,7 +227,7 @@ export async function diffList (path, snap, {
   args = [],
   queue = dkitQueue,
   invalidateCache = false
-}) {
+} = {}) {
   const key = path + args.join('')
   if (snap) args.push(`--snap=${snap}`)
   if (invalidateCache) {
@@ -237,7 +240,7 @@ export async function diffList (path, snap, {
   }
 }
 
-/* End o 2nd level queue */
+/* *************************** End o 2nd-level queue *************************** */
 
 /* ------------------Old Code, but still used by restore components ----------- */
 export function onRsyncLine ({

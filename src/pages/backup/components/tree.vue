@@ -42,7 +42,7 @@
           </q-btn-group>
         </q-item-section>
 
-        <q-inner-loading :showing="loading">
+        <q-inner-loading :showing="isloading">
           <q-spinner-ios color="amber"/>
         </q-inner-loading>
 
@@ -115,7 +115,7 @@ export default {
   data () {
     return {
       open: false,
-      loading: false,
+      loading: 0,
       stat: null,
       deletedChildrens: 0,
       loaded: false, // the inital stat is unloaded
@@ -174,6 +174,9 @@ export default {
       set (val) {
         this.$emit('update:displayNode', val)
       }
+    },
+    isloading () {
+      return this.loading !== 0
     },
     isdir () {
       return this.entry.isdir
@@ -270,7 +273,7 @@ export default {
       // As well it only make sense if dir exists localy on the corresponding disk
       // console.log('diffDir', path)
 
-      this.loading = true
+      this.loading++
 
       diffList(path, snap, { invalidateCache })
         .then(entries => {
@@ -282,11 +285,11 @@ export default {
             }
           })
           this.invalidateCache = false
-          this.loading = false
         })
         .catch(err => {
           console.warn(`DiffList ${err.msg} on ${snap}`, err.info)
         })
+        .finally(() => this.loading--)
     },
     async readDirOnBackup () {
       const { snap, rvid, path, isdir, mountpoint, updateChildrens, onbackup } = this
@@ -294,7 +297,7 @@ export default {
       // Only read backups dir if it is a directory and itself is on backup
 
       // console.log('readDirOnBackup', path)
-      this.loading = true
+      this.loading++
 
       let mountRelative = mountpoint ? relative(mountpoint, path) : path
       mountRelative = slash(posix.normalize(`/${mountRelative}/`))
@@ -306,11 +309,11 @@ export default {
             entry.path = join(path, entry.name)
             updateChildrens(entry)
           })
-          this.loading = false
         })
         .catch(err => {
-          console.warn(`Listdir ${err.msg} for on ${snap}`, err.info)
+          console.warn(`Listdir ${err.msg} for on ${snap}`, err.info, err)
         })
+        .finally(() => this.loading--)
     },
     updateChildrens (entry) {
       entry.verified = this.token
