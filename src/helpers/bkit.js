@@ -81,12 +81,12 @@ export function asyncInvokeBash (name, args) {
 
 /* ------------------ define queues and proxis/caches --------------- */
 import Queue, { QueueLast } from './queue'
-const asyncQueue4Remote = new Queue() // This is intend to queue remote request
-const asyncQueue4Local = new Queue() // This is intend to queue local request
-const defaultAsyncQueue = new Queue() // To be used for everything else
+const queue4Remote = new Queue() // This is intend to queue remote request
+const queue4Local = new Queue() // This is intend to queue local request
+const defaultQueue = new Queue() // To be used for everything else
 
 // Enqueue bash scripts
-export function enqueue2bash (name, args, queue = defaultAsyncQueue) {
+export function enqueue2bash (name, args, queue = defaultQueue) {
   const key = name + args.join('')
   return queue.enqueue(() => asyncInvokeBash(name, args), key)
 }
@@ -99,20 +99,20 @@ import { exclusiveProxy, InvalidateCache } from './proxy'
 const proxy2Q2bash = exclusiveProxy(enqueue2bash, { size: 50, name: 'bash' })
 
 export async function* listDisksOnBackup () {
-  for (const disk of await proxy2Q2bash('./listdisks.sh', [], asyncQueue4Remote)) {
+  for (const disk of await proxy2Q2bash('./listdisks.sh', [], queue4Remote)) {
     yield disk
   }
 }
 
 export async function* listLocalDisks () {
   // We don't use cache/proxy for local requests, so we enqueue it directly
-  for (const disk of await enqueue2bash('./lib/getdevs.sh', [], asyncQueue4Local)) {
+  for (const disk of await enqueue2bash('./lib/getdevs.sh', [], queue4Local)) {
     yield disk
   }
 }
 
 export async function getServer () {
-  return enqueue2bash('./server.sh', [], asyncQueue4Local)
+  return enqueue2bash('./server.sh', [], queue4Local)
 }
 
 /* ---------------------listdir--------------------- */
@@ -133,8 +133,8 @@ function* line2entry ([...lines]) {
 }
 
 async function _listDirs (args) {
-  console.log(`invokeBash _listdir with args`, args)
-  const lines = await enqueue2bash('./listdirs.sh', args, asyncQueue4Remote)
+  console.log('Enqueued bash listdir.sh with args', args)
+  const lines = await enqueue2bash('./listdirs.sh', args, queue4Remote)
   return [...line2entry(lines)]
 }
 
@@ -143,19 +143,6 @@ const proxy2listdir = exclusiveProxy(_listDirs, { size: 50, name: 'listdir' })
 
 export async function listDirs (path, args) {
   return proxy2listdir([...args, path])
-}
-
-/* another level of queue */
-// We want somethinh near to the high level caller,
-// in order to dismiss previous request for the same path and same RVID but a different snap
-const defaultAsyncQueueLast = new QueueLast()
-
-export async function listDirOfSnap (path, snap, rvid, otherargs = [], queue = defaultAsyncQueueLast) {
-  const key = 'listDirOfSnap' + path + rvid + otherargs.join('')
-  const args = [`--rvid=${rvid}`, ...otherargs]
-  if (snap) args.push(`--snap=${snap}`)
-  // queue = defaultAsyncQueue
-  return queue.enqueue(() => listDirs(path, args), key)
 }
 
 /* ---------------------dKit--------------------- */
@@ -201,7 +188,7 @@ function* rsync2entry (lines) {
 async function _dKit (args, path) {
   console.log(`invokeBash _dkit for ${path} with args`, args)
   const fullargs = ['--no-recursive', '--dirs', ...args, path]
-  const rsynclines = await enqueue2bash('./dkit.sh', fullargs, asyncQueue4Remote)
+  const rsynclines = await enqueue2bash('./dkit.sh', fullargs, queue4Remote)
   return [...rsync2entry(rsynclines)]
 }
 
@@ -216,6 +203,42 @@ export async function dKit (path, args, invalidateCache = false) {
     return proxy2dkit(args, path)
   }
 }
+
+/* A 2nd-level  queue */
+// We want somethinh near to the high level caller,
+// in order to dismiss previous request for the same path and same RVID but a different snap
+// The idea is to discard unfinished requests for previous snaps
+
+const listdirQueue = new QueueLast()
+const dkitQueue = new QueueLast()
+
+export async function listDirOfSnap (path, snap, rvid, otherargs = [], queue = listdirQueue) {
+  const key = path + rvid + otherargs.join('')
+  const args = [`--rvid=${rvid}`, ...otherargs]
+  if (snap) args.push(`--snap=${snap}`)
+  const promise = () => listDirs(path, args) // A future promise as required by queue.enqueue
+  return queue.enqueue(promise, key)
+}
+
+export async function diffList (path, snap, rvid, {
+    args = [],
+    queue = dkitQueue,
+    invalidateCache = false
+}) {
+  const key = path + rvid + args.join('')
+  args = [`--rvid=${rvid}`, ...args]
+  if (snap) args.push(`--snap=${snap}`)
+  if (invalidateCache) {
+    // In this case it needs to go directly to the proxy/cache to invalidade it
+    // Otherwise this may be canceled by future request
+    return dKit(path, args)
+  } else { 
+    const promise = () => dKit(path, args) // A future promise as required by queue.enqueue
+    return queue.enqueue(promise, key)
+  }
+}
+
+/* End o 2nd level queue */
 
 /* ------------------Old Code, but still used by restore components ----------- */
 export function onRsyncLine ({
