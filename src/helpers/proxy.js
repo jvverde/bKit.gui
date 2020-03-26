@@ -54,10 +54,10 @@ export default function proxyIt (fn, { cache = _global, name = 'default' }) {
 
       const hit = cache.read(key)
       if (hit) { // is a HIT
-        console.log(target.name, `Cache ${name} Hit`, key)
+        console.log(`Cache:${name} for ${target.name} Hit`, key)
         return deepclone(hit)
       } else { // Is a MISS
-        console.log(target.name, `Cache ${name} Miss`, key)
+        console.log(`Cache:${name} for ${target.name} Miss`, key)
         try {
           const result = await target.apply(thisArg, args)
           deepFreeze(result)

@@ -13,19 +13,6 @@ export default class Queue {
     })
   }
 
-  _extractDuplicateItems (key) {
-    if (!key) return []
-    const result = []
-    let i = this.queue.length
-    while (i--) {
-      if (this.queue[i].key === key) {
-        result.push(this.queue[i])
-        this.queue.splice(i, 1)
-      }
-    }
-    return result
-  }
-
   _resolve (item, value) {
     item.resolve(value)
   }
@@ -44,10 +31,7 @@ export default class Queue {
     }
     this.workingOnPromise = true
     item.promise()
-      .then(value => {
-        this._resolve(item, value)
-        return Promise.resolve(value)
-      })
+      .then(value => this._resolve(item, value))
       .catch(value => {
         console.error(`Queue catch error: (${value})`, value)
         this._reject(item, value)
