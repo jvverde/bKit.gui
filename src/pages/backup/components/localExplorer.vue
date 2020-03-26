@@ -39,16 +39,19 @@
       </template>
 
       <template v-slot:after>
-        <div class="q-pa-md row justify-evenly q-gutter-md items-stretch relative-position">
-          <item
-            v-for="entry in currentFiles"
-            :key="entry.path"
-            v-bind="entry"
-            @open="show"
-            class="column"/>
-          <q-inner-loading :showing="loading">
-            <q-spinner-ios size="100px" color="primary"/>
-          </q-inner-loading>
+        <div>
+          <div v-show="loading" class="row justify-evenly relative-position">
+            <q-spinner-ios color="primary"/>
+            {{loading}}...
+          </div>
+          <div class="q-pa-md row justify-evenly q-gutter-md items-stretch relative-position">
+            <item
+              v-for="entry in currentFiles"
+              :key="entry.path"
+              v-bind="entry"
+              @open="show"
+              class="column"/>
+          </div>
         </div>
       </template>
     </q-splitter>
@@ -125,8 +128,7 @@ export default {
   },
   watch: {
     currentPath: async function (dir, oldir) {
-      console.log(`${this.currentPath} [${oldir} => ${dir}]`)
-      this.currentFiles = []
+      // console.log(`${this.currentPath} [${oldir} => ${dir}]`)
       this.load(dir)
       if (this.mountpoint) { // only if is a local drive/disk
         if (this.watcher) {
@@ -139,6 +141,9 @@ export default {
           this.load(dir)
         })
       }
+    },
+    snap: function () {
+      this.load(this.currentPath)
     }
   },
   computed: {
@@ -156,7 +161,6 @@ export default {
   methods: {
     usesnap (snap, rvid) {
       this.snap = snap
-      console.log('usesnap', snap, rvid)
     },
     stepto (index) {
       const fullpath = join(this.mountpoint, this.steps.slice(0, index).join('/'))
@@ -167,9 +171,8 @@ export default {
       this.currentPath = fullpath
     },
     async load (fullpath) {
-      console.log('Load', fullpath)
       const currentFiles = this.currentFiles = []
-      this.loading = true
+      this.loading = 'Reading local disk'
       for await (const entry of readdir(fullpath)) {
         entry.checked = false
         // prevent the situation where dir path is no longer the current path
@@ -196,7 +199,7 @@ export default {
       if (currentPath !== fullpath) return // only if it still the current path
       // console.log(`Check ${fullpath} status on server`)
 
-      this.loading = true
+      this.loading = 'Reading backup'
 
       let mountRelative = mountpoint ? relative(mountpoint, fullpath) : fullpath
       mountRelative = slash(posix.normalize(`/${mountRelative}/`))
@@ -224,31 +227,38 @@ export default {
           if (err.name && err.name === 'Replaced') {
             console.log(`listLastDir [${err.name}] ${err.message} for ${snap}[${path}]`)
           } else {
-            console.error('Catch', err.name, err.message, err)
+            console.error('Catch in listLastDir', err.name, err.message, err)
           }
         })
         .finally(() => (this.loading = false))
 
       if (fs.existsSync(fullpath)) { // call diffDir only if the dir exists on local disk
-        this.loading = true
+        this.loading = 'Comparing with backup'
         await diffLastDir(fullpath, snap)
           .then(entries => {
             entries.forEach(entry => {
               if (dirname(entry.path) !== fullpath || entry.path === mountpoint) {
                 // ignore all parents and the mountpoint
-                console.log('Discard dir', entry.path)
+                // console.log('Discard dir', entry.path)
                 return
               }
               addchildren(entry)
             })
           })
           .catch(err => {
-            if (err.name) console.warn(`diffLastDir [${err.name}] ${err.message} for ${snap}[${path}]`)
-            else throw err
+            if (err.name && err.name === 'Replaced') {
+              console.log(`diffLastDir [${err.name}] ${err.message} for ${snap}[${path}]`)
+            } else {
+              console.error('Catch in diffLastDir', err.name, err.message, err)
+            }
           })
           .finally(() => (this.loading = false))
       }
       currentFiles.sort(compare)
+      currentFiles.filter(e => !e.checked).forEach(e => {
+        e.isfiltered = true
+        e.checked = true
+      })
     }
   }
 }

@@ -2,33 +2,30 @@
   <q-card>
     <q-card-section horizontal>
       <q-card-section class="column no-wrap items-center">
-        <!--div>
-          [{{status}}]
-        </div-->
         <q-icon
           v-if="isdir"
           class="bkit-icon"
           style="cursor:pointer"
           name="folder"
           @click="open"
-          :color="colorosOf[status]">
+          :color="color">
           <q-tooltip anchor="top right" self="center middle"
-            content-class="bg-amber text-black shadow-4"
+            content-class="bg-grey-1 text-black shadow-4"
             transition-show="scale"
             transition-hide="scale">
-            <span class="text-capitalize">{{status}}</span>
+            <span class="text-capitalize">{{description}}</span>
           </q-tooltip>
         </q-icon>
         <q-icon
           v-else-if="isfile"
           class="bkit-icon"
           name="description"
-          :color="colorosOf[status]">
+          :color="color">
           <q-tooltip anchor="top right" self="center middle"
-            content-class="bg-amber text-black shadow-4"
+            content-class="bg-grey-1 text-black shadow-4"
             transition-show="scale"
             transition-hide="scale">
-            <span class="text-capitalize">{{status}}</span>
+            <span class="text-capitalize">{{description}}</span>
           </q-tooltip>
         </q-icon>
         <q-icon
@@ -37,17 +34,14 @@
           name="restore_from_trash"
           color="red-7">
           <q-tooltip anchor="top right" self="center middle"
-            content-class="bg-amber text-black shadow-4"
+            content-class="bg-grey-1 text-black shadow-4"
             transition-show="scale"
             transition-hide="scale">
-            <span class="text-capitalize">{{status}}</span>
+            <span class="text-capitalize">{{description}}</span>
           </q-tooltip>
         </q-icon>
         <div class="bkit-text">
-          {{name}} [{{status}}]
-          <!-- span v-if="wasdeleted && hasdescendants">
-            [+{{descendants}}]
-          </span -->
+          {{name}}
         </div>
       </q-card-section>
       <q-card-actions vertical class="justify-around q-px-xs">
@@ -57,7 +51,7 @@
         <!--q-btn flat round color="cyan" icon="share" /-->
       </q-card-actions>
     </q-card-section>
-    <q-card-section v-if="hasbackup">
+    <q-card-section v-if="hasbackup && !wasdeleted">
       <q-btn flat color="green-4" icon="assignment" no-caps label="Versions" @click="getVersions"/>
       <q-list separator class="q-pa-xd">
         <q-item dense v-for="version in versions" :key="version.snap">
@@ -77,7 +71,7 @@
 </template>
 
 <script>
-import * as bkit from 'src/helpers/bkit'
+import { getVersions } from 'src/helpers/bkit'
 const path = require('path')
 
 const moment = require('moment')
@@ -86,32 +80,41 @@ const obooleans = {
   type: Boolean,
   require: false
 }
+const colorOf = {
+  deleted: 'red',
+  update: 'green',
+  new: 'orange',
+  modified: 'teal-3',
+  filtered: 'grey-6',
+  unchecked: 'grey-1'
+}
+const nameOf = {
+  deleted: 'Was deleted',
+  update: 'Is update',
+  new: 'Not in backup',
+  modified: 'Was modified',
+  filtered: 'Is filtered',
+  unchecked: 'Not checked yet! Wait...'
+}
 export default {
   name: 'item',
   data () {
     return {
       versions: [],
-      loading: false,
-      colorosOf: {
-        deleted: 'red',
-        update: 'green',
-        new: 'orange',
-        modified: 'teal-3',
-        filtered: 'grey-4',
-        unchecked: 'grey'
-      }
+      loading: false
     }
   },
   computed: {
-    hasbackup () { return this.onbackup },
-    wasdeleted () { return this.onbackup && !this.onlocal },
-    isfiltered () { return !this.onbackup && this.onlocal },
-    isUpdate () { return this.onbackup && this.onlocal },
+    color () { return colorOf[this.status] },
+    description () { return nameOf[this.status] },
+    hasbackup () { return this.checked && this.onbackup },
+    wasdeleted () { return this.checked && this.onbackup && !this.onlocal },
+    isUpdate () { return this.checked && this.onbackup && this.onlocal && !this.wasmodified },
     unchecked () { return !this.checked },
     hasversions () { return this.versions.length > 0 },
     status () {
       if (this.unchecked) {
-        return 'excluded'
+        return 'unchecked'
       } else if (this.isnew) {
         return 'new'
       } else if (this.wasmodified) {
@@ -134,6 +137,7 @@ export default {
     checked: obooleans,
     wasmodified: obooleans,
     isnew: obooleans,
+    isfiltered: obooleans,
     path: {
       type: String,
       require: true
@@ -151,24 +155,19 @@ export default {
       this.$emit('open', this.path)
     },
     async getVersions () {
-      console.log('getVersions')
       const versions = []
       this.loading = true
-      bkit.bash('./versions.sh', [this.path], {
-        onreadline: (data) => {
-          console.log('Version:', data)
-          const match = data.match(/(@GMT-.*?)\s+have a last modifed version at (\d{4}[/]\d\d[/]\d{2}-\d\d:\d\d:\d\d)/)
-          const snap = match[1]
-          const date = moment.utc(match[2], 'YYYY/MM/DD-HH:mm:ss').local().format('DD-MM-YYYY HH:mm')
-          versions.push({ date, snap })
-        },
-        onclose: () => {
-          this.$nextTick(() => {
-            this.versions = versions
-            this.loading = false
-          })
-        }
-      })
+      // bkit.bash('./versions.sh', [this.path], {
+      try {
+        const entries = await getVersions(this.path)
+        console.log('Versions:', entries)
+        entries.forEach(e => versions.push(e))
+      } catch (err) {
+        console.error('Catch in getVersions', err)
+      } finally {
+        this.loading = false
+        this.versions = versions
+      }
     }
   },
   mounted () {

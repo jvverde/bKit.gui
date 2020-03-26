@@ -139,10 +139,10 @@ async function _listDirs (args) {
 }
 
 // Proxy listdir to cache the (already matched) results
-const proxy2listdir = exclusiveProxy(_listDirs, { size: 50, name: 'listdir' })
+const pListdir = exclusiveProxy(_listDirs, { size: 50, name: 'listdir' })
 
 export async function listDirs (path, args) {
-  return proxy2listdir([...args, path])
+  return pListdir([...args, path])
 }
 
 /* ---------------------dKit--------------------- */
@@ -186,22 +186,51 @@ function* rsync2entry (lines) {
 }
 
 async function _dKit (args, path) {
-  console.log(`invokeBash _dkit for ${path} with args`, args)
+  console.log(`Enqueued bash dkit.sh for ${path} with args`, args)
   const fullargs = ['--no-recursive', '--dirs', ...args, path]
   const rsynclines = await enqueue2bash('./dkit.sh', fullargs, queue4Remote)
   return [...rsync2entry(rsynclines)]
 }
 
-const proxy2dkit = exclusiveProxy(_dKit, { size: 50, name: 'dkit' })
+const pDKit = exclusiveProxy(_dKit, { size: 50, name: 'dkit' })
 
 const _invalidateCache = new InvalidateCache()
 
 export async function dKit (path, args, invalidateCache = false) {
   if (invalidateCache === 5) {
-    return proxy2dkit(_invalidateCache, args, path)
+    return pDKit(_invalidateCache, args, path)
   } else {
-    return proxy2dkit(args, path)
+    return pDKit(args, path)
   }
+}
+
+/* ---------------------getVersions--------------------- */
+const moment = require('moment')
+moment.locale('en')
+const regexVersion = /(@GMT-.*?)\s+have a last modifed version at (\d{4}[/]\d\d[/]\d{2}-\d\d:\d\d:\d\d)/
+
+function* matchVersion (lines) {
+  for (const line of lines) {
+    console.log('Get version:', line)
+    const match = line.match(regexVersion)
+    if (match) {
+      const snap = match[1]
+      const date = moment.utc(match[2], 'YYYY/MM/DD-HH:mm:ss').local().format('DD-MM-YYYY HH:mm')
+      yield { snap, date }
+    }
+  }
+}
+
+async function _getVersions (path, ...args) {
+  const lines = await enqueue2bash('./versions.sh', [...args, path].flat(), queue4Remote)
+  return [...matchVersion(lines)]
+}
+
+// Proxy getVersions to cache the (already matched) results
+const pGetVersions = exclusiveProxy(_getVersions, { size: 50, name: 'listdir' })
+
+export async function getVersions (path, ...args) {
+  return pGetVersions(path, args)
 }
 
 /* *************************** A 2nd-level queue *************************** */
@@ -212,7 +241,7 @@ export async function dKit (path, args, invalidateCache = false) {
 const listdirQueue = new QueueLast()
 const dkitQueue = new QueueLast()
 
-export async function listDirOfSnap (path, snap, rvid, {
+export async function listDir4Snap (path, snap, rvid, {
   args = [],
   queue = listdirQueue
 } = {}) {
@@ -223,7 +252,7 @@ export async function listDirOfSnap (path, snap, rvid, {
   return queue.enqueue(promise, key, snap)
 }
 
-export async function diffListOfSnap (path, snap, {
+export async function diffList4Snap (path, snap, {
   args = [],
   queue = dkitQueue,
   invalidateCache = false
@@ -239,6 +268,9 @@ export async function diffListOfSnap (path, snap, {
     return queue.enqueue(promise, key, snap)
   }
 }
+
+// Functions for dealing with situation where we want to ignore previous request.
+// Only the last request is important. Dismiss the previous ones
 
 const queue4last = new QueueLast()
 

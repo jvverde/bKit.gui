@@ -83,7 +83,7 @@ const { relative, join, basename, posix, dirname } = require('path')
 const slash = require('slash')
 const fs = require('fs')
 import { readdir } from 'src/helpers/readfs'
-import { diffListOfSnap, listDirOfSnap } from 'src/helpers/bkit'
+import { diffList4Snap, listDir4Snap } from 'src/helpers/bkit'
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -275,11 +275,11 @@ export default {
 
       this.loading++
 
-      diffListOfSnap(path, snap, { invalidateCache })
+      diffList4Snap(path, snap, { invalidateCache })
         .then(entries => {
           entries.forEach(entry => {
             if (dirname(entry.path) !== path || entry.path === mountpoint) {
-              console.log(`Discard self-or-ancestor ${entry.path} of ${path}`)
+              // console.log(`Discard self-or-ancestor ${entry.path} of ${path}`)
             } else {
               updateChildrens(entry)
             }
@@ -287,8 +287,11 @@ export default {
           this.invalidateCache = false
         })
         .catch(err => {
-          if (err.name) console.warn(`DiffList ${err.name} ${err.message} for ${snap}[${path}]`)
-          else throw err
+          if (err.name && err.name === 'Replaced') {
+            console.log(`diffList4Snap [${err.name}] ${err.message} for ${snap}[${path}]`)
+          } else {
+            console.error('Catch in diffList4Snap', err.name, err.message, err)
+          }
         })
         .finally(() => this.loading--)
     },
@@ -304,7 +307,7 @@ export default {
       mountRelative = slash(posix.normalize(`/${mountRelative}/`))
       mountRelative = posix.normalize(mountRelative)
 
-      listDirOfSnap(mountRelative, snap, rvid)
+      listDir4Snap(mountRelative, snap, rvid)
         .then(entries => {
           entries.forEach(entry => {
             entry.path = join(path, entry.name)
@@ -312,8 +315,11 @@ export default {
           })
         })
         .catch(err => {
-          if (err.name) console.warn(`Listdir ${err.name} ${err.message} for ${snap}[${path}]`)
-          else throw err
+          if (err.name && err.name === 'Replaced') {
+            console.log(`listDir4Snap [${err.name}] ${err.message} for ${snap}[${path}]`)
+          } else {
+            console.error('Catch in listDir4Snap', err.name, err.message, err)
+          }
         })
         .finally(() => this.loading--)
     },

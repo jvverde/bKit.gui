@@ -55,7 +55,6 @@ export default {
     select (index) {
       this.currentSnap = this.snaps[index].id
       this.$emit('usesnap', this.currentSnap, this.rvid)
-      console.log('emited')
     },
     load_snaps () {
       this.snaps.splice(0, this.snaps.length) // empty snaps
