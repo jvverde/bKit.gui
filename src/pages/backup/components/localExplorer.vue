@@ -46,8 +46,8 @@
           </div>
           <div class="q-pa-md row justify-evenly q-gutter-md items-stretch relative-position">
             <item
-              v-for="entry in currentFiles"
-              :key="entry.path"
+              v-for="(entry, index) in currentFiles"
+              :key="index"
               v-bind="entry"
               @open="show"
               class="column"/>
@@ -195,8 +195,13 @@ export default {
     },
     async checkdir (fullpath) {
       const { snap, rvid, path, mountpoint, currentPath, currentFiles } = this
-      if (!rvid) return
-      if (currentPath !== fullpath) return // only if it still the current path
+      if (!rvid || currentPath !== fullpath) {
+        // only if it still the current path and a Remote Volume (rvid) exists
+        currentFiles.forEach(e => {
+          e.checked = e.nobackup = true
+        }) // mark files as cheched,
+        return
+      }
       // console.log(`Check ${fullpath} status on server`)
 
       this.loading = 'Reading backup'

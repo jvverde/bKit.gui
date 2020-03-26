@@ -209,6 +209,11 @@ const moment = require('moment')
 moment.locale('en')
 const regexVersion = /(@GMT-.*?)\s+have a last modifed version at (\d{4}[/]\d\d[/]\d{2}-\d\d:\d\d:\d\d)/
 
+// The bash script versions.sh can take a lot of time finish.
+// So is better to use a dedicated queue
+
+const qGetVersions = new QueueByKey()
+
 function* matchVersion (lines) {
   for (const line of lines) {
     console.log('Get version:', line)
@@ -222,7 +227,7 @@ function* matchVersion (lines) {
 }
 
 async function _getVersions (path, ...args) {
-  const lines = await enqueue2bash('./versions.sh', [...args, path].flat(), queue4Remote)
+  const lines = await enqueue2bash('./versions.sh', [...args, path].flat(), qGetVersions)
   return [...matchVersion(lines)]
 }
 

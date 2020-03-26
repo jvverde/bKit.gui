@@ -17,22 +17,10 @@
           </q-tooltip>
         </q-icon>
         <q-icon
-          v-else-if="isfile"
+          v-else
           class="bkit-icon"
           name="description"
           :color="color">
-          <q-tooltip anchor="top right" self="center middle"
-            content-class="bg-grey-1 text-black shadow-4"
-            transition-show="scale"
-            transition-hide="scale">
-            <span class="text-capitalize">{{description}}</span>
-          </q-tooltip>
-        </q-icon>
-        <q-icon
-          v-else-if="wasdeleted"
-          class="bkit-icon"
-          name="restore_from_trash"
-          color="red-7">
           <q-tooltip anchor="top right" self="center middle"
             content-class="bg-grey-1 text-black shadow-4"
             transition-show="scale"
@@ -45,10 +33,30 @@
         </div>
       </q-card-section>
       <q-card-actions vertical class="justify-around q-px-xs">
-        <q-btn flat color="positive" icon="restore" no-caps stack label="Restore" v-if="wasdeleted"/>
-        <q-btn flat color="positive" icon="backup" no-caps stack label="Backup" v-if="isnew"/>
-        <q-btn flat color="positive" icon="backup" no-caps stack label="Backup" v-if="wasmodified"/>
-        <!--q-btn flat round color="cyan" icon="share" /-->
+        <q-btn flat no-caps stack
+          color="positive"
+          icon="publish"
+          class="flip-vertical"
+          v-if="isnew">
+          <span class="flip-vertical">Backup</span>
+        </q-btn>
+        <q-btn flat no-caps stack
+          color="cyan"
+          icon="call_merge"
+          class="flip-vertical"
+          v-if="wasmodified">
+          <span class="flip-vertical">Update</span>
+        </q-btn>
+        <q-btn flat no-caps stack
+          color="orange"
+          icon="publish"
+          label="Restore"
+          v-if="wasmodified"/>
+        <q-btn flat no-caps stack
+          color="positive"
+          icon="publish"
+          label="Restore"
+          v-if="wasdeleted"/>
       </q-card-actions>
     </q-card-section>
     <q-card-section v-if="hasbackup && !wasdeleted">
@@ -86,7 +94,8 @@ const colorOf = {
   new: 'orange',
   modified: 'teal-3',
   filtered: 'grey-6',
-  unchecked: 'grey-1'
+  unchecked: 'grey-1',
+  nobackup: 'amber'
 }
 const nameOf = {
   deleted: 'Was deleted',
@@ -94,7 +103,8 @@ const nameOf = {
   new: 'Not in backup',
   modified: 'Was modified',
   filtered: 'Is filtered',
-  unchecked: 'Not checked yet! Wait...'
+  unchecked: 'Not checked yet! Wait...',
+  nobackup: 'Disk has no backup'
 }
 export default {
   name: 'item',
@@ -125,6 +135,8 @@ export default {
         return 'update'
       } else if (this.isfiltered) {
         return 'filtered'
+      } else if (this.nobackup) {
+        return 'nobackup'
       }
       return null
     }
@@ -138,6 +150,7 @@ export default {
     wasmodified: obooleans,
     isnew: obooleans,
     isfiltered: obooleans,
+    nobackup: obooleans,
     path: {
       type: String,
       require: true
@@ -160,7 +173,7 @@ export default {
       // bkit.bash('./versions.sh', [this.path], {
       try {
         const entries = await getVersions(this.path)
-        console.log('Versions:', entries)
+        // console.log('Versions:', entries)
         entries.forEach(e => versions.push(e))
       } catch (err) {
         console.error('Catch in getVersions', err)
