@@ -36,15 +36,15 @@
           </q-item-label>
         </q-item-section>
 
+        <q-item-section side v-if="isloading">
+          <q-spinner-ios color="amber"/>
+        </q-item-section>
+
         <q-item-section side no-wrap>
            <q-btn-group flat rounded>
             <q-btn round color="positive" flat size="sm" icon="restore"/>
           </q-btn-group>
         </q-item-section>
-
-        <q-inner-loading :showing="isloading">
-          <q-spinner-ios color="amber"/>
-        </q-inner-loading>
 
       </template>
 

@@ -40,9 +40,9 @@
 
       <template v-slot:after>
         <div>
-          <div v-show="loading" class="row justify-evenly relative-position">
-            <q-spinner-ios color="primary"/>
-            {{loading}}...
+          <div v-show="loading" class="row justify-center relative-position">
+            <q-spinner-ios color="amber" class="q-my-md"/>
+            <div class="q-my-md q-ml-xs">{{loading}}...</div>
           </div>
           <div class="q-pa-md row justify-evenly q-gutter-md items-stretch relative-position">
             <item
