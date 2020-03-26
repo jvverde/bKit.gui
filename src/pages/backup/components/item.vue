@@ -1,5 +1,5 @@
 <template>
-  <q-card>
+  <q-card class="bkit-card">
     <q-card-section horizontal>
       <q-card-section class="column no-wrap items-center">
         <q-icon
@@ -32,7 +32,7 @@
           {{name}}
         </div>
       </q-card-section>
-      <q-card-actions vertical class="justify-around q-px-xs">
+      <q-card-actions vertical class="justify-around q-px-xs bkit-subcard">
         <q-btn flat no-caps stack
           color="positive"
           icon="publish"
@@ -59,7 +59,7 @@
           v-if="wasdeleted"/>
       </q-card-actions>
     </q-card-section>
-    <q-card-section v-if="hasbackup && !wasdeleted">
+    <q-card-section v-if="hasbackup && !wasdeleted" class="bkit-subcard">
       <q-btn flat color="green-4" icon="assignment" no-caps label="Versions" @click="getVersions"/>
       <q-list separator class="q-pa-xd">
         <q-item dense v-for="version in versions" :key="version.snap">
@@ -190,13 +190,20 @@ export default {
 </script>
 
 <style scoped lang="scss">
-  $bkitsize: 6em;
-  .bkit-text{
-    max-width:$bkitsize;
-    overflow-wrap: break-word;
-    text-align:center
-  }
-  .bkit-icon{
-    font-size:$bkitsize;
+  $bkitsize: 5em;
+  $biconsize: $bkitsize;
+  .bkit-card {
+    min-width: $bkitsize;
+    .bkit-text{
+      max-width:$bkitsize;
+      overflow-wrap: break-word;
+      text-align:center
+    }
+    .bkit-icon{
+      font-size: $biconsize;
+    }
+    .bkit-subcard * {
+      font-size: .8em;
+    }
   }
 </style>
