@@ -77,7 +77,7 @@
           <q-item dense
             clickable
             v-close-popup
-            @click="onVersionClick"
+            @click="onVersionClick(version.snap)"
             v-for="version in versions"
             :key="version.snap">
             <q-item-section>
@@ -182,8 +182,9 @@ export default {
       console.log('open:', this.path)
       this.$emit('open', this.path)
     },
-    onVersionClick (val) {
-      console.log('Versions', val)
+    onVersionClick (snap) {
+      console.log('Version snap', snap)
+      this.$emit('usesnap', snap)
     },
     async getVersions () {
       const versions = []

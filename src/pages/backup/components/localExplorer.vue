@@ -2,7 +2,7 @@
   <div class="bkit-explorer relative-position">
     <q-toolbar class="bkit-toolbar" v-if="rvid">
       <keep-alive>
-        <snaps :rvid="rvid" v-on:usesnap="usesnap"></snaps>
+        <snaps :rvid="rvid" :snap.sync="snap"></snaps>
       </keep-alive>
     </q-toolbar>
     <q-toolbar inset>
@@ -50,6 +50,7 @@
               :key="index"
               v-bind="entry"
               @open="show"
+              @usesnap="usesnap"
               class="column"/>
           </div>
         </div>
@@ -159,7 +160,7 @@ export default {
     this.show(this.mountpoint)
   },
   methods: {
-    usesnap (snap, rvid) {
+    usesnap (snap) {
       this.snap = snap
     },
     stepto (index) {

@@ -36,14 +36,23 @@ export default {
   data () {
     return {
       loading: true,
-      snaps: [],
-      currentSnap: ''
+      snaps: []
     }
   },
   props: {
     rvid: {
       type: String,
       required: true
+    },
+    snap: {
+      type: String,
+      default: ''
+    }
+  },
+  computed: {
+    currentSnap: {
+      get () { return this.snap },
+      set (val) { this.$emit('update:snap', val) }
     }
   },
   watch: {
@@ -54,7 +63,7 @@ export default {
   methods: {
     select (index) {
       this.currentSnap = this.snaps[index].id
-      this.$emit('usesnap', this.currentSnap, this.rvid)
+      // this.$emit('usesnap', this.currentSnap, this.rvid)
     },
     load_snaps () {
       this.snaps.splice(0, this.snaps.length) // empty snaps
