@@ -9,8 +9,9 @@
         dense
         no-caps
         switch-indicator
+        style="color:aqua; background-color: ghostwhite"
         indicator-color="amber"
-        active-bg-color="grey-2"
+        active-bg-color="amber-3"
         active-color="amber">
         <q-tab
           v-for="disk in disks"

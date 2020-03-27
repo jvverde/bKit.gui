@@ -27,10 +27,10 @@
         </q-item-section>
 
         <q-item-section no-wrap :class="{ isSelected: isSelected }" @click.stop="see">
-          <q-item-label>
+          <q-item-label class="ellipsis">
             {{name}}
             <q-icon name="done_all" color="green" v-if="isUpdate"/>
-            <q-icon name="call_merge" color="cyan" v-else-if="wasmodified" class="flip-vertical"/>
+            <q-icon name="call_merge" color="cyan" class="flip-vertical" v-else-if="wasmodified"/>
             <q-icon name="arrow_downward" color="orange" v-else-if="isnew"/>
             <q-icon name="arrow_upward" color="red" v-else-if="wasdeleted"/>
           </q-item-label>
