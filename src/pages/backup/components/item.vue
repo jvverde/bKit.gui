@@ -38,25 +38,25 @@
           icon="publish"
           class="flip-vertical"
           v-if="isnew">
-          <span class="flip-vertical text-weight-thin">Backup</span>
+          <span class="flip-vertical text-weight-light">Backup</span>
         </q-btn>
         <q-btn flat no-caps stack
           color="cyan"
           icon="call_merge"
           class="flip-vertical"
           v-if="wasmodified">
-          <span class="flip-vertical text-weight-thin">Update</span>
+          <span class="flip-vertical text-weight-light">Update</span>
         </q-btn>
         <q-btn flat no-caps stack
           color="orange"
           icon="publish"
           label="Restore"
-          class="text-weight-thin"
+          class="text-weight-light"
           v-if="wasmodified"/>
         <q-btn flat no-caps stack
           color="positive"
           icon="publish"
-          class="text-weight-thin"
+          class="text-weight-light"
           label="Restore"
           v-if="wasdeleted"/>
       </div>
@@ -66,7 +66,7 @@
         icon="assignment"
         color="green-4"
         label="Versions"
-        class="text-weight-thin"
+        class="text-weight-light"
         :loading="loading"
         persistent
         strech

@@ -207,7 +207,7 @@ export async function dKit (path, args, invalidateCache = false) {
 /* ---------------------getVersions--------------------- */
 const moment = require('moment')
 moment.locale('en')
-const regexVersion = /(@GMT-.*?)\s+have a last modifed version at (\d{4}[/]\d\d[/]\d{2}-\d\d:\d\d:\d\d)/
+const regexVersion = /(?<snap>@GMT-(?<sdate>.+?))\s+have a last modifed version at (?<modifed>\d{4}[/]\d\d[/]\d{2}-\d\d:\d\d:\d\d)/
 
 // The bash script versions.sh can take a lot of time finish.
 // So is better to use a dedicated queue
@@ -218,10 +218,11 @@ function* matchVersion (lines) {
   for (const line of lines) {
     console.log('Get version:', line)
     const match = line.match(regexVersion)
+    const { groups: { snap, sdate, modifed } } = match || { groups: {} }
     if (match) {
-      const snap = match[1]
-      const date = moment.utc(match[2], 'YYYY/MM/DD-HH:mm:ss').local().format('DD-MM-YYYY HH:mm')
-      yield { snap, date }
+      // @GMT-2020.02.13-19.45.12
+      const date = moment.utc(sdate, 'YYYY.MM.DD-HH.mm.ss').local().format('YYYY-MM-DD HH:mm')
+      yield { snap, date, modifed }
     }
   }
 }
