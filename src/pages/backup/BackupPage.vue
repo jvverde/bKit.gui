@@ -38,7 +38,7 @@
           </q-tab-panel>
         </q-tab-panels>
         <q-inner-loading :showing="loading">
-          <q-spinner-ios size="100px" color="primary"/>
+          <q-spinner-ios size="100px" color="amber"/>
         </q-inner-loading>
       </template>
       <template v-slot:after>

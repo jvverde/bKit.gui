@@ -1,7 +1,7 @@
 <template>
-  <q-card class="bkit-card">
-    <q-card-section horizontal>
-      <q-card-section class="column no-wrap items-center">
+  <div class="bkit-card q-pa-xs column no-wrap rounded-borders shadow-1">
+    <div class="row no-wrap">
+      <div class="column no-wrap items-center">
         <q-icon
           v-if="isdir"
           class="bkit-icon"
@@ -9,7 +9,7 @@
           name="folder"
           @click="open"
           :color="color">
-          <q-tooltip anchor="top right" self="center middle"
+          <q-tooltip anchor="top right" self="top middle"
             content-class="bg-grey-1 text-black shadow-4"
             transition-show="scale"
             transition-hide="scale">
@@ -21,7 +21,7 @@
           class="bkit-icon"
           name="description"
           :color="color">
-          <q-tooltip anchor="top right" self="center middle"
+          <q-tooltip anchor="top right" self="top middle"
             content-class="bg-grey-1 text-black shadow-4"
             transition-show="scale"
             transition-hide="scale">
@@ -31,51 +31,66 @@
         <div class="bkit-text">
           {{name}}
         </div>
-      </q-card-section>
-      <q-card-actions vertical class="justify-around q-px-xs bkit-subcard">
+      </div>
+      <div class="column ustify-around q-px-xs bkit-subcard">
         <q-btn flat no-caps stack
           color="positive"
           icon="publish"
           class="flip-vertical"
           v-if="isnew">
-          <span class="flip-vertical">Backup</span>
+          <span class="flip-vertical text-weight-thin">Backup</span>
         </q-btn>
         <q-btn flat no-caps stack
           color="cyan"
           icon="call_merge"
           class="flip-vertical"
           v-if="wasmodified">
-          <span class="flip-vertical">Update</span>
+          <span class="flip-vertical text-weight-thin">Update</span>
         </q-btn>
         <q-btn flat no-caps stack
           color="orange"
           icon="publish"
           label="Restore"
+          class="text-weight-thin"
           v-if="wasmodified"/>
         <q-btn flat no-caps stack
           color="positive"
           icon="publish"
+          class="text-weight-thin"
           label="Restore"
           v-if="wasdeleted"/>
-      </q-card-actions>
-    </q-card-section>
-    <q-card-section v-if="hasbackup && !wasdeleted" class="bkit-subcard">
-      <q-btn flat color="green-4" icon="assignment" no-caps label="Versions" @click="getVersions"/>
-      <q-list separator class="q-pa-xd">
-        <q-item dense v-for="version in versions" :key="version.snap">
-          <q-item-section>
-            {{version.date}}
-          </q-item-section>
-          <q-item-section side>
-            <q-icon color="positive" name="restore" />
-          </q-item-section>
-        </q-item>
-      </q-list>
-      <q-inner-loading :showing="loading">
-        <q-spinner-ios color="amber"/>
-      </q-inner-loading>
-    </q-card-section>
-  </q-card>
+      </div>
+    </div>
+    <div v-if="hasbackup && !wasdeleted" class="row bkit-subcard text-weight-light no-wrap">
+      <q-btn-dropdown no-caps flat no-wrap
+        icon="assignment"
+        color="green-4"
+        label="Versions"
+        class="text-weight-thin"
+        :loading="loading"
+        persistent
+        strech
+        dense
+        @click="getVersions"
+        >
+        <q-list separator class="q-pa-xd" >
+          <q-item dense
+            clickable
+            v-close-popup
+            @click="onVersionClick"
+            v-for="version in versions"
+            :key="version.snap">
+            <q-item-section>
+              {{version.date}}
+            </q-item-section>
+            <q-item-section side>
+              <q-icon color="positive" name="restore" />
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -167,6 +182,9 @@ export default {
       console.log('open:', this.path)
       this.$emit('open', this.path)
     },
+    onVersionClick (val) {
+      console.log('Versions', val)
+    },
     async getVersions () {
       const versions = []
       this.loading = true
@@ -201,9 +219,6 @@ export default {
     }
     .bkit-icon{
       font-size: $biconsize;
-    }
-    .bkit-subcard * {
-      font-size: .8em;
     }
   }
 </style>
