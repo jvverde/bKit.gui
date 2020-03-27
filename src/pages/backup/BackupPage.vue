@@ -9,15 +9,26 @@
         dense
         no-caps
         switch-indicator
+        indicator-color="amber"
         active-bg-color="grey-2"
-        active-color="primary">
+        active-color="amber">
         <q-tab
           v-for="disk in disks"
           :key="disk.uuid"
           :name="disk.uuid"
+          :ripple="{ early: true, color: 'indigo'}"
           icon="far fa-hdd"
-          :alert="alert(disk)"
-          :label="diskname(disk)">
+          :style="{ color: color(disk) }"
+        >
+          <div class="row no-wrap" style="color:initial">
+            <span>{{diskname(disk)}}</span>
+            <span v-if="disk.present === true">
+              <q-icon name="done" color="green"/>
+            </span>
+            <span v-else-if="disk.present === false">
+              <q-icon name="priority_high" color="red"/>
+            </span>
+          </div>
         </q-tab>
       </q-tabs>
     </div>
@@ -91,12 +102,19 @@ export default {
     backup () {
       console.log('dobackup')
     },
-    alert (disk) {
+    color (disk) {
       if (disk.present === true) {
         return 'green'
       } else if (disk.present === false) {
         return 'red'
-      } else return false
+      } else return 'initial'
+    },
+    badge (disk) {
+      if (disk.present === true) {
+        return '&#10003;'
+      } else if (disk.present === false) {
+        return '&#10005;'
+      } else return ''
     },
     diskname  (disk) {
       const name = disk.name.replace(/\\$|\/$/, '')

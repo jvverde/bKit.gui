@@ -218,8 +218,8 @@ function* matchVersion (lines) {
   for (const line of lines) {
     console.log('Get version:', line)
     const match = line.match(regexVersion)
-    const { groups: { snap, sdate, modifed } } = match || { groups: {} }
     if (match) {
+      const { groups: { snap, sdate, modifed } } = match || { groups: {} }
       // @GMT-2020.02.13-19.45.12
       const date = moment.utc(sdate, 'YYYY.MM.DD-HH.mm.ss').local().format('YYYY-MM-DD HH:mm')
       yield { snap, date, modifed }
