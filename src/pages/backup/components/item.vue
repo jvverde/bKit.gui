@@ -32,7 +32,7 @@
           {{name}}
         </div>
       </div>
-      <div class="column ustify-around q-px-xs bkit-subcard">
+      <div class="column justify-around q-px-xs bkit-subcard">
         <q-btn flat no-caps stack
           color="positive"
           icon="publish"
