@@ -31,6 +31,37 @@
         <div class="bkit-text">
           {{name}}
         </div>
+        <div v-if="hasbackup && !wasdeleted"
+          style="margin-top:auto"
+          class="row bkit-subcard text-weight-light no-wrap">
+          <q-btn-dropdown no-caps flat no-wrap
+            icon="assignment"
+            color="green-4"
+            label="Versions"
+            class="text-weight-light"
+            :loading="loading"
+            persistent
+            strech
+            dense
+            @click="getVersions"
+            >
+            <q-list separator class="q-pa-xd" >
+              <q-item dense
+                clickable
+                v-close-popup
+                @click="onVersionClick(version.snap)"
+                v-for="version in versions"
+                :key="version.snap">
+                <q-item-section>
+                  {{version.date}}
+                </q-item-section>
+                <q-item-section side>
+                  <q-icon color="positive" name="restore" />
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div>
       </div>
       <div class="column justify-around q-px-xs bkit-subcard">
         <q-btn flat no-caps stack
@@ -53,44 +84,43 @@
           label="Restore"
           @click="restore"
           class="text-weight-light"
-          v-if="wasmodified"/>
+          v-if="wasmodified">
+          <q-tooltip anchor="top right" self="top left"
+            content-class="bg-grey-1 text-black shadow-4"
+            transition-show="scale"
+            transition-hide="scale">
+            <span>Restore lo original location</span>
+          </q-tooltip>
+        </q-btn>
         <q-btn flat no-caps stack
           color="positive"
           icon="publish"
           class="text-weight-light"
           label="Restore"
           @click="restore"
-          v-if="wasdeleted"/>
+          v-if="wasdeleted">
+          <q-tooltip anchor="top right" self="top left"
+            content-class="bg-grey-1 text-black shadow-4"
+            transition-show="scale"
+            transition-hide="scale">
+            <span>Restore to original location</span>
+          </q-tooltip>
+        </q-btn>
+        <q-btn flat no-caps stack
+          color="positive"
+          icon="save_alt"
+          label="Recover"
+          @click="recover"
+          class="text-weight-light"
+          v-if="wasmodified|wasdeleted">
+          <q-tooltip anchor="top right" self="top left"
+            content-class="bg-grey-1 text-black shadow-4"
+            transition-show="scale"
+            transition-hide="scale">
+            <span>Recover to a different location</span>
+          </q-tooltip>
+        </q-btn>
       </div>
-    </div>
-    <div v-if="hasbackup && !wasdeleted" class="row bkit-subcard text-weight-light no-wrap">
-      <q-btn-dropdown no-caps flat no-wrap
-        icon="assignment"
-        color="green-4"
-        label="Versions"
-        class="text-weight-light"
-        :loading="loading"
-        persistent
-        strech
-        dense
-        @click="getVersions"
-        >
-        <q-list separator class="q-pa-xd" >
-          <q-item dense
-            clickable
-            v-close-popup
-            @click="onVersionClick(version.snap)"
-            v-for="version in versions"
-            :key="version.snap">
-            <q-item-section>
-              {{version.date}}
-            </q-item-section>
-            <q-item-section side>
-              <q-icon color="positive" name="restore" />
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </q-btn-dropdown>
     </div>
   </div>
 </template>
@@ -205,8 +235,10 @@ export default {
       }
     },
     restore () {
-      console.log('About to emit restore to ', this.path)
       this.$emit('restore', this.path)
+    },
+    recover () {
+      this.$emit('recover', this.path)
     }
   },
   mounted () {
