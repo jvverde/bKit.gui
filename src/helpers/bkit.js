@@ -125,14 +125,13 @@ function rQueue (name, args, events = {}, queue = restoreQueue) {
 const regexdKit = /^"recv\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
 
 export function rkit (path, options, rsyncoptions, {
-  onstart = () => {},
-  onfinish = () => {},
-  onrecvfile = () => {},
-  ontotalfiles = (n) => { this.totalfiles = n },
-  ontotalsize = (val) => { this.totalsize = val },
+  onstart = () => null,
+  onfinish = () => null,
+  onrecvfile = () => null,
+  ontotalfiles = (n) => null,
+  ontotalsize = (val) => null,
   onprogress = null
 } = {}) {
-  this.totalfiles = this.totalsize = 0
   console.log('Called rkit')
   return rQueue('./rkit.sh', [
     ...options,

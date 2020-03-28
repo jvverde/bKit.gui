@@ -124,6 +124,7 @@ export default {
       deletedChildrens: 0,
       loaded: false, // the inital stat is unloaded
       invalidateCache: true,
+      eventdate: Date.now(),
       childrens: []
     }
   },
@@ -213,7 +214,7 @@ export default {
     isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified },
     token () {
       const r = Math.random().toString(36).substring(2)
-      return [this.path, this.snap, this.rvid, r].join('')
+      return [this.path, this.snap, this.rvid, this.eventdate, r].join('')
     }
   },
   watch: {
@@ -358,7 +359,7 @@ export default {
       if (!this.isdir) return
       // console.log('checkDirOnBackup', this.path)
       this.markAsUnverified()
-      await this.diffDir() // This only give diferences between local and remote. It doesn't include deleted
+      await this.diffDir() // This only give diferences between local and remote. It doesn't include the deleted ones
       await this.readDirOnBackup() // This give us all files on remote dir. The diference will be the deleted ones
       this.rmUnverifield()
     },
@@ -388,9 +389,12 @@ export default {
     if (this.isroot) this.showChildrens()
     if (this.isdir) {
       chokidar.watch(this.path, chokidarOptions).on('all', async (event, path) => {
-        console.log(`[${this.path}]Event ${event} for ${path}`)
-        this.invalidateCache = true // Don't use the cache is local files has been changed
-        await this.refresh()
+        if (this.loaded) { // only care if the dir is loaded
+          console.log(`[${this.path}]Event ${event} for ${path}`)
+          this.invalidateCache = true // Don't use the cache is local files has been changed
+          this.childrens = []
+          await this.refresh()
+        }
       })
     }
   }

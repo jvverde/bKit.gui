@@ -46,7 +46,7 @@
             :name="disk.uuid"
             v-for="disk in disks"
             :key="disk.uuid">
-              <localexplorer v-bind="disk" @backup="backup" @restore="restoreit"/>
+              <localexplorer v-bind="disk" @backup="backup" @restore="restore"/>
           </q-tab-panel>
         </q-tab-panels>
         <q-inner-loading :showing="loading">
@@ -92,11 +92,21 @@ export default {
   data () {
     return {
       loading: false,
-      splitter: 95,
+      mark: 0,
       disktab: '',
       disks: [],
       restores: [],
       currentdisk: {}
+    }
+  },
+  computed: {
+    splitter: {
+      get: function () {
+        return Math.max(30, 100 - Math.max(this.mark, 10 * this.restores.length))
+      },
+      set: function (val) {
+        this.mark = 100 - val
+      }
     }
   },
   components: {
@@ -152,7 +162,8 @@ export default {
         this.disks.push({ name, mountpoint, label, uuid, fs })
       }
     },
-    restoreit (resource) {
+    restore (resource) {
+      resource.options.push('--dry-run')
       this.restores.push(resource)
     },
     destroy (index) {

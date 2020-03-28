@@ -110,7 +110,7 @@ export default {
       else return 0
     },
     isDryRun () {
-      return this.resource.rsyncoptions.some(isDryRun)
+      return this.resource.rsyncoptions.some(isDryRun) || this.resource.options.some(isDryRun)
     }
   },
   props: {
@@ -155,7 +155,7 @@ export default {
   },
   mounted () {
     console.log('I am ready to restore', this.resource)
-    // this.restore()
+    this.restore()
   },
   beforeDestroy () {
     /* console.log('Destroy')
