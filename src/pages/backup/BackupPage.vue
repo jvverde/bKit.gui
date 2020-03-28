@@ -46,7 +46,7 @@
             :name="disk.uuid"
             v-for="disk in disks"
             :key="disk.uuid">
-              <localexplorer v-bind="disk" @backup="backup" @restore="restore"/>
+              <localexplorer v-bind="disk" @backup="backup" @restore="restore" @recover="recover"/>
           </q-tab-panel>
         </q-tab-panels>
         <q-inner-loading :showing="loading">
@@ -93,6 +93,7 @@ export default {
     return {
       loading: false,
       mark: 0,
+      dst: '',
       disktab: '',
       disks: [],
       restores: [],
@@ -168,7 +169,6 @@ export default {
     },
     recover (resource) {
       resource.options.push('--dry-run')
-      resource.options.push('--dst')
       this.restores.push(resource)
     },
     destroy (index) {

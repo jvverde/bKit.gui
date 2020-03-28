@@ -107,6 +107,10 @@ const unixPath = (base, path) => {
   upath = slash(posix.normalize(`/${upath}/`))
   return posix.normalize(upath)
 }
+
+const { dialog, app } = require('electron').remote
+let download = app.getPath('downloads') || app.getPath('temp')
+
 export default {
   name: 'localexplorer',
   data () {
@@ -281,7 +285,26 @@ export default {
     },
     recover (path) {
       const { snap, rvid } = this
-      this.$emit('recover', new Resource({ path, snap, rvid }))
+      dialog.showOpenDialog({
+        title: 'Where you want to recover your data',
+        defaultPath: download,
+        buttonLabel: 'Recover to here',
+        properties: ['openDirectory', 'promptToCreate']
+      }).then((result) => {
+        console.log('result', result)
+        if (result.filePaths instanceof Array) {
+          download = result.filePaths[0]
+          if (download !== null) {
+            const options = [`--dst=${download}`]
+            this.$emit('recover', new Resource({ path, snap, rvid, options }))
+          }
+        }
+      }).catch((err) => {
+        download = null
+        console.error('Catch on showOpenDialog', err)
+      }).finally(() => {
+        console.log('_________________________')
+      })
     }
 
   }

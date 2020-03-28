@@ -141,7 +141,7 @@ export function rkit (path, options, rsyncoptions, {
     '--delay-updates', // if we want to receive a file list ahead
     '--progress',
     '--info=PROGRESS2,STATS2,NAME2',
-    '--dry-run', // TEMPORÁRIO SÓ PARA TESTES
+    // '--dry-run', // TEMPORÁRIO SÓ PARA TESTES
     path
   ], {
     onreadline: (data) => {

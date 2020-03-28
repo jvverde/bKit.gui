@@ -1,5 +1,5 @@
 <template>
-  <div class="row no-wrap rounded-borders shadow-1">
+  <div class="row no-wrap rounded-borders shadow-2">
     <div class="column no-wrap items-center">
       <q-icon
         v-if="isdir"
@@ -39,7 +39,6 @@
           label="Versions"
           class="text-weight-light"
           :loading="loading"
-          persistent
           strech
           dense
           @click="getVersions"
