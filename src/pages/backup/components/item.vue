@@ -1,126 +1,124 @@
 <template>
-  <div class="bkit-card q-pa-xs column no-wrap rounded-borders shadow-1">
-    <div class="row no-wrap">
-      <div class="column no-wrap items-center">
-        <q-icon
-          v-if="isdir"
-          class="bkit-icon"
-          style="cursor:pointer"
-          name="folder"
-          @click="open"
-          :color="color">
-          <q-tooltip anchor="top right" self="top middle"
-            content-class="bg-grey-1 text-black shadow-4"
-            transition-show="scale"
-            transition-hide="scale">
-            <span class="text-capitalize">{{description}}</span>
-          </q-tooltip>
-        </q-icon>
-        <q-icon
-          v-else
-          class="bkit-icon"
-          name="description"
-          :color="color">
-          <q-tooltip anchor="top right" self="top middle"
-            content-class="bg-grey-1 text-black shadow-4"
-            transition-show="scale"
-            transition-hide="scale">
-            <span class="text-capitalize">{{description}}</span>
-          </q-tooltip>
-        </q-icon>
-        <div class="bkit-text">
-          {{name}}
-        </div>
-        <div v-if="hasbackup && !wasdeleted"
-          style="margin-top:auto"
-          class="row bkit-subcard text-weight-light no-wrap">
-          <q-btn-dropdown no-caps flat no-wrap
-            icon="assignment"
-            color="green-4"
-            label="Versions"
-            class="text-weight-light"
-            :loading="loading"
-            persistent
-            strech
-            dense
-            @click="getVersions"
-            >
-            <q-list separator class="q-pa-xd" >
-              <q-item dense
-                clickable
-                v-close-popup
-                @click="onVersionClick(version.snap)"
-                v-for="version in versions"
-                :key="version.snap">
-                <q-item-section>
-                  {{version.date}}
-                </q-item-section>
-                <q-item-section side>
-                  <q-icon color="positive" name="restore" />
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
-        </div>
+  <div class="row no-wrap rounded-borders shadow-1">
+    <div class="column no-wrap items-center">
+      <q-icon
+        v-if="isdir"
+        class="bkit-icon"
+        style="cursor:pointer"
+        name="folder"
+        @click="open"
+        :color="color">
+        <q-tooltip anchor="top right" self="top middle"
+          content-class="bg-grey-1 text-black shadow-4"
+          transition-show="scale"
+          transition-hide="scale">
+          <span class="text-capitalize">{{description}}</span>
+        </q-tooltip>
+      </q-icon>
+      <q-icon
+        v-else
+        class="bkit-icon"
+        name="description"
+        :color="color">
+        <q-tooltip anchor="top right" self="top middle"
+          content-class="bg-grey-1 text-black shadow-4"
+          transition-show="scale"
+          transition-hide="scale">
+          <span class="text-capitalize">{{description}}</span>
+        </q-tooltip>
+      </q-icon>
+      <div class="bkit-text">
+        {{name}}
       </div>
-      <div class="column justify-around q-px-xs bkit-subcard">
-        <q-btn flat no-caps stack
-          color="positive"
-          icon="publish"
-          class="flip-vertical"
-          v-if="isnew">
-          <span class="flip-vertical text-weight-light">Backup</span>
-        </q-btn>
-        <q-btn flat no-caps stack
-          color="cyan"
-          icon="call_merge"
-          class="flip-vertical"
-          v-if="wasmodified">
-          <span class="flip-vertical text-weight-light">Update</span>
-        </q-btn>
-        <q-btn flat no-caps stack
-          color="orange"
-          icon="publish"
-          label="Restore"
-          @click="restore"
+      <div v-if="hasbackup && !wasdeleted"
+        style="margin-top:auto"
+        class="row text-weight-light no-wrap">
+        <q-btn-dropdown no-caps flat no-wrap
+          icon="assignment"
+          color="green-4"
+          label="Versions"
           class="text-weight-light"
-          v-if="wasmodified">
-          <q-tooltip anchor="top right" self="top left"
-            content-class="bg-grey-1 text-black shadow-4"
-            transition-show="scale"
-            transition-hide="scale">
-            <span>Restore lo original location</span>
-          </q-tooltip>
-        </q-btn>
-        <q-btn flat no-caps stack
-          color="positive"
-          icon="publish"
-          class="text-weight-light"
-          label="Restore"
-          @click="restore"
-          v-if="wasdeleted">
-          <q-tooltip anchor="top right" self="top left"
-            content-class="bg-grey-1 text-black shadow-4"
-            transition-show="scale"
-            transition-hide="scale">
-            <span>Restore to original location</span>
-          </q-tooltip>
-        </q-btn>
-        <q-btn flat no-caps stack
-          color="positive"
-          icon="save_alt"
-          label="Recover"
-          @click="recover"
-          class="text-weight-light"
-          v-if="wasmodified|wasdeleted">
-          <q-tooltip anchor="top right" self="top left"
-            content-class="bg-grey-1 text-black shadow-4"
-            transition-show="scale"
-            transition-hide="scale">
-            <span>Recover to a different location</span>
-          </q-tooltip>
-        </q-btn>
+          :loading="loading"
+          persistent
+          strech
+          dense
+          @click="getVersions"
+          >
+          <q-list separator class="q-pa-xd" >
+            <q-item dense
+              clickable
+              v-close-popup
+              @click="onVersionClick(version.snap)"
+              v-for="version in versions"
+              :key="version.snap">
+              <q-item-section>
+                {{version.date}}
+              </q-item-section>
+              <q-item-section side>
+                <q-icon color="positive" name="restore" />
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
       </div>
+    </div>
+    <div class="column justify-start">
+      <q-btn flat no-caps stack
+        color="positive"
+        icon="publish"
+        class="flip-vertical"
+        v-if="isnew">
+        <span class="flip-vertical text-weight-light">Backup</span>
+      </q-btn>
+      <q-btn flat no-caps stack
+        color="cyan"
+        icon="call_merge"
+        class="flip-vertical"
+        v-if="wasmodified">
+        <span class="flip-vertical text-weight-light">Update</span>
+      </q-btn>
+      <q-btn flat no-caps stack
+        color="orange"
+        icon="publish"
+        label="Restore"
+        @click="restore"
+        class="text-weight-light"
+        v-if="wasmodified">
+        <q-tooltip anchor="top right" self="top left"
+          content-class="bg-grey-1 text-black shadow-4"
+          transition-show="scale"
+          transition-hide="scale">
+          <span>Restore lo original location</span>
+        </q-tooltip>
+      </q-btn>
+      <q-btn flat no-caps stack
+        color="positive"
+        icon="publish"
+        class="text-weight-light"
+        label="Restore"
+        @click="restore"
+        v-if="wasdeleted">
+        <q-tooltip anchor="top right" self="top left"
+          content-class="bg-grey-1 text-black shadow-4"
+          transition-show="scale"
+          transition-hide="scale">
+          <span>Restore to original location</span>
+        </q-tooltip>
+      </q-btn>
+      <q-btn flat no-caps stack
+        color="positive"
+        icon="save_alt"
+        label="Recover"
+        @click="recover"
+        class="text-weight-light"
+        v-if="wasmodified|wasdeleted">
+        <q-tooltip anchor="top right" self="top left"
+          content-class="bg-grey-1 text-black shadow-4"
+          transition-show="scale"
+          transition-hide="scale">
+          <span>Recover to a different location</span>
+        </q-tooltip>
+      </q-btn>
     </div>
   </div>
 </template>
@@ -250,15 +248,12 @@ export default {
 <style scoped lang="scss">
   $bkitsize: 5em;
   $biconsize: $bkitsize;
-  .bkit-card {
-    min-width: $bkitsize;
-    .bkit-text{
-      max-width:$bkitsize;
-      overflow-wrap: break-word;
-      text-align:center
-    }
-    .bkit-icon{
-      font-size: $biconsize;
-    }
+  .bkit-text{
+    max-width:$bkitsize;
+    overflow-wrap: break-word;
+    text-align:center
+  }
+  .bkit-icon{
+    font-size: $biconsize;
   }
 </style>

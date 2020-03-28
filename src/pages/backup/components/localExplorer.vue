@@ -46,7 +46,7 @@
             <q-spinner-ios color="amber" class="q-my-md"/>
             <div class="q-my-md q-ml-xs">{{loading}}...</div>
           </div>
-          <div class="q-pa-md row justify-evenly q-gutter-md items-stretch relative-position">
+          <div class="q-pa-md row justify-evenly q-gutter-sm relative-position">
             <item
               v-for="(entry, index) in currentFiles"
               :key="index"
@@ -54,8 +54,9 @@
               @open="show"
               @usesnap="usesnap"
               @restore="restore"
+              @recover="recover"
               @backup="(...args) => $emit('backup', ...args)"
-              class="column"/>
+            />
           </div>
         </div>
       </template>
@@ -101,6 +102,11 @@ const chokidarOptions = {
 // const listdir = bkit.enqueueListdir('Listdir on localexplorer')
 // const dkit = bkit.enqueuedkit('dKit on localexplorer')
 
+const unixPath = (base, path) => {
+  let upath = base ? relative(base, path) : path
+  upath = slash(posix.normalize(`/${upath}/`))
+  return posix.normalize(upath)
+}
 export default {
   name: 'localexplorer',
   data () {
@@ -213,10 +219,7 @@ export default {
 
       this.loading = 'Reading backup'
 
-      let mountRelative = mountpoint ? relative(mountpoint, fullpath) : fullpath
-      mountRelative = slash(posix.normalize(`/${mountRelative}/`))
-      mountRelative = posix.normalize(mountRelative)
-
+      const upath = unixPath(mountpoint, fullpath)
       // const dirs = await listDirs(relative, args)
       const addchildren = (entry) => {
         entry.checked = true
@@ -228,7 +231,7 @@ export default {
           currentFiles.push(entry)
         }
       }
-      await listLastDir(mountRelative, snap, rvid)
+      await listLastDir(upath, snap, rvid)
         .then(dirs => {
           dirs.forEach(entry => {
             entry.path = join(fullpath, entry.name)
@@ -275,6 +278,10 @@ export default {
     restore (path) {
       const { snap, rvid } = this
       this.$emit('restore', new Resource({ path, snap, rvid }))
+    },
+    recover (path) {
+      const { snap, rvid } = this
+      this.$emit('recover', new Resource({ path, snap, rvid }))
     }
 
   }
