@@ -59,6 +59,8 @@
           :selected.sync="folder.selected"
           @update:selected="childSelect"
           @show="path => $emit('show', path)"
+          @restore="resource => $emit('restore', resource)"
+          @backup="resource => $emit('backup', resource)"
           v-for="folder in folders"
           :key="folder.path"/>
         <!-- files-->
@@ -71,6 +73,8 @@
           :selected.sync="file.selected"
           @update:selected="childSelect"
           @show="path => $emit('show', path)"
+          @restore="resource => $emit('restore', resource)"
+          @backup="resource => $emit('backup', resource)"
           v-for="file in files"
           :key="file.path"/>
       </div>

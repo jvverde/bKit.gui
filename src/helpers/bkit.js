@@ -81,7 +81,7 @@ export function asyncInvokeBash (name, args, { onreadline } = {}) {
 //  .then(disk => console.log('RVID:', disk))
 
 /* ------------------ define queues and proxis/caches --------------- */
-import { QueueLast, QueueByKey } from './queue'
+import Queue, { QueueLast, QueueByKey } from './queue'
 const queue4Remote = new QueueByKey() // This is intend to queue remote request
 const queue4Local = new QueueByKey() // This is intend to queue local request
 const defaultQueue = new QueueByKey() // To be used for everything else
@@ -117,20 +117,24 @@ export async function getServer () {
 }
 
 /* *************************** rkit *************************** */
+const restoreQueue = new Queue() // Dedicated queue for restore requests
+// Enqueue bash scripts
+function rQueue (name, args, events = {}, queue = restoreQueue) {
+  return queue.enqueue(() => asyncInvokeBash(name, args, events))
+}
 const regexdKit = /^"recv\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
 
 export function rkit (path, options, rsyncoptions, {
   onstart = () => {},
   onfinish = () => {},
-  ondata = () => {},
   onrecvfile = () => {},
   ontotalfiles = (n) => { this.totalfiles = n },
   ontotalsize = (val) => { this.totalsize = val },
-  onprogress = null,
-  onclose = () => {}
-}) {
+  onprogress = null
+} = {}) {
   this.totalfiles = this.totalsize = 0
-  enqueue2bash('./rkit.sh', [
+  console.log('Called rkit')
+  return rQueue('./rkit.sh', [
     ...options,
     '--', // now rsync options
     ...rsyncoptions,
@@ -138,46 +142,34 @@ export function rkit (path, options, rsyncoptions, {
     '--delay-updates', // if we want to receive a file list ahead
     '--progress',
     '--info=PROGRESS2,STATS2,NAME2',
+    '--dry-run', // TEMPORÁRIO SÓ PARA TESTES
     path
   ], {
-    onerror: (err) => {
-      this.error = `${err}`
-      console.error('error=', this.error)
-      this.$q.notify({
-        message: this.error,
-        multiline: true,
-        icon: 'warning'
-      })
-    },
-    onclose: (code) => console.log(`Script rkit ends with code ${code}`),
     onreadline: (data) => {
-      console.info(data)
-      this.$nextTick(() => {
-        if (data.match(/^Start Restore/)) onstart(data)
-        else if (data.match(/^Finish at/)) onfinish(data)
+      console.info('rKit line:', data)
+      if (data.match(/^Start Restore/)) onstart(data)
+      else if (data.match(/^Finish at/)) onfinish(data)
+      else {
+        const recv = data.match(regexdKit)
+        if (recv instanceof Array) onrecvfile(recv)
         else {
-          const recv = data.match(regexdKit)
-          if (recv instanceof Array) onrecvfile(recv)
-          else {
-            const match = data.match(/^\s*(\d+)\s+files/)
-            if (match instanceof Array) {
-              ontotalfiles(0 | match[1])
-            } else {
-              const matchsize = data.match(/^total size is (.+?)\s/)
-              if (matchsize instanceof Array) ontotalsize(matchsize[1])
-              else if (onprogress) { // don't waist time if handler is not defined
-                const progress = data.match(/\s*([0-9.mkgb]+)\s+([0-9]+)%\s+([0-9.mkgb/s]+)/i)
-                if (progress instanceof Array) {
-                  onprogress(progress)
-                }
+          const match = data.match(/^\s*(\d+)\s+files/)
+          if (match instanceof Array) {
+            ontotalfiles(0 | match[1])
+          } else {
+            const matchsize = data.match(/^total size is (.+?)\s/)
+            if (matchsize instanceof Array) ontotalsize(matchsize[1])
+            else if (onprogress) { // don't waist time if handler is not defined
+              const progress = data.match(/\s*([0-9.mkgb]+)\s+([0-9]+)%\s+([0-9.mkgb/s]+)/i)
+              if (progress instanceof Array) {
+                onprogress(progress)
               }
-            }
-          }
-        }
-      })
-    }
+            } // inner inner inner else
+          } // inner inner else
+        } // inner else
+      } // else
+    } // onreadline
   })
-  console.log('Called rkit')
 }
 
 /* *************************** rkit End *************************** */

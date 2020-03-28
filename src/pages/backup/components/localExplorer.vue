@@ -34,6 +34,8 @@
             :snap="snap"
             :displayNode.sync="currentPath"
             :selected.sync="selectedNode"
+            @restore="(...args) => $emit('restore', ...args)"
+            @backup="(...args) => $emit('backup', ...args)"
             @show="show"/>
         </q-list>
       </template>
@@ -51,6 +53,8 @@
               v-bind="entry"
               @open="show"
               @usesnap="usesnap"
+              @restore="restore"
+              @backup="(...args) => $emit('backup', ...args)"
               class="column"/>
           </div>
         </div>
@@ -62,6 +66,8 @@
 
 // import { warn } from 'src/helpers/notify'
 import { listLastDir, diffLastDir } from 'src/helpers/bkit'
+import { Resource } from 'src/helpers/types'
+
 import tree from './tree'
 import item from './item'
 import snaps from './Snaps'
@@ -265,7 +271,12 @@ export default {
         e.isfiltered = true
         e.checked = true
       })
+    },
+    restore (path) {
+      const { snap, rvid } = this
+      this.$emit('restore', new Resource({ path, snap, rvid }))
     }
+
   }
 }
 

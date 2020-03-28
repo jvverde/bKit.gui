@@ -51,6 +51,7 @@
           color="orange"
           icon="publish"
           label="Restore"
+          @click="restore"
           class="text-weight-light"
           v-if="wasmodified"/>
         <q-btn flat no-caps stack
@@ -58,6 +59,7 @@
           icon="publish"
           class="text-weight-light"
           label="Restore"
+          @click="restore"
           v-if="wasdeleted"/>
       </div>
     </div>
@@ -95,6 +97,7 @@
 
 <script>
 import { getVersions } from 'src/helpers/bkit'
+
 const path = require('path')
 
 const moment = require('moment')
@@ -200,6 +203,10 @@ export default {
         this.loading = false
         this.versions = versions
       }
+    },
+    restore () {
+      console.log('About to emit restore to ', this.path)
+      this.$emit('restore', this.path)
     }
   },
   mounted () {

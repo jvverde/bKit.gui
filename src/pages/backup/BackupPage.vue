@@ -46,7 +46,7 @@
             :name="disk.uuid"
             v-for="disk in disks"
             :key="disk.uuid">
-              <localexplorer v-bind="disk" @backup="backup"/>
+              <localexplorer v-bind="disk" @backup="backup" @restore="restoreit"/>
           </q-tab-panel>
         </q-tab-panels>
         <q-inner-loading :showing="loading">
@@ -55,12 +55,12 @@
       </template>
       <template v-slot:after>
         <q-list separator class="q-pa-xd">
-<!--           <restore
+          <restore
             v-for="(resource, index) in restores"
             :key="index"
             :resource="resource"
             @destroy="destroy(index)"
-          /> -->
+          />
         </q-list>
       </template>
     </q-splitter>
@@ -84,7 +84,9 @@
 // console.log(techLead)
 
 import localexplorer from './components/localExplorer'
+import restore from './components/Restore'
 import { listDisksOnBackup, listLocalDisks } from 'src/helpers/bkit'
+
 export default {
   name: 'Backup',
   data () {
@@ -93,11 +95,13 @@ export default {
       splitter: 95,
       disktab: '',
       disks: [],
+      restores: [],
       currentdisk: {}
     }
   },
   components: {
-    localexplorer
+    localexplorer,
+    restore
   },
   methods: {
     backup () {
@@ -147,6 +151,12 @@ export default {
         const name = mountpoint
         this.disks.push({ name, mountpoint, label, uuid, fs })
       }
+    },
+    restoreit (resource) {
+      this.restores.push(resource)
+    },
+    destroy (index) {
+      this.restores.splice(index, 1)
     }
   },
   async mounted () {
