@@ -67,10 +67,11 @@ export function bash (scriptname, args, {
 }
 
 // Provide a promise to invoke bash
-export function asyncInvokeBash (name, args) {
+export function asyncInvokeBash (name, args, { onreadline } = {}) {
+  const lines = []
+  const myreadline = line => lines.push(line)
+  onreadline = onreadline || myreadline
   return new Promise((resolve, reject) => {
-    const lines = []
-    const onreadline = line => lines.push(line)
     const done = () => resolve(lines)
     const onerror = reject
     invokeBash({ name, args, onreadline, onerror }, done)
@@ -114,6 +115,72 @@ export async function* listLocalDisks () {
 export async function getServer () {
   return enqueue2bash('./server.sh', [], queue4Local)
 }
+
+/* *************************** rkit *************************** */
+const regexdKit = /^"recv\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
+
+export function rkit (path, options, rsyncoptions, {
+  onstart = () => {},
+  onfinish = () => {},
+  ondata = () => {},
+  onrecvfile = () => {},
+  ontotalfiles = (n) => { this.totalfiles = n },
+  ontotalsize = (val) => { this.totalsize = val },
+  onprogress = null,
+  onclose = () => {}
+}) {
+  this.totalfiles = this.totalsize = 0
+  enqueue2bash('./rkit.sh', [
+    ...options,
+    '--', // now rsync options
+    ...rsyncoptions,
+    '--no-A', '--no-g', '--no-p',
+    '--delay-updates', // if we want to receive a file list ahead
+    '--progress',
+    '--info=PROGRESS2,STATS2,NAME2',
+    path
+  ], {
+    onerror: (err) => {
+      this.error = `${err}`
+      console.error('error=', this.error)
+      this.$q.notify({
+        message: this.error,
+        multiline: true,
+        icon: 'warning'
+      })
+    },
+    onclose: (code) => console.log(`Script rkit ends with code ${code}`),
+    onreadline: (data) => {
+      console.info(data)
+      this.$nextTick(() => {
+        if (data.match(/^Start Restore/)) onstart(data)
+        else if (data.match(/^Finish at/)) onfinish(data)
+        else {
+          const recv = data.match(regexdKit)
+          if (recv instanceof Array) onrecvfile(recv)
+          else {
+            const match = data.match(/^\s*(\d+)\s+files/)
+            if (match instanceof Array) {
+              ontotalfiles(0 | match[1])
+            } else {
+              const matchsize = data.match(/^total size is (.+?)\s/)
+              if (matchsize instanceof Array) ontotalsize(matchsize[1])
+              else if (onprogress) { // don't waist time if handler is not defined
+                const progress = data.match(/\s*([0-9.mkgb]+)\s+([0-9]+)%\s+([0-9.mkgb/s]+)/i)
+                if (progress instanceof Array) {
+                  onprogress(progress)
+                }
+              }
+            }
+          }
+        }
+      })
+    }
+  })
+  console.log('Called rkit')
+}
+
+/* *************************** rkit End *************************** */
 
 /* ---------------------listdir--------------------- */
 const regexpList = /(?<list>[a-z-]+)\s+(?<size>[0-9,]+)\s+(?<sdate>[0-9/]+)\s+(?<time>[0-9:]+)\s+(?<name>.+)/
