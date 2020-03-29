@@ -90,14 +90,8 @@ function compare (a, b) {
 }
 
 import { readdir } from 'src/helpers/readfs'
-const chokidar = require('chokidar')
-const chokidarOptions = {
-  depth: 0,
-  ignoreInitial: true,
-  atomic: true,
-  ignorePermissionErrors: true,
-  persistent: true
-}
+
+const { chokidar, chokidarOptions } = require('src/helpers/chockidar')
 
 // const listdir = bkit.enqueueListdir('Listdir on localexplorer')
 // const dkit = bkit.enqueuedkit('dKit on localexplorer')

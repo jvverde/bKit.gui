@@ -112,14 +112,7 @@ function compare (a, b) {
 const isChecked = node => node.selected === true
 const isNotChecked = node => node.selected === false
 
-const chokidar = require('chokidar')
-const chokidarOptions = {
-  depth: 0,
-  ignoreInitial: true,
-  atomic: true,
-  ignorePermissionErrors: true,
-  persistent: true
-}
+const { chokidar, chokidarOptions } = require('src/helpers/chockidar')
 
 export default {
   name: 'tree',
