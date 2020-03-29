@@ -168,7 +168,7 @@ export default {
       this.restores.push(resource)
     },
     recover (resource) {
-      resource.options.push('--dry-run')
+      // resource.options.push('--dry-run')
       this.restores.push(resource)
     },
     destroy (index) {

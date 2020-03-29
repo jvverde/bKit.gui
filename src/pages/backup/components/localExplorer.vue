@@ -280,11 +280,13 @@ export default {
       })
     },
     restore (path) {
-      const { snap, rvid } = this
+      const { snap, rvid, mountpoint } = this
+      if (!mountpoint) path = unixPath('', path)
       this.$emit('restore', new Resource({ path, snap, rvid }))
     },
     recover (path) {
-      const { snap, rvid } = this
+      const { snap, rvid, mountpoint } = this
+      if (!mountpoint) path = unixPath('', path)
       dialog.showOpenDialog({
         title: 'Where you want to recover your data',
         defaultPath: download,
