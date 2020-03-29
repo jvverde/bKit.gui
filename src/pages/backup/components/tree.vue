@@ -29,10 +29,11 @@
         <q-item-section no-wrap :class="{ isSelected: isSelected }" @click.stop="see">
           <q-item-label class="ellipsis">
             {{name}}
-            <q-icon name="done_all" color="green" v-if="isUpdate"/>
-            <q-icon name="call_merge" color="cyan" class="flip-vertical" v-else-if="wasmodified"/>
-            <q-icon name="arrow_downward" color="orange" v-else-if="isnew"/>
-            <q-icon name="arrow_upward" color="red" v-else-if="wasdeleted"/>
+            <q-icon name="done" color="green" v-if="isUpdate"/>
+            <q-icon name="call_merge" color="teal-3" v-else-if="wasmodified"/>
+            <q-icon name="arrow_upward" color="amber" v-else-if="isnew"/>
+            <q-icon name="arrow_downward" color="red" v-else-if="wasdeleted"/>
+            <q-icon name="block " color="grey-6" v-else-if="isfiltered"/>
           </q-item-label>
         </q-item-section>
 
@@ -43,6 +44,12 @@
         <q-item-section side no-wrap>
            <q-btn-group flat rounded>
             <q-btn round color="positive" flat size="sm" icon="restore"/>
+          </q-btn-group>
+        </q-item-section>
+
+        <q-item-section side no-wrap>
+           <q-btn-group flat rounded>
+            <q-btn round color="black" flat size="xs" icon="help" @click.stop="debug(entry)"/>
           </q-btn-group>
         </q-item-section>
 
@@ -208,7 +215,7 @@ export default {
       return !!this.entry.onlocal
     },
     wasdeleted () { return this.onbackup && !this.onlocal },
-    isfiltered () { return !this.onbackup && this.onlocal && !this.entry.isnew },
+    isfiltered () { return !!this.entry.isfiltered },
     isnew () { return !this.onbackup && this.onlocal && !!this.entry.isnew },
     wasmodified () { return this.onbackup && this.onlocal && !!this.entry.wasmodified },
     isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified },
@@ -254,6 +261,9 @@ export default {
     }
   },
   methods: {
+    debug (entry) {
+      console.log(entry)
+    },
     showChildrens () {
       this.open = true
     },
@@ -280,7 +290,7 @@ export default {
 
       this.loading++
 
-      diffList4Snap(path, snap, { invalidateCache })
+      return diffList4Snap(path, snap, { invalidateCache })
         .then(entries => {
           entries.forEach(entry => {
             if (dirname(entry.path) !== path || entry.path === mountpoint) {
@@ -312,7 +322,7 @@ export default {
       mountRelative = slash(posix.normalize(`/${mountRelative}/`))
       mountRelative = posix.normalize(mountRelative)
 
-      listDir4Snap(mountRelative, snap, rvid)
+      return listDir4Snap(mountRelative, snap, rvid)
         .then(entries => {
           entries.forEach(entry => {
             entry.path = join(path, entry.name)
@@ -330,6 +340,7 @@ export default {
     },
     updateChildrens (entry) {
       entry.verified = this.token
+      entry.isfiltered = undefined
       const childrens = this.childrens
       const index = childrens.findIndex(e => e.path === entry.path)
       if (index >= 0) {
@@ -355,6 +366,11 @@ export default {
         }
       }
     },
+    markFiltered () {
+      this.childrens.filter(e => (e.onlocal && !e.onbackup && !e.isnew)).forEach(e => {
+        e.isfiltered = true
+      })
+    },
     async checkDirOnBackup () {
       if (!this.isdir) return
       // console.log('checkDirOnBackup', this.path)
@@ -362,6 +378,7 @@ export default {
       await this.diffDir() // This only give diferences between local and remote. It doesn't include the deleted ones
       await this.readDirOnBackup() // This give us all files on remote dir. The diference will be the deleted ones
       this.rmUnverifield()
+      this.markFiltered()
     },
     async readdir () {
       if (!this.mountpoint || !fs.existsSync(this.path) || !this.isdir) return

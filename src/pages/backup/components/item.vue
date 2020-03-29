@@ -1,5 +1,5 @@
 <template>
-  <div class="row no-wrap rounded-borders shadow-2">
+  <div class="q-pa-xs row no-wrap justify-between rounded-borders shadow-2 bkit-item">
     <div class="column no-wrap items-center">
       <q-icon
         v-if="isdir"
@@ -35,7 +35,7 @@
         class="row text-weight-light no-wrap">
         <q-btn-dropdown no-caps flat no-wrap
           icon="assignment"
-          color="green-4"
+          :color="hasversions ? 'blue-grey-6' : 'blue-grey-4'"
           label="Versions"
           class="text-weight-light"
           :loading="loading"
@@ -64,21 +64,13 @@
     <div class="column justify-start">
       <q-btn flat no-caps stack
         color="positive"
-        icon="publish"
-        class="flip-vertical"
-        v-if="isnew">
-        <span class="flip-vertical text-weight-light">Backup</span>
-      </q-btn>
-      <q-btn flat no-caps stack
-        color="cyan"
-        icon="call_merge"
-        class="flip-vertical"
-        v-if="wasmodified">
-        <span class="flip-vertical text-weight-light">Update</span>
+        icon="backup"
+        v-if="isnew|wasmodified">
+        <span class="text-weight-light">Backup</span>
       </q-btn>
       <q-btn flat no-caps stack
         color="orange"
-        icon="publish"
+        icon="restore"
         label="Restore"
         @click="restore"
         class="text-weight-light"
@@ -92,7 +84,7 @@
       </q-btn>
       <q-btn flat no-caps stack
         color="positive"
-        icon="publish"
+        icon="restore"
         class="text-weight-light"
         label="Restore"
         @click="restore"
@@ -247,12 +239,15 @@ export default {
 <style scoped lang="scss">
   $bkitsize: 5em;
   $biconsize: $bkitsize;
-  .bkit-text{
-    max-width:$bkitsize;
-    overflow-wrap: break-word;
-    text-align:center
-  }
-  .bkit-icon{
-    font-size: $biconsize;
+  .bkit-item {
+    min-width: 3 * $bkitsize;
+    .bkit-text{
+      max-width: 2 * $bkitsize;
+      overflow-wrap: break-word;
+      text-align:center
+    }
+    .bkit-icon{
+      font-size: $biconsize;
+    }
   }
 </style>

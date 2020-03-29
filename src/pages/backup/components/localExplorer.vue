@@ -46,7 +46,7 @@
             <q-spinner-ios color="amber" class="q-my-md"/>
             <div class="q-my-md q-ml-xs">{{loading}}...</div>
           </div>
-          <div class="q-pa-md row justify-evenly q-gutter-sm relative-position">
+          <div class="q-pa-xs row justify-evenly q-gutter-sm relative-position">
             <item
               v-for="(entry, index) in currentFiles"
               :key="index"
