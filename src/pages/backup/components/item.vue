@@ -66,14 +66,14 @@
         color="positive"
         icon="backup"
         @click="backup"
-        :disable="!(isnew|wasmodified)">
+        v-show="isnew|wasmodified">
         <span class="text-weight-light">Backup</span>
       </q-btn>
       <q-btn flat no-caps stack
         color="wasmodified ? 'orange' : 'positive'"
         icon="restore"
         @click="restore"
-        :disable="!(wasmodified|wasdeleted)">
+        v-show="wasmodified|wasdeleted">
         <span class="text-weight-light">Restore</span>
         <q-tooltip anchor="top right" self="top left"
           content-class="bg-grey-1 text-black shadow-4"
@@ -86,7 +86,7 @@
         color="positive"
         icon="save_alt"
         @click="recover"
-        :disable="!(wasmodified|wasdeleted)">
+        v-show="wasmodified|wasdeleted|isUpdate">
         <span class="text-weight-light">Recover</span>
         <q-tooltip anchor="top right" self="top left"
           content-class="bg-grey-1 text-black shadow-4"

@@ -117,10 +117,6 @@ export default {
     resource: {
       type: Resource,
       required: true
-    },
-    type: {
-      type: String,
-      default: 'backup'
     }
   },
   methods: {
@@ -182,9 +178,7 @@ export default {
   },
   mounted () {
     console.log('I am ready to restore', this.resource)
-    if (this.type === 'restore') this.restore()
-    else if (this.type === 'backup') this.backup()
-    else throw new Error(`Type ${this.type} not known`)
+    this.restore()
   },
   beforeDestroy () {
     /* console.log('Destroy')

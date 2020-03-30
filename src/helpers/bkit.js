@@ -116,7 +116,7 @@ export async function getServer () {
   return enqueue2bash('./server.sh', [], queue4Local)
 }
 
-/* *************************** rkit *************************** */
+/* *************************** rKit/bKit *************************** */
 const restoreQueue = new Queue() // Dedicated queue for restore requests
 const backupQueue = new Queue() // Dedicated queue for restore requests
 // Enqueue bash scripts
@@ -124,68 +124,182 @@ function _Queue (name, args, events = {}, queue = restoreQueue) {
   return queue.enqueue(() => asyncInvokeBash(name, args, events))
 }
 
-const rKitRegEx = /^"recv\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
-const bKitRegEx = /^"send\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
-
 export function rKit (path, options, rsyncoptions, events) {
-  const rkitoptions = [
+  const specificOptions = [
+    '--no-A', '--no-g', '--no-p',
     '--delay-updates', // if we want to receive a file list ahead
-    ...rsyncoptions
+    '--info=PROGRESS2,STATS2,NAME2'
   ]
-  return _kit('./rkit.sh', path, rKitRegEx, options, rkitoptions, events, restoreQueue)
+  const onreadline = matchLine4rKit(events)
+  return _kit('./rkit.sh', path, {
+    options,
+    rsyncoptions: [...rsyncoptions, ...specificOptions],
+    onreadline,
+    queue: restoreQueue
+  })
 }
 
 export function bKit (path, options, rsyncoptions, events) {
-  return _kit('./bkit.sh', path, bKitRegEx, options, rsyncoptions, events, backupQueue)
+  // rsyncoptions.push('--dry-run')
+  const onreadline = matchLine4bKit(events)
+  return _kit('./bkit.sh', path, {
+    options,
+    rsyncoptions,
+    onreadline,
+    queue: backupQueue
+  })
 }
 
-function _kit (scriptname, path, regex, options = [], rsyncoptions = [], {
+function matchLine4rKit ({
   onstart = () => null,
   onfinish = () => null,
   onrecvfile = () => null,
   ontotalfiles = (n) => null,
   ontotalsize = (val) => null,
   onprogress = null
-} = {}, queue = new Queue()) {
-  console.log('Called', scriptname)
-  return _Queue(scriptname, [
+} = {}) {
+  const rKitRegEx = /^"send\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
+
+  return (data) => {
+    console.info('rKit line:', data)
+    if (data.match(/^Start Restore/)) onstart(data)
+    else if (data.match(/^Finish at/)) onfinish(data)
+    else {
+      const recv = data.match(rKitRegEx)
+      if (recv instanceof Array) onrecvfile(recv)
+      else {
+        const match = data.match(/^\s*(\d+)\s+files/)
+        if (match instanceof Array) {
+          ontotalfiles(0 | match[1])
+        } else {
+          const matchsize = data.match(/^total size is (.+?)\s/)
+          if (matchsize instanceof Array) ontotalsize(matchsize[1])
+          else if (onprogress) { // don't waist time if handler is not defined
+            const progress = data.match(/\s*([0-9.mkgb]+)\s+([0-9]+)%\s+([0-9.mkgb/s]+)/i)
+            if (progress instanceof Array) {
+              onprogress(progress)
+            }
+          } // inner inner inner else
+        } // inner inner else
+      } // inner else
+    } // else
+  } // anounymous function
+}
+
+function matchLine4bKit ({
+  sent = () => null,
+  newphase = () => null,
+  done = () => null,
+  nfiles = () => null,
+  cfiles = () => null,
+  dfiles = () => null,
+  tfiles = () => null,
+  totalsize = () => null,
+  transfsize = () => null,
+  totalsentbytes = () => null,
+  totalrecvbytes = () => null
+} = {}) {
+  const regexs = [
+    {
+      // FMT='--out-format="%o|%i|%f|%c|%b|%l|%t"'
+      // %o the operation, which is "send", "recv", or "del." (the latter includes the trailing period)
+      // %i an itemized list of what is being updated
+      // %f the filename (long form on sender; no trailing "/")
+      // %c the total size of the block checksums received for the basis file (only when sending)
+      // %b the number of bytes actually transferred
+      // %l the length of the file in bytes
+      // %t the current date time
+      // itemize format (%i): YXcstpoguax
+      // Example: "send|<f+++++++++|bkit/dirF/y/list.txt|0|0|442|2020/03/30 14:13:58"
+      re: /^"send\|(?<Y>.)(?<X>.).(?<s>.)(?<t>.)(?<poguax>.{6})\|(?<file>[^|]+)\|(?<BS>[^|]+)\|(?<bytes>[^|]+)\|(?<size>[^|]+)\|(?<time>[^|]+)"$/,
+      handler: match => {
+        // tmp/tmp.4pjM5dnMab.bkit.backup/manifest.36018
+        if (match.groups.file.match(/tmp\/tmp\..+\.bit\.backup\/manifest\.\d+/)) return
+        sent(match.groups, match)
+      }
+    }, {
+      // Phase 1 - Backup new/modified files
+      re: /^Phase\b\s*(?<phase>\b[^\s]*?\b)\s+(?<msg>.*$)/,
+      handler: match => newphase(match.groups, match)
+    }, {
+      re: /^bKit:\s*Done/,
+      handler: match => done(match.groups, match)
+    }, {
+      // Number of files: 4 (reg: 3, dir: 1)
+      re: /^Number of files: (?<nfiles>\d+) (?<extra>.+)/,
+      handler: match => nfiles(match.groups, match)
+    }, {
+      // Number of created files: 4 (reg: 3, dir: 1)
+      re: /^Number of created files: (?<cfiles>\d+) (?<extra>.+)/,
+      handler: match => cfiles(match.groups, match)
+    }, {
+      // Number of deleted files: 0
+      re: /^Number of deleted files: (?<dfiles>.+)/,
+      handler: match => dfiles(match.groups, match)
+    }, {
+      // Nummber of regular files transferred: 3
+      re: /^Number of regular files transferred: (?<tfiles>.+)/,
+      handler: match => tfiles(match.groups, match)
+    }, {
+      // Total file size: 49 bytes
+      re: /^Total file size: (?<dfiles>.+)/,
+      handler: match => totalsize(match.groups, match)
+    }, {
+      // Total transferred file size: 49 bytes
+      re: /^Total transferred file size: (?<dfiles>.+)/,
+      handler: match => transfsize(match.groups, match)
+    }, {
+      // Total bytes sent: 5,886
+      re: /^Total bytes sent: (?<dfiles>.+)/,
+      handler: match => totalsentbytes(match.groups, match)
+    }, {
+      // Total bytes received: 32
+      re: /^Total bytes received: (?<dfiles>.+)/,
+      handler: match => totalrecvbytes(match.groups, match)
+    }
+    /*
+      rKit line: Literal data: 0 bytes
+      rKit line: Matched data: 0 bytes
+      rKit line: File list size: 0
+      rKit line: File list generation time: 0.002 seconds
+      rKit line: File list transfer time: 0.000 seconds
+      rKit line:
+      rKit line: sent 5,886 bytes  received 32 bytes  3,945.33 bytes/sec
+      rKit line: total size is 49  speedup is 0.01 (DRY RUN)
+    */
+  ]
+  return (data) => {
+    console.info('rKit line:', data)
+    for (const elem of regexs) {
+      const result = data.match(elem.re)
+      if (result) {
+        console.log('result', result)
+        elem.handler(result)
+        break
+      }
+    }
+  }
+}
+
+function _kit (scriptname, path, {
+  options = [],
+  rsyncoptions = [],
+  onreadline = () => null,
+  queue = new Queue()
+} = {}) {
+  console.log('Enqueue', scriptname)
+  const args = [
     ...options,
     '--', // now rsync options
     ...rsyncoptions,
-    '--no-A', '--no-g', '--no-p',
     '--progress',
-    '--info=PROGRESS2,STATS2,NAME2',
     // '--dry-run', // TEMPORÁRIO SÓ PARA TESTES
     path
-  ], {
-    onreadline: (data) => {
-      console.info('rKit line:', data)
-      if (data.match(/^Start Restore/)) onstart(data)
-      else if (data.match(/^Finish at/)) onfinish(data)
-      else {
-        const recv = data.match(regex)
-        if (recv instanceof Array) onrecvfile(recv)
-        else {
-          const match = data.match(/^\s*(\d+)\s+files/)
-          if (match instanceof Array) {
-            ontotalfiles(0 | match[1])
-          } else {
-            const matchsize = data.match(/^total size is (.+?)\s/)
-            if (matchsize instanceof Array) ontotalsize(matchsize[1])
-            else if (onprogress) { // don't waist time if handler is not defined
-              const progress = data.match(/\s*([0-9.mkgb]+)\s+([0-9]+)%\s+([0-9.mkgb/s]+)/i)
-              if (progress instanceof Array) {
-                onprogress(progress)
-              }
-            } // inner inner inner else
-          } // inner inner else
-        } // inner else
-      } // else
-    } // onreadline
-  }, queue)
+  ]
+  return _Queue(scriptname, args, { onreadline }, queue)
 }
 
-/* *************************** rkit End *************************** */
+/* *************************** rKit/bKit End *************************** */
 
 /* ---------------------listdir--------------------- */
 const regexpList = /(?<list>[a-z-]+)\s+(?<size>[0-9,]+)\s+(?<sdate>[0-9/]+)\s+(?<time>[0-9:]+)\s+(?<name>.+)/

@@ -59,14 +59,12 @@
             v-for="(resource, index) in restores"
             :key="index"
             :resource="resource"
-            type="restore"
             @destroy="destroy(index)"
           />
-          <restore
-            v-for="(resource, index) in backups"
+          <backup
+            v-for="(backup, index) in backups"
             :key="index"
-            :resource="resource"
-            type="backup"
+            :path="backup"
             @destroy="destroy(index)"
           />
         </q-list>
@@ -93,6 +91,7 @@
 
 import localexplorer from './components/localExplorer'
 import restore from './components/Restore'
+import backup from './components/Backup'
 import { listDisksOnBackup, listLocalDisks } from 'src/helpers/bkit'
 
 export default {
@@ -121,7 +120,8 @@ export default {
   },
   components: {
     localexplorer,
-    restore
+    restore,
+    backup
   },
   methods: {
     color (disk) {
@@ -177,9 +177,9 @@ export default {
       // resource.options.push('--dry-run')
       this.restores.push(resource)
     },
-    backup (resource) {
+    backup (path) {
       console.log('dobackup')
-      this.backups.push(resource)
+      this.backups.push(path)
     },
     destroy (index) {
       this.restores.splice(index, 1)

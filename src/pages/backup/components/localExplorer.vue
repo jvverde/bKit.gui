@@ -274,7 +274,7 @@ export default {
       })
     },
     backup (path) {
-      this.$emit('backup', new Resource({ path }))
+      this.$emit('backup', path)
     },
     restore (path) {
       const { snap, rvid, mountpoint } = this
