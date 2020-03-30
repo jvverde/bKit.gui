@@ -55,7 +55,7 @@
               @usesnap="usesnap"
               @restore="restore"
               @recover="recover"
-              @backup="(...args) => $emit('backup', ...args)"
+              @backup="backup"
             />
           </div>
         </div>
@@ -272,6 +272,9 @@ export default {
         e.isfiltered = true
         e.checked = true
       })
+    },
+    backup (path) {
+      this.$emit('backup', new Resource({ path }))
     },
     restore (path) {
       const { snap, rvid, mountpoint } = this

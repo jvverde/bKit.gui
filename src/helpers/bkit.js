@@ -118,27 +118,41 @@ export async function getServer () {
 
 /* *************************** rkit *************************** */
 const restoreQueue = new Queue() // Dedicated queue for restore requests
+const backupQueue = new Queue() // Dedicated queue for restore requests
 // Enqueue bash scripts
-function rQueue (name, args, events = {}, queue = restoreQueue) {
+function _Queue (name, args, events = {}, queue = restoreQueue) {
   return queue.enqueue(() => asyncInvokeBash(name, args, events))
 }
-const regexdKit = /^"recv\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
 
-export function rkit (path, options, rsyncoptions, {
+const rKitRegEx = /^"recv\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
+const bKitRegEx = /^"send\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
+
+export function rKit (path, options, rsyncoptions, events) {
+  const rkitoptions = [
+    '--delay-updates', // if we want to receive a file list ahead
+    ...rsyncoptions
+  ]
+  return _kit('./rkit.sh', path, rKitRegEx, options, rkitoptions, events, restoreQueue)
+}
+
+export function bKit (path, options, rsyncoptions, events) {
+  return _kit('./bkit.sh', path, bKitRegEx, options, rsyncoptions, events, backupQueue)
+}
+
+function _kit (scriptname, path, regex, options = [], rsyncoptions = [], {
   onstart = () => null,
   onfinish = () => null,
   onrecvfile = () => null,
   ontotalfiles = (n) => null,
   ontotalsize = (val) => null,
   onprogress = null
-} = {}) {
-  console.log('Called rkit')
-  return rQueue('./rkit.sh', [
+} = {}, queue = new Queue()) {
+  console.log('Called', scriptname)
+  return _Queue(scriptname, [
     ...options,
     '--', // now rsync options
     ...rsyncoptions,
     '--no-A', '--no-g', '--no-p',
-    '--delay-updates', // if we want to receive a file list ahead
     '--progress',
     '--info=PROGRESS2,STATS2,NAME2',
     // '--dry-run', // TEMPORÁRIO SÓ PARA TESTES
@@ -149,7 +163,7 @@ export function rkit (path, options, rsyncoptions, {
       if (data.match(/^Start Restore/)) onstart(data)
       else if (data.match(/^Finish at/)) onfinish(data)
       else {
-        const recv = data.match(regexdKit)
+        const recv = data.match(regex)
         if (recv instanceof Array) onrecvfile(recv)
         else {
           const match = data.match(/^\s*(\d+)\s+files/)
@@ -168,7 +182,7 @@ export function rkit (path, options, rsyncoptions, {
         } // inner else
       } // else
     } // onreadline
-  })
+  }, queue)
 }
 
 /* *************************** rkit End *************************** */

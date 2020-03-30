@@ -65,16 +65,16 @@
       <q-btn flat no-caps stack
         color="positive"
         icon="backup"
-        v-if="isnew|wasmodified">
+        @click="backup"
+        :disable="!(isnew|wasmodified)">
         <span class="text-weight-light">Backup</span>
       </q-btn>
       <q-btn flat no-caps stack
-        color="orange"
+        color="wasmodified ? 'orange' : 'positive'"
         icon="restore"
-        label="Restore"
         @click="restore"
-        class="text-weight-light"
-        v-if="wasmodified">
+        :disable="!(wasmodified|wasdeleted)">
+        <span class="text-weight-light">Restore</span>
         <q-tooltip anchor="top right" self="top left"
           content-class="bg-grey-1 text-black shadow-4"
           transition-show="scale"
@@ -84,25 +84,10 @@
       </q-btn>
       <q-btn flat no-caps stack
         color="positive"
-        icon="restore"
-        class="text-weight-light"
-        label="Restore"
-        @click="restore"
-        v-if="wasdeleted">
-        <q-tooltip anchor="top right" self="top left"
-          content-class="bg-grey-1 text-black shadow-4"
-          transition-show="scale"
-          transition-hide="scale">
-          <span>Restore to original location</span>
-        </q-tooltip>
-      </q-btn>
-      <q-btn flat no-caps stack
-        color="positive"
         icon="save_alt"
-        label="Recover"
         @click="recover"
-        class="text-weight-light"
-        v-if="wasmodified|wasdeleted">
+        :disable="!(wasmodified|wasdeleted)">
+        <span class="text-weight-light">Recover</span>
         <q-tooltip anchor="top right" self="top left"
           content-class="bg-grey-1 text-black shadow-4"
           transition-show="scale"
@@ -228,6 +213,9 @@ export default {
     },
     recover () {
       this.$emit('recover', this.path)
+    },
+    backup () {
+      this.$emit('backup', this.path)
     }
   },
   mounted () {

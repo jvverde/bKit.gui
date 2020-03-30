@@ -59,6 +59,14 @@
             v-for="(resource, index) in restores"
             :key="index"
             :resource="resource"
+            type="restore"
+            @destroy="destroy(index)"
+          />
+          <restore
+            v-for="(resource, index) in backups"
+            :key="index"
+            :resource="resource"
+            type="backup"
             @destroy="destroy(index)"
           />
         </q-list>
@@ -97,6 +105,7 @@ export default {
       disktab: '',
       disks: [],
       restores: [],
+      backups: [],
       currentdisk: {}
     }
   },
@@ -115,9 +124,6 @@ export default {
     restore
   },
   methods: {
-    backup () {
-      console.log('dobackup')
-    },
     color (disk) {
       if (disk.present === true) {
         return 'green'
@@ -170,6 +176,10 @@ export default {
     recover (resource) {
       // resource.options.push('--dry-run')
       this.restores.push(resource)
+    },
+    backup (resource) {
+      console.log('dobackup')
+      this.backups.push(resource)
     },
     destroy (index) {
       this.restores.splice(index, 1)
