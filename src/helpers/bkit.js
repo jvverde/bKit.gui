@@ -224,7 +224,10 @@ function matchLine4bKit ({
     }, {
       re: /^bKit:\s*Done/,
       handler: match => done(match.groups, match)
-    }, {
+    }
+    /* We are not going to use --stats. We do a lot of rsync call ans that will mess the things up
+    but in the future this could be helpfull
+    , {
       // Number of files: 4 (reg: 3, dir: 1)
       re: /^Number of files: (?<nfiles>\d+) (?<extra>.+)/,
       handler: match => nfiles(match.groups, match)
@@ -257,6 +260,7 @@ function matchLine4bKit ({
       re: /^Total bytes received: (?<dfiles>.+)/,
       handler: match => totalrecvbytes(match.groups, match)
     }
+    */
     /*
       rKit line: Literal data: 0 bytes
       rKit line: Matched data: 0 bytes
