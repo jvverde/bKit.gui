@@ -135,9 +135,8 @@ export default {
       } else if (X === 'D') {
         this.devices.add(size, bytes)
       } else {
-        throw new Error(`Itemize YXcstpoguax wrong vale on X=${X}`)
+        throw new Error(`Itemize YXcstpoguax with wrong value on X=${X}`)
       }
-      console.log('Sent', file)
     },
     backup () {
       this.totalfiles = this.totalsize = 0
@@ -155,7 +154,11 @@ export default {
           this.status = 'Done'
           this.phase = undefined
         },
-        start: () => (this.status = 'Starting')
+        start: () => (this.status = 'Starting'),
+        enqueued: () => {
+          this.status = 'Enqueued'
+          console.log('enqueued')
+        }
       }).then(code => {
         console.log('End code', code)
       })
