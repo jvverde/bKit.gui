@@ -120,7 +120,10 @@ const restoreQueue = new Queue() // Dedicated queue for restore requests
 const backupQueue = new Queue() // Dedicated queue for restore requests
 // Enqueue bash scripts
 function _Queue (name, args, events = {}, queue = restoreQueue) {
-  return queue.enqueue(() => asyncInvokeBash(name, args, events))
+  const { enqueued = () => null } = events
+  const promise = queue.enqueue(() => asyncInvokeBash(name, args, events))
+  enqueued(queue, promise.id) // just inform enqueued on queue
+  return promise
 }
 
 export function rKit (path, options, rsyncoptions, events) {

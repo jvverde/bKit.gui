@@ -6,11 +6,24 @@ export default class Queue {
     this.limit = limit
   }
 
-  enqueue (promise) {
+  enqueue (promise, key = undefined) {
     return new Promise((resolve, reject) => {
-      this.queue.push({ promise, resolve, reject })
+      this.queue.push({ promise, resolve, reject, key })
       this._run()
     })
+  }
+
+  removeItems (key) {
+    if (!key) return []
+    const result = []
+    let i = this.queue.length
+    while (i--) {
+      if (this.queue[i].key === key) {
+        result.push(this.queue[i])
+        this.queue.splice(i, 1)
+      }
+    }
+    return result
   }
 
   _resolve (item, value) {
@@ -45,46 +58,24 @@ export default class Queue {
 }
 
 export class QueueByKey extends Queue {
-  enqueue (promise, key = undefined) {
-    return new Promise((resolve, reject) => {
-      this.queue.push({ promise, resolve, reject, key })
-      this._run()
-    })
-  }
-
-  _extractDuplicateItems (key) {
-    if (!key) return []
-    const result = []
-    let i = this.queue.length
-    while (i--) {
-      if (this.queue[i].key === key) {
-        result.push(this.queue[i])
-        this.queue.splice(i, 1)
-      }
-    }
-    return result
-  }
-
   _resolve (item, value) {
     item.resolve(value)
     // also resolve duplicate requests
-    this._extractDuplicateItems(item.key).forEach(e => e.resolve(value))
+    this.removeItems(item.key).forEach(e => e.resolve(value))
   }
 
   _reject (item, value) {
     item.reject(value)
     // also reject duplicate requests
-    this._extractDuplicateItems(item.key).forEach(e => e.reject(value))
+    this.removeItems(item.key).forEach(e => e.reject(value))
   }
 }
 
 export class QueueLast extends Queue {
   enqueue (promise, key, info) {
     return new Promise((resolve, reject) => {
-      const aborted = this.queue.filter(e => e.key === key)
-      this.queue = this.queue.filter(e => e.key !== key)
+      this.removeItems(key).forEach(e => e.reject(new QueueException('Replaced', `${e.info}[${key}]`)))
       this.queue.push({ promise, resolve, reject, key, info })
-      aborted.forEach(e => e.reject(new QueueException('Replaced', `${e.info}[${key}]`)))
       this._run()
     })
   }
