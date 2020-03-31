@@ -8,24 +8,14 @@
         name="folder"
         @click="open"
         :color="color">
-        <q-tooltip anchor="top right" self="top middle"
-          content-class="bg-grey-1 text-black shadow-4"
-          transition-show="scale"
-          transition-hide="scale">
-          <span class="text-capitalize">{{description}}</span>
-        </q-tooltip>
+        <tooltip label="description"/>
       </q-icon>
       <q-icon
         v-else
         class="bkit-icon"
         name="description"
         :color="color">
-        <q-tooltip anchor="top right" self="top middle"
-          content-class="bg-grey-1 text-black shadow-4"
-          transition-show="scale"
-          transition-hide="scale">
-          <span class="text-capitalize">{{description}}</span>
-        </q-tooltip>
+        <tooltip label="description"/>
       </q-icon>
       <div class="bkit-text">
         {{name}}
@@ -75,12 +65,7 @@
         @click="restore"
         v-show="wasmodified|wasdeleted">
         <span class="text-weight-light">Restore</span>
-        <q-tooltip anchor="top right" self="top left"
-          content-class="bg-grey-1 text-black shadow-4"
-          transition-show="scale"
-          transition-hide="scale">
-          <span>Restore lo original location</span>
-        </q-tooltip>
+        <tooltip label="Restore lo original location"/>
       </q-btn>
       <q-btn flat no-caps stack
         color="positive"
@@ -88,12 +73,7 @@
         @click="recover"
         v-show="wasmodified|wasdeleted|isUpdate">
         <span class="text-weight-light">Recover</span>
-        <q-tooltip anchor="top right" self="top left"
-          content-class="bg-grey-1 text-black shadow-4"
-          transition-show="scale"
-          transition-hide="scale">
-          <span>Recover to a different location</span>
-        </q-tooltip>
+        <tooltip label="Recover to a different location"/>
       </q-btn>
     </div>
   </div>
@@ -101,6 +81,7 @@
 
 <script>
 import { getVersions } from 'src/helpers/bkit'
+import tooltip from 'src/components/tooltip'
 
 const path = require('path')
 
@@ -135,6 +116,9 @@ export default {
       versions: [],
       loading: false
     }
+  },
+  components: {
+    tooltip
   },
   computed: {
     color () { return colorOf[this.status] },

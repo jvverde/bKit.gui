@@ -67,14 +67,13 @@ export function bash (scriptname, args, {
 }
 
 // Provide a promise to invoke bash
-export function asyncInvokeBash (name, args, { onreadline } = {}) {
+export function asyncInvokeBash (name, args, events = {}) {
   const lines = []
-  const myreadline = line => lines.push(line)
-  onreadline = onreadline || myreadline
+  const { onreadline = line => lines.push(line) } = events
   return new Promise((resolve, reject) => {
     const done = () => resolve(lines)
     const onerror = reject
-    invokeBash({ name, args, onreadline, onerror }, done)
+    invokeBash({ ...events, name, args, onreadline, onerror }, done)
   })
 }
 // asyncInvokeBash('./listdisks.sh', [])
@@ -139,14 +138,15 @@ export function rKit (path, options, rsyncoptions, events) {
   })
 }
 
-export function bKit (path, options, rsyncoptions, events) {
+export function bKit (path, params = {}) {
   // rsyncoptions.push('--dry-run')
-  const onreadline = matchLine4bKit(events)
+  const { options = [], rsyncoptions = [], ...extra } = params
+  const events = matchLine4bKit(extra)
   return _kit('./bkit.sh', path, {
     options,
     rsyncoptions,
-    onreadline,
-    queue: backupQueue
+    queue: backupQueue,
+    ...events
   })
 }
 
@@ -186,19 +186,23 @@ function matchLine4rKit ({
   } // anounymous function
 }
 
-function matchLine4bKit ({
-  sent = () => null,
-  newphase = () => null,
-  done = () => null,
-  nfiles = () => null,
-  cfiles = () => null,
-  dfiles = () => null,
-  tfiles = () => null,
-  totalsize = () => null,
-  transfsize = () => null,
-  totalsentbytes = () => null,
-  totalrecvbytes = () => null
-} = {}) {
+function matchLine4bKit (events = {}) {
+  const {
+    start = () => null,
+    sent = () => null,
+    newphase = () => null,
+    done = () => null,
+    /* nfiles = () => null,
+    cfiles = () => null,
+    dfiles = () => null,
+    tfiles = () => null,
+    totalsize = () => null,
+    transfsize = () => null,
+    totalsentbytes = () => null,
+    totalrecvbytes = () => null */
+    ...extra
+  } = events
+
   const regexs = [
     {
       // FMT='--out-format="%o|%i|%f|%c|%b|%l|%t"'
@@ -219,11 +223,14 @@ function matchLine4bKit ({
       }
     }, {
       // Phase 1 - Backup new/modified files
-      re: /^Phase\b\s*(?<phase>\b[^\s]*?\b)\s+(?<msg>.*$)/,
+      re: /^Phase\b\s*(?<phase>\b[^\s]*?\b)\s*-\s*(?<msg>.*$)/,
       handler: match => newphase(match.groups, match)
     }, {
       re: /^bKit:\s*Done/,
-      handler: match => done(match.groups, match)
+      handler: done
+    }, {
+      re: /^bkit:\s*Start\s*backup/,
+      handler: start
     }
     /* We are not going to use --stats. We do a lot of rsync call ans that will mess the things up
     but in the future this could be helpfull
@@ -272,7 +279,8 @@ function matchLine4bKit ({
       rKit line: total size is 49  speedup is 0.01 (DRY RUN)
     */
   ]
-  return (data) => {
+
+  const onreadline = (data) => {
     console.info('rKit line:', data)
     for (const elem of regexs) {
       const result = data.match(elem.re)
@@ -283,15 +291,21 @@ function matchLine4bKit ({
       }
     }
   }
+
+  return { ...extra, onreadline }
 }
 
-function _kit (scriptname, path, {
-  options = [],
-  rsyncoptions = [],
-  onreadline = () => null,
-  queue = new Queue()
-} = {}) {
+function _kit (scriptname, path, params = {}) {
   console.log('Enqueue', scriptname)
+
+  const {
+    options = [],
+    rsyncoptions = [],
+    onreadline = () => null,
+    queue = new Queue(),
+    ...events
+  } = params
+
   const args = [
     ...options,
     '--', // now rsync options
@@ -300,7 +314,8 @@ function _kit (scriptname, path, {
     // '--dry-run', // TEMPORÁRIO SÓ PARA TESTES
     path
   ]
-  return _Queue(scriptname, args, { onreadline }, queue)
+
+  return _Queue(scriptname, args, { ...events, onreadline }, queue)
 }
 
 /* *************************** rKit/bKit End *************************** */

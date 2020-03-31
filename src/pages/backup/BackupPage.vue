@@ -111,7 +111,8 @@ export default {
   computed: {
     splitter: {
       get: function () {
-        return Math.max(30, 100 - Math.max(this.mark, 10 * this.restores.length))
+        const length = 10 * (this.restores.length + this.backups.length)
+        return Math.max(30, 100 - Math.max(this.mark, length))
       },
       set: function (val) {
         this.mark = 100 - val
