@@ -89,9 +89,13 @@ const queue4Local = new QueueByKey() // This is intend to queue local request
 const defaultQueue = new QueueByKey() // To be used for everything else
 
 // Enqueue bash scripts
-export function enqueue2bash (name, args, queue = defaultQueue) {
+export function enqueue2bash (name, args, events = {}, queue = defaultQueue) {
+  if (events instanceof Queue) {
+    queue = events
+    events = {}
+  }
   const key = name + args.join('')
-  return queue.enqueue(() => asyncInvokeBash(name, args), key)
+  return queue.enqueue(() => asyncInvokeBash(name, args, events), key)
 }
 // enqueue2bash('./listdisks.sh', [])
 //  .then(disk => console.log('ENQUED RVID:', disk))
@@ -118,6 +122,20 @@ export async function getServer () {
   return enqueue2bash('./server.sh', [], queue4Local)
 }
 
+export async function getSize (path) {
+  const r = await enqueue2bash('bash.sh', ['du', '-s', path], queue4Local) || []
+  return r.join('').replace(/(\d+)\s+.+$/, '$1')
+}
+
+export async function findFiles (path, ...args) {
+  return enqueue2bash('bash.sh', ['find', path, ...args], queue4Local)
+}
+
+export async function countFiles (path, ...args) {
+  let cnt = 0
+  const onreadline = () => cnt++
+  return enqueue2bash('bash.sh', ['find', path, ...args], { onreadline }, queue4Local).then(() => cnt)
+}
 /* *************************** rKit/bKit *************************** */
 const restoreQueue = new Queue() // Dedicated queue for restore requests
 const backupQueue = new Queue() // Dedicated queue for restore requests
@@ -225,7 +243,7 @@ function matchLine4bKit (events = {}) {
       re: /^"send\|(?<Y>.)(?<X>.).(?<s>.)(?<t>.)(?<poguax>.{6})\|(?<file>[^|]+)\|(?<BS>[^|]+)\|(?<bytes>[^|]+)\|(?<size>[^|]+)\|(?<time>[^|]+)"$/,
       handler: match => {
         // tmp/tmp.4pjM5dnMab.bkit.backup/manifest.36018
-        if (match.groups.file.match(/tmp\/tmp\..+\.bit\.backup\/manifest\.\d+/)) return
+        if (match.groups.file.match(/tmp\/tmp\..+\.bkit\.backup\/manifest\.\d+/)) return
         sent(match.groups, match)
       }
     }, {

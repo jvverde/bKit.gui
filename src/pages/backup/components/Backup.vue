@@ -6,17 +6,17 @@
     <q-item-section>
       <q-item-label>
         {{status}} backup of {{path}}
-        <q-badge class="q-ml-xs shadow-1" color="grey-6" v-show="total.files">
-          {{total.files}}
+        <q-badge class="q-ml-xs shadow-1" color="grey-6" v-show="files.files">
+          {{files.files}}/{{localfiles}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
           <tooltip label="Total Files"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="red" v-show="total.size">
-          {{total.size}}
+        <q-badge class="q-ml-sm shadow-1" color="red" v-show="files.size">
+          {{formatBytes(files.size)}}
           <tooltip label="Total Size"/>
         </q-badge>
         <q-badge class="q-ml-sm shadow-1" color="blue" v-show="total.bytes">
-          {{total.bytes}}
+          {{formatBytes(total.bytes)}}
           <tooltip label="Total Bytes"/>
         </q-badge>
       </q-item-label>
@@ -35,8 +35,21 @@
 </template>
 
 <script>
-import { bKit } from 'src/helpers/bkit'
+import { bKit, countFiles, getSize } from 'src/helpers/bkit'
 import tooltip from 'src/components/tooltip'
+
+const formatBytes = (bytes, decimal = 2) => {
+  const KB = 1024
+  const MB = KB * KB
+  const GB = KB * MB
+  const TB = KB * GB
+
+  if (bytes < KB) return bytes + ' Bytes'
+  else if (bytes < MB) return (bytes / KB).toFixed(decimal) + ' KB'
+  else if (bytes < GB) return (bytes / MB).toFixed(decimal) + ' MB'
+  else if (bytes < TB) return (bytes / GB).toFixed(decimal) + ' GB'
+  else return (bytes / TB).toFixed(decimal) + ' TB'
+}
 
 class Counter {
   constructor () {
@@ -61,8 +74,11 @@ export default {
       hlinks: new Counter(),
       slinks: new Counter(),
       dirs: new Counter(),
+      files: new Counter(),
       specials: new Counter(),
       devices: new Counter(),
+      localfiles: 0,
+      localsize: 0,
       phase: undefined,
       phasemsg: '',
       fd: null,
@@ -104,6 +120,7 @@ export default {
     }
   },
   methods: {
+    formatBytes,
     destroy () {
       // bkit.stop(this.fd)
       this.$emit('destroy')
@@ -119,8 +136,10 @@ export default {
         this.total.add(size, bytes)
         if (Y === '<') {
           this.transferred.add(size, bytes)
+          if (this.phase === 1) this.files.add(size, bytes)
         } else if (Y === '.') {
           this.updated.add(size, bytes)
+          if (this.phase === 1) this.files.add(size, bytes)
         } else if (Y === 'h') {
           this.hlinks.add(size, bytes)
         } else if (Y === 'c') {
@@ -138,16 +157,24 @@ export default {
         throw new Error(`Itemize YXcstpoguax with wrong value on X=${X}`)
       }
     },
-    backup () {
+    async backup () {
       this.totalfiles = this.totalsize = 0
       this.error = null
       this.dryrun = true
+      countFiles(this.path).then(cnt => {
+        console.log('Cnt', cnt)
+        this.localfiles = cnt
+      })
+      getSize(this.path).then(size => {
+        console.log('Size', size)
+        this.localsize = size
+      })
       return bKit(this.path, {
         rsyncoptions: ['--dry-run'],
         sent: this.sent,
         newphase: ({ phase, msg }) => {
           this.status = 'Running'
-          this.phase = phase
+          this.phase = 0 | phase
           this.phasemsg = msg
           this.currentfile = ''
         },
