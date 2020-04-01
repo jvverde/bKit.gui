@@ -155,12 +155,19 @@ export default {
           this.phase = undefined
         },
         start: () => (this.status = 'Starting'),
-        enqueued: () => {
+        enqueued: (queue, key, promise) => {
           this.status = 'Enqueued'
-          console.log('enqueued')
+          this.enqueue = { queue, key }
+          console.log('Enqueued', key)
+        },
+        oncespawn: (fd) => {
+          this.status = 'Launching'
+          console.log('Spawn with', fd)
         }
       }).then(code => {
         console.log('End code', code)
+      }).catch(e => {
+        console.error('Backup error', e)
       })
     }
   },

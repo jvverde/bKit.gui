@@ -6,6 +6,7 @@ const { spawn, execSync } = require('child_process')
 const readline = require('readline')
 const { ipcRenderer } = require('electron')
 const path = require('path')
+const nill = () => null
 
 import { warn } from './notify'
 
@@ -36,13 +37,15 @@ export function shell () {
 }
 
 // This is a adapter to invoke bash
-function invokeBash ({ name, args, onreadline, onerror }, done) {
+function invokeBash (name, args, events = {}, done = nill) {
+  const { onreadline = nill, onerror = nill, oncespawn = nill } = events
   console.log(`Spawn ${name} with args`, args)
   const fd = spawn(
     BASH,
     [name, ...args],
     { cwd: bKitPath, windowsHide: true }
   )
+  oncespawn(fd)
   fd.on('close', (code) => {
     // console.log(`Done spawn ${name} with args`, args)
     done(code)
@@ -63,7 +66,7 @@ export function bash (scriptname, args, {
   onreadline = () => false,
   onerror = (err) => warn(`Error calling script ${scriptname}: ${err}`, true)
 }) {
-  return invokeBash({ name: scriptname, args, onreadline, onerror }, onclose)
+  return invokeBash(scriptname, args, { onreadline, onerror }, onclose)
 }
 
 // Provide a promise to invoke bash
@@ -73,7 +76,7 @@ export function asyncInvokeBash (name, args, events = {}) {
   return new Promise((resolve, reject) => {
     const done = () => resolve(lines)
     const onerror = reject
-    invokeBash({ ...events, name, args, onreadline, onerror }, done)
+    invokeBash(name, args, { ...events, onreadline, onerror }, done)
   })
 }
 // asyncInvokeBash('./listdisks.sh', [])
@@ -120,9 +123,10 @@ const restoreQueue = new Queue() // Dedicated queue for restore requests
 const backupQueue = new Queue() // Dedicated queue for restore requests
 // Enqueue bash scripts
 function _Queue (name, args, events = {}, queue = restoreQueue) {
-  const { enqueued = () => null } = events
-  const promise = queue.enqueue(() => asyncInvokeBash(name, args, events))
-  enqueued(queue, promise.id) // just inform enqueued on queue
+  const { enqueued = nill } = events
+  const key = Date.now() + Math.random().toString(36).slice(1)
+  const promise = queue.enqueue(() => asyncInvokeBash(name, args, events), key)
+  enqueued(queue, key) // just inform enqueued on queue
   return promise
 }
 
@@ -154,9 +158,9 @@ export function bKit (path, params = {}) {
 }
 
 function matchLine4rKit ({
-  onstart = () => null,
-  onfinish = () => null,
-  onrecvfile = () => null,
+  onstart = nill,
+  onfinish = nill,
+  onrecvfile = nill,
   ontotalfiles = (n) => null,
   ontotalsize = (val) => null,
   onprogress = null
@@ -191,18 +195,18 @@ function matchLine4rKit ({
 
 function matchLine4bKit (events = {}) {
   const {
-    start = () => null,
-    sent = () => null,
-    newphase = () => null,
-    done = () => null,
-    /* nfiles = () => null,
-    cfiles = () => null,
-    dfiles = () => null,
-    tfiles = () => null,
-    totalsize = () => null,
-    transfsize = () => null,
-    totalsentbytes = () => null,
-    totalrecvbytes = () => null */
+    start = nill,
+    sent = nill,
+    newphase = nill,
+    done = nill,
+    /* nfiles = nill,
+    cfiles = nill,
+    dfiles = nill,
+    tfiles = nill,
+    totalsize = nill,
+    transfsize = nill,
+    totalsentbytes = nill,
+    totalrecvbytes = nill */
     ...extra
   } = events
 
@@ -304,7 +308,7 @@ function _kit (scriptname, path, params = {}) {
   const {
     options = [],
     rsyncoptions = [],
-    onreadline = () => null,
+    onreadline = nill,
     queue = new Queue(),
     ...events
   } = params
