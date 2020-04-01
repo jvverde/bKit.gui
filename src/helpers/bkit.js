@@ -292,7 +292,6 @@ function matchLine4bKit (events = {}) {
     for (const elem of regexs) {
       const result = data.match(elem.re)
       if (result) {
-        console.log('result', result)
         elem.handler(result)
         break
       }

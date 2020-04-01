@@ -149,20 +149,21 @@ export default {
           this.status = 'Running'
           this.phase = phase
           this.phasemsg = msg
+          this.currentfile = ''
         },
         done: msg => {
           this.status = 'Done'
           this.phase = undefined
         },
-        start: () => (this.status = 'Starting'),
+        start: () => {
+          this.status = 'Starting'
+        },
         enqueued: (queue, key, promise) => {
           this.status = 'Enqueued'
           this.enqueue = { queue, key }
-          console.log('Enqueued', key)
         },
         oncespawn: (fd) => {
           this.status = 'Launching'
-          console.log('Spawn with', fd)
         }
       }).then(code => {
         console.log('End code', code)
