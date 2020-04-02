@@ -425,8 +425,9 @@ const pDKit = exclusiveProxy(_dKit, { size: 50, name: 'dkit' })
 
 const _invalidateCache = new InvalidateCache()
 
-export async function dKit (path, args, invalidateCache = false) {
-  if (invalidateCache === 5) {
+export async function dKit (path, args, { invalidateCache = false } = {}) {
+  if (invalidateCache) {
+    console.log('Invalidate Cache for path', path)
     return pDKit(_invalidateCache, args, path)
   } else {
     return pDKit(args, path)
@@ -497,7 +498,7 @@ export async function diffList4Snap (path, snap, {
   if (invalidateCache) {
     // In this case it needs to go directly to the proxy/cache to invalidade it
     // Otherwise this may be canceled by a future request
-    return dKit(path, args)
+    return dKit(path, args, { invalidateCache })
   } else {
     const promise = () => dKit(path, args) // A future promise as required by queue.enqueue
     return queue.enqueue(promise, key, snap)
@@ -530,7 +531,7 @@ export async function diffLastDir (path, snap, {
   if (invalidateCache) {
     // In this case it needs to go directly to the proxy/cache to invalidade it
     // Otherwise this may be canceled by a future request
-    return dKit(path, args)
+    return dKit(path, args, { invalidateCache })
   } else {
     const promise = () => dKit(path, args) // A future promise as required by queue.enqueue
     return queue.enqueue(promise, key, snap)

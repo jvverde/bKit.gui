@@ -400,7 +400,7 @@ export default {
     if (this.isdir) {
       chokidar.watch(this.path, chokidarOptions).on('all', async (event, path) => {
         if (this.loaded) { // only care if the dir is loaded
-          console.log(`[${this.path}]Event ${event} for ${path}`)
+          console.log(`On tree node ${this.path} Event ${event} for ${path}`)
           this.invalidateCache = true // Don't use the cache is local files has been changed
           this.childrens = []
           await this.refresh()

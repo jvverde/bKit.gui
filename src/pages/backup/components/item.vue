@@ -8,14 +8,14 @@
         name="folder"
         @click="open"
         :color="color">
-        <tooltip label="description"/>
+        <tooltip :label="description"/>
       </q-icon>
       <q-icon
         v-else
         class="bkit-icon self-start"
         name="description"
         :color="color">
-        <tooltip label="description"/>
+        <tooltip :label="description"/>
       </q-icon>
       <div class="bkit-text">
         {{name}}

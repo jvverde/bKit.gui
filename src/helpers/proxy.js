@@ -35,12 +35,12 @@ const _global = new LRUcache(10)
 
 export default function proxyIt (fn, { cache = _global, name = 'default' }) {
   if (!(cache instanceof LRUcache)) {
-    throw new CacheException('Argument cache must be of type LRUcache', cache)
+    throw new CacheException('Parameter cache must be of type LRUcache', cache)
   }
   return new Proxy(fn, {
     apply: async (target, thisArg, args) => {
       const invalidateCache = args[0] instanceof InvalidateCache
-
+      // console.log('Proxy args', args)
       if (invalidateCache) {
         args.shift()
       }

@@ -64,7 +64,7 @@
           <backup
             v-for="(backup, index) in backups"
             :key="index"
-            :path="backup"
+            v-bind="backup"
             @destroy="destroy(index)"
           />
         </q-list>
@@ -178,9 +178,9 @@ export default {
       // resource.options.push('--dry-run')
       this.restores.push(resource)
     },
-    backup (path) {
+    backup (path, cb) {
       console.log('dobackup')
-      this.backups.push(path)
+      this.backups.push({ path, cb })
     },
     destroy (index) {
       this.restores.splice(index, 1)

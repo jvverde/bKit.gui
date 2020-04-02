@@ -120,6 +120,8 @@ export default {
       currentPath: '',
       loading: false,
       currentFiles: [],
+      invalidateCache: false,
+      eventdate: Date.now(),
       root: { isdir, isroot, path, onbackup },
       snap: ''
     }
@@ -140,9 +142,15 @@ export default {
     item
   },
   watch: {
+    token: async function () {
+      console.log('Token', this.token)
+      this.refresh(this.currentPath)
+    },
     currentPath: async function (dir, oldir) {
       // console.log(`${this.currentPath} [${oldir} => ${dir}]`)
-      this.load(dir)
+      this.currentFiles = []
+      this.eventdate = Date.now()
+      // this.refresh(dir)
       if (this.mountpoint) { // only if is a local drive/disk
         if (this.watcher) {
           await this.watcher.close()
@@ -151,12 +159,14 @@ export default {
           this.watcher = chokidar.watch(dir, chokidarOptions)
         }
         this.watcher.on('all', (event, path) => {
-          this.load(dir)
+          this.eventdate = Date.now()
+          this.invalidateCache = true
+          // this.refresh(dir)
         })
       }
     },
     snap: function () {
-      this.load(this.currentPath)
+      // this.currentFiles = []
     }
   },
   computed: {
@@ -166,6 +176,10 @@ export default {
     },
     drive: function () {
       return this.mountpoint.replace(/[\\/]+$/, '')
+    },
+    token () {
+      const r = Math.random().toString(36).substring(2)
+      return [this.currentPath, this.snap, this.rvid, this.eventdate, r].join('')
     }
   },
   mounted () {
@@ -183,32 +197,75 @@ export default {
     show (fullpath) {
       this.currentPath = fullpath
     },
+    updateCurrentFiles (entry) {
+      entry.verified = this.token
+      const currentFiles = this.currentFiles
+      const index = currentFiles.findIndex(e => e.path === entry.path)
+      if (index >= 0) {
+        const file = { ...currentFiles[index], ...entry }
+        currentFiles.splice(index, 1, file)
+      } else {
+        currentFiles.push(entry)
+      }
+      currentFiles.sort(compare)
+    },
+    rmUnverified () {
+      let i = this.currentFiles.length
+      while (i--) {
+        if (this.currentFiles[i].verified !== this.token) {
+          this.currentFiles.splice(i, 1) // remove it from list
+        }
+      }
+    },
+    markFiltered () {
+      this.currentFiles.filter(e => !e.checked).forEach(e => {
+        e.isfiltered = true
+        e.checked = true
+      })
+    },
     async load (fullpath) {
-      const currentFiles = this.currentFiles = []
+      if (!this.mountpoint || !fs.existsSync(fullpath)) return
       this.loading = 'Reading local disk'
       for await (const entry of readdir(fullpath)) {
         entry.checked = false
         // prevent the situation where dir path is no longer the current path
-        if (this.currentPath === fullpath) currentFiles.push(entry)
+        if (this.currentPath === fullpath) this.updateCurrentFiles(entry)
       }
       this.loading = ''
-      currentFiles.sort(compare)
-      this.checkdir(fullpath)
     },
-    refresh (entries) {
-      entries.sort(compare)
-      this.currentFiles = [...entries]
-      // console.log(this.currentFiles)
+    async refresh (fullpath) {
+      await this.load(fullpath)
+      await this.readDirOnBackup(fullpath)
+      await this.comparedir(fullpath)
+      this.rmUnverified()
+      this.markFiltered()
     },
-    refreshNextTick (currentFiles = this.currentFiles) {
-      this.currentFiles = []
-      return this.$nextTick(() => {
-        this.refresh(currentFiles)
-      })
+    async comparedir (fullpath) {
+      const { snap, path, mountpoint, rvid } = this
+      if (!fs.existsSync(fullpath || !rvid || this.currentPath !== fullpath)) return
+      this.loading = 'Comparing with backup'
+      const invalidateCache = this.invalidateCache
+      return diffLastDir(fullpath, snap, { invalidateCache })
+        .then(entries => {
+          entries.forEach(entry => {
+            // ignore all parents and the mountpoint
+            if (dirname(entry.path) !== fullpath || entry.path === mountpoint) return
+            entry.checked = true
+            if (this.currentPath === fullpath) this.updateCurrentFiles(entry)
+          })
+        })
+        .catch(err => {
+          if (err.name && err.name === 'Replaced') {
+            console.log(`diffLastDir [${err.name}] ${err.message} for ${snap}[${path}]`)
+          } else {
+            console.error('Catch in diffLastDir', err.name, err.message, err)
+          }
+        })
+        .finally(() => (this.loading = ''))
     },
-    async checkdir (fullpath) {
-      const { snap, rvid, path, mountpoint, currentPath, currentFiles } = this
-      if (!rvid || currentPath !== fullpath) {
+    async readDirOnBackup (fullpath) {
+      const { snap, rvid, path, mountpoint, currentFiles } = this
+      if (!rvid || this.currentPath !== fullpath) {
         // only if it still the current path and a Remote Volume (rvid) exists
         currentFiles.forEach(e => {
           e.checked = e.nobackup = true
@@ -220,22 +277,13 @@ export default {
       this.loading = 'Reading backup'
 
       const upath = unixPath(mountpoint, fullpath)
-      // const dirs = await listDirs(relative, args)
-      const addchildren = (entry) => {
-        entry.checked = true
-        const index = currentFiles.findIndex(e => e.path === entry.path)
-        if (index > -1) {
-          const newentry = { ...currentFiles[index], ...entry }
-          currentFiles.splice(index, 1, newentry)
-        } else {
-          currentFiles.push(entry)
-        }
-      }
-      await listLastDir(upath, snap, rvid)
+
+      return listLastDir(upath, snap, rvid)
         .then(dirs => {
           dirs.forEach(entry => {
             entry.path = join(fullpath, entry.name)
-            addchildren(entry)
+            entry.checked = true
+            if (this.currentPath === fullpath) this.updateCurrentFiles(entry)
           })
         })
         .catch(err => {
@@ -246,37 +294,11 @@ export default {
           }
         })
         .finally(() => (this.loading = ''))
-
-      if (fs.existsSync(fullpath)) { // call diffDir only if the dir exists on local disk
-        this.loading = 'Comparing with backup'
-        await diffLastDir(fullpath, snap)
-          .then(entries => {
-            entries.forEach(entry => {
-              if (dirname(entry.path) !== fullpath || entry.path === mountpoint) {
-                // ignore all parents and the mountpoint
-                // console.log('Discard dir', entry.path)
-                return
-              }
-              addchildren(entry)
-            })
-          })
-          .catch(err => {
-            if (err.name && err.name === 'Replaced') {
-              console.log(`diffLastDir [${err.name}] ${err.message} for ${snap}[${path}]`)
-            } else {
-              console.error('Catch in diffLastDir', err.name, err.message, err)
-            }
-          })
-          .finally(() => (this.loading = ''))
-      }
-      currentFiles.sort(compare)
-      currentFiles.filter(e => !e.checked).forEach(e => {
-        e.isfiltered = true
-        e.checked = true
-      })
     },
     backup (path) {
-      this.$emit('backup', path)
+      this.$emit('backup', path, (a) => {
+        console.log('Aqqqqqqqqqqqqqi (a)=', a)
+      })
     },
     restore (path) {
       const { snap, rvid, mountpoint } = this

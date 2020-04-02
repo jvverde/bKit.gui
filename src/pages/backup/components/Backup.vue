@@ -118,6 +118,10 @@ export default {
     path: {
       type: String,
       required: true
+    },
+    cb: {
+      type: Function,
+      default: () => console.log('NOOOOOOOOOOO CALL BACK')
     }
   },
   methods: {
@@ -188,6 +192,7 @@ export default {
         }
       }).then(code => {
         console.log('End code', code)
+        this.cb('aqi')
       }).catch(e => {
         console.error('Backup error', e)
       })
