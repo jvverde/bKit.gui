@@ -231,14 +231,13 @@ export default {
         // prevent the situation where dir path is no longer the current path
         if (this.currentPath === fullpath) this.updateCurrentFiles(entry)
       }
-      this.loading = ''
+      this.loading = false
     },
     async refresh (fullpath) {
       await this.load(fullpath)
       await this.readDirOnBackup(fullpath)
       await this.comparedir(fullpath)
       this.rmUnverified()
-      this.markFiltered()
     },
     async comparedir (fullpath) {
       const { snap, path, mountpoint, rvid } = this
@@ -253,6 +252,7 @@ export default {
             entry.checked = true
             if (this.currentPath === fullpath) this.updateCurrentFiles(entry)
           })
+          this.markFiltered()
         })
         .catch(err => {
           if (err.name && err.name === 'Replaced') {
@@ -261,7 +261,7 @@ export default {
             console.error('Catch in diffLastDir', err.name, err.message, err)
           }
         })
-        .finally(() => (this.loading = ''))
+        .finally(() => (this.loading = false))
     },
     async readDirOnBackup (fullpath) {
       const { snap, rvid, path, mountpoint, currentFiles } = this
@@ -293,7 +293,7 @@ export default {
             console.error('Catch in listLastDir', err.name, err.message, err)
           }
         })
-        .finally(() => (this.loading = ''))
+        .finally(() => (this.loading = false))
     },
     backup (path) {
       this.$emit('backup', path, (a) => {

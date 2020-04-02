@@ -98,7 +98,7 @@ export default class LRU {
     this.cache = {}
   }
 
-  // Invokes the callback function with every node of the chain and the index of the node.
+  // Invokes the callback function with every node of the chain with the index of the node.
   forEach (fn) {
     let node = this.head
     let counter = 0

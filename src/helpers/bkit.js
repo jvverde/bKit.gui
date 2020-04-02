@@ -38,7 +38,10 @@ export function shell () {
 
 // This is a adapter to invoke bash
 function invokeBash (name, args, events = {}, done = nill) {
-  const { onreadline = nill, onerror = nill, oncespawn = nill } = events
+  const warn = (err) => console.warn(`Errors from bash script ${name}: ${err}`)
+
+  const { onreadline = nill, onerror = nill, stderr = warn, oncespawn = nill } = events
+
   console.log(`Spawn ${name} with args`, args)
   const fd = spawn(
     BASH,
@@ -56,8 +59,13 @@ function invokeBash (name, args, events = {}, done = nill) {
     output: process.stdout
   })
   rl.on('line', onreadline)
-  fd.stderr.on('data', (err) => {
-    console.warn(`Errors from bash script ${name}: ${err}`, err)
+  fd.stderr.on('data', err => {
+    const r = stderr(err)
+    if (r === 'stop') {
+      done()
+      done = nill
+      fd.kill()
+    }
   })
 }
 
@@ -361,9 +369,9 @@ function* line2entry ([...lines]) {
   }
 }
 
-async function _listDirs (args) {
+async function _listDirs (args, events = {}) {
   console.log('Enqueued bash listdir.sh with args', args)
-  const lines = await enqueue2bash('./listdirs.sh', args, queue4Remote)
+  const lines = await enqueue2bash('./listdirs.sh', args, events, queue4Remote)
   return [...line2entry(lines)]
 }
 
@@ -371,7 +379,15 @@ async function _listDirs (args) {
 const pListdir = exclusiveProxy(_listDirs, { size: 50, name: 'listdir' })
 
 export async function listDirs (path, args) {
-  return pListdir([...args, path])
+  const stderr = (err) => {
+    // rsync: change_dir "/C.2689075C.OS.3.NTFS/.snapshots/@GMT-2020.04.02-14.07.41/data/.TESTE/z2" (in SRPT.WIN10.0586AEB1-C5C9-4790-95FE-4591160EE0FA.user.jvv) failed: No such file or directory
+    console.warn(`Listdir Error: ${err}`)
+    const error = `${err}`
+    const match = error.match(/rsync: change_dir ".+" \(in .+\) failed: No such file or directory/)
+    if (match) return 'stop'
+    else return undefined
+  }
+  return pListdir([...args, path], { stderr })
 }
 
 /* ---------------------dKit--------------------- */
