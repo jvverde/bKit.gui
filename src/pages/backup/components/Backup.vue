@@ -7,24 +7,24 @@
       <q-item-label>
         {{status}} backup of {{path}}
         <q-badge class="q-ml-xs shadow-1" color="grey-6" v-show="files.files">
-          {{files.files}}/{{localfiles}}
+          {{files.files}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
-          <tooltip label="Total Files"/>
+          <tooltip label="Files uploaded/updated"/>
         </q-badge>
         <q-badge class="q-ml-sm shadow-1" color="red" v-show="files.size">
           {{formatBytes(files.size)}}
-          <tooltip label="Total Size"/>
+          <tooltip label="Size of files uploaded/updated"/>
         </q-badge>
         <q-badge class="q-ml-sm shadow-1" color="blue" v-show="total.bytes">
           {{formatBytes(total.bytes)}}
-          <tooltip label="Total Bytes"/>
+          <tooltip label="Bytes transferred"/>
         </q-badge>
       </q-item-label>
       <q-item-label caption v-if="phase">
         Phase {{phase}}: {{phasemsg}}
       </q-item-label>
-      <q-item-label caption v-if="running && currentfile">
-        {{currentfile}}
+      <q-item-label caption v-if="running && currentline">
+        {{currentline}}
       </q-item-label>
     </q-item-section>
     <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import { bKit, countFiles, getSize } from 'src/helpers/bkit'
+import { bKit } from 'src/helpers/bkit'
 import tooltip from 'src/components/tooltip'
 
 const formatBytes = (bytes, decimal = 2) => {
@@ -91,6 +91,7 @@ export default {
       totalbytes: 0,
       sizepercent: 0,
       currentfile: '',
+      currentline: '',
       currentrate: '',
       dryrun: false
     }
@@ -129,9 +130,10 @@ export default {
       // YXcstpoguax
       // <Y><X><s><t><poguax><file><BS><bytes><size><time>
       Y, X, s, t, file, bytes, size
-    }) {
+    }, match, line) {
       this.status = 'Running'
       this.currentfile = file
+      this.currentline = line
       if (X === 'f') {
         this.total.add(size, bytes)
         if (Y === '<') {
@@ -160,17 +162,9 @@ export default {
     async backup () {
       this.totalfiles = this.totalsize = 0
       this.error = null
-      this.dryrun = true
-      countFiles(this.path).then(cnt => {
-        console.log('Cnt', cnt)
-        this.localfiles = cnt
-      })
-      getSize(this.path).then(size => {
-        console.log('Size', size)
-        this.localsize = size
-      })
+      // this.dryrun = true
       return bKit(this.path, {
-        rsyncoptions: ['--dry-run'],
+        // rsyncoptions: ['--dry-run'],
         sent: this.sent,
         newphase: ({ phase, msg }) => {
           this.status = 'Running'

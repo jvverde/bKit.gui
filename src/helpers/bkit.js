@@ -241,10 +241,10 @@ function matchLine4bKit (events = {}) {
       // itemize format (%i): YXcstpoguax
       // Example: "send|<f+++++++++|bkit/dirF/y/list.txt|0|0|442|2020/03/30 14:13:58"
       re: /^"send\|(?<Y>.)(?<X>.).(?<s>.)(?<t>.)(?<poguax>.{6})\|(?<file>[^|]+)\|(?<BS>[^|]+)\|(?<bytes>[^|]+)\|(?<size>[^|]+)\|(?<time>[^|]+)"$/,
-      handler: match => {
+      handler: (match, line) => {
         // tmp/tmp.4pjM5dnMab.bkit.backup/manifest.36018
         if (match.groups.file.match(/tmp\/tmp\..+\.bkit\.backup\/manifest\.\d+/)) return
-        sent(match.groups, match)
+        sent(match.groups, match, line)
       }
     }, {
       // Phase 1 - Backup new/modified files
@@ -310,7 +310,7 @@ function matchLine4bKit (events = {}) {
     for (const elem of regexs) {
       const result = data.match(elem.re)
       if (result) {
-        elem.handler(result)
+        elem.handler(result, data)
         break
       }
     }

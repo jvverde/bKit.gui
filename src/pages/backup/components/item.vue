@@ -3,7 +3,7 @@
     <div class="column no-wrap items-center">
       <q-icon
         v-if="isdir"
-        class="bkit-icon"
+        class="bkit-icon self-start"
         style="cursor:pointer"
         name="folder"
         @click="open"
@@ -12,7 +12,7 @@
       </q-icon>
       <q-icon
         v-else
-        class="bkit-icon"
+        class="bkit-icon self-start"
         name="description"
         :color="color">
         <tooltip label="description"/>
