@@ -42,10 +42,12 @@
 
       <template v-slot:after>
         <div>
-          <div v-show="loading" class="row justify-center relative-position">
-            <q-spinner-ios color="amber" class="q-my-md"/>
-            <div class="q-my-md q-ml-xs">{{loading}}...</div>
-          </div>
+          <transition name="loading">
+            <div v-show="loading" class="row justify-center relative-position">
+              <q-spinner-ios color="amber" class="q-my-md"/>
+              <div class="q-my-md q-ml-xs">{{loading}}...</div>
+            </div>
+          </transition>
           <div class="q-pa-xs row justify-evenly q-gutter-sm relative-position">
             <item
               v-for="(entry, index) in currentFiles"
@@ -189,7 +191,7 @@ export default {
         // prevent the situation where dir path is no longer the current path
         if (this.currentPath === fullpath) currentFiles.push(entry)
       }
-      this.loading = false
+      this.loading = ''
       currentFiles.sort(compare)
       this.checkdir(fullpath)
     },
@@ -243,7 +245,7 @@ export default {
             console.error('Catch in listLastDir', err.name, err.message, err)
           }
         })
-        .finally(() => (this.loading = false))
+        .finally(() => (this.loading = ''))
 
       if (fs.existsSync(fullpath)) { // call diffDir only if the dir exists on local disk
         this.loading = 'Comparing with backup'
@@ -265,7 +267,7 @@ export default {
               console.error('Catch in diffLastDir', err.name, err.message, err)
             }
           })
-          .finally(() => (this.loading = false))
+          .finally(() => (this.loading = ''))
       }
       currentFiles.sort(compare)
       currentFiles.filter(e => !e.checked).forEach(e => {
@@ -336,5 +338,12 @@ export default {
         // font-size: initial;
       }
     }
+  }
+  .loading-leave-active {
+    transition: margin-top .6s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+    opacity: 0;
+  }
+  .loading-leave-to {
+    margin-top: -2em;
   }
 </style>
