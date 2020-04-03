@@ -253,6 +253,7 @@ export default {
             if (this.currentPath === fullpath) this.updateCurrentFiles(entry)
           })
           this.markFiltered()
+          this.invalidateCache = false
         })
         .catch(err => {
           if (err.name && err.name === 'Replaced') {

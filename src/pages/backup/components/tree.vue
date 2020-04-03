@@ -123,7 +123,7 @@ export default {
       stat: null,
       deletedChildrens: 0,
       loaded: false, // the inital stat is unloaded
-      invalidateCache: true,
+      invalidateCache: false,
       eventdate: Date.now(),
       childrens: []
     }

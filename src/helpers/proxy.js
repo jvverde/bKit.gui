@@ -39,25 +39,26 @@ export default function proxyIt (fn, { cache = _global, name = 'default' }) {
   }
   return new Proxy(fn, {
     apply: async (target, thisArg, args) => {
-      const invalidateCache = args[0] instanceof InvalidateCache
+      // const invalidateCache = args[0] instanceof InvalidateCache
+      const index = args.findIndex(e => e instanceof InvalidateCache)
       // console.log('Proxy args', args)
-      if (invalidateCache) {
-        args.shift()
+      if (index >= 0) {
+        args.splice(index, 1)
       }
 
       const key = target.name + args.join('')
 
-      if (invalidateCache) {
+      if (index >= 0) {
         console.log(target.name, 'invalidateCache', key)
         cache.remove(key)
       }
 
       const hit = cache.read(key)
       if (hit) { // is a HIT
-        console.log(`Cache:${name} for target ${target.name} Hit`, key)
+        console.log(`Cache:${name} for target ${target.name} HIT`, key)
         return deepclone(hit)
       } else { // Is a MISS
-        console.log(`Cache:${name} for target ${target.name} Miss`, key)
+        console.log(`Cache:${name} for target ${target.name} MISS`, key)
         try {
           const result = await target.apply(thisArg, args)
           deepFreeze(result)

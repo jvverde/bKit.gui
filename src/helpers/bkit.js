@@ -443,8 +443,7 @@ const _invalidateCache = new InvalidateCache()
 
 export async function dKit (path, args, { invalidateCache = false } = {}) {
   if (invalidateCache) {
-    console.log('Invalidate Cache for path', path)
-    return pDKit(_invalidateCache, args, path)
+    return pDKit(args, path, _invalidateCache)
   } else {
     return pDKit(args, path)
   }
