@@ -2,7 +2,7 @@
   <div class="bkit-explorer relative-position">
     <q-toolbar class="bkit-toolbar" v-if="rvid">
       <keep-alive>
-        <snaps :rvid="rvid" :snap.sync="snap"></snaps>
+        <snaps :rvid="rvid" :snap.sync="snap" ref="snaps"></snaps>
       </keep-alive>
     </q-toolbar>
     <q-toolbar inset>
@@ -299,6 +299,7 @@ export default {
     backup (path) {
       this.$emit('backup', path, (a) => {
         console.log('Aqqqqqqqqqqqqqi (a)=', a)
+        this.$refs.snaps.reload()
       })
     },
     restore (path) {

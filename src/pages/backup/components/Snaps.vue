@@ -84,6 +84,9 @@ export default {
           })
         }
       })
+    },
+    reload () {
+      this.load_snaps()
     }
   },
   mounted () {

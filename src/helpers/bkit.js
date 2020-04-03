@@ -160,6 +160,7 @@ export function rKit (path, options, rsyncoptions, events) {
   const specificOptions = [
     '--no-A', '--no-g', '--no-p',
     '--delay-updates', // if we want to receive a file list ahead
+    '--progress',
     '--info=PROGRESS2,STATS2,NAME2'
   ]
   const onreadline = matchLine4rKit(events)
@@ -342,7 +343,6 @@ function _kit (scriptname, path, params = {}) {
     ...options,
     '--', // now rsync options
     ...rsyncoptions,
-    '--progress',
     // '--dry-run', // TEMPORÁRIO SÓ PARA TESTES
     path
   ]

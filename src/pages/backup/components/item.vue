@@ -7,7 +7,7 @@
         style="cursor:pointer"
         name="folder"
         @click="open"
-        :color="color">
+        :color="isdir && isUpdate ? 'secondary' : color">
         <tooltip :label="description"/>
       </q-icon>
       <q-icon
@@ -56,7 +56,7 @@
         color="positive"
         icon="backup"
         @click="backup"
-        v-show="isnew|wasmodified">
+        v-show="isnew|wasmodified|isdir">
         <span class="text-weight-light">Backup</span>
       </q-btn>
       <q-btn flat no-caps stack
@@ -97,7 +97,7 @@ const colorOf = {
   new: 'orange',
   modified: 'teal-3',
   filtered: 'grey-6',
-  unchecked: 'grey-1',
+  unchecked: 'grey-4',
   nobackup: 'amber'
 }
 const nameOf = {
