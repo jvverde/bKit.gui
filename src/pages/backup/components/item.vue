@@ -212,7 +212,7 @@ export default {
   $bkitsize: 5em;
   $biconsize: $bkitsize;
   .bkit-item {
-    min-width: 3 * $bkitsize;
+    min-width: 3.3 * $bkitsize;
     .bkit-text{
       max-width: 2 * $bkitsize;
       overflow-wrap: break-word;

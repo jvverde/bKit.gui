@@ -179,7 +179,6 @@ export default {
       this.restores.push(resource)
     },
     backup (path, cb) {
-      console.log('dobackup')
       this.backups.push({ path, cb })
     },
     destroy (index) {

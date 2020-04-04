@@ -430,7 +430,7 @@ function* rsync2entry (lines) {
   }
 }
 
-async function _dKit (args, path) {
+async function _dKit (path, ...args) {
   console.log(`Enqueued bash dkit.sh for ${path} with args`, args)
   const fullargs = ['--no-recursive', '--dirs', ...args, path]
   const rsynclines = await enqueue2bash('./dkit.sh', fullargs, queue4Remote)
@@ -443,9 +443,9 @@ const _invalidateCache = new InvalidateCache()
 
 export async function dKit (path, args, { invalidateCache = false } = {}) {
   if (invalidateCache) {
-    return pDKit(args, path, _invalidateCache)
+    return pDKit(path, ...args, _invalidateCache)
   } else {
-    return pDKit(args, path)
+    return pDKit(path, ...args)
   }
 }
 

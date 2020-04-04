@@ -49,7 +49,7 @@ export default function proxyIt (fn, { cache = _global, name = 'default' }) {
       const key = target.name + args.join('')
 
       if (index >= 0) {
-        console.log(target.name, 'Invalidate Cache for key', key)
+        console.log(target.name, 'Invalidate Cache for key ', key)
         cache.remove(key)
       }
 

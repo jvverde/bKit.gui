@@ -90,7 +90,6 @@ export default {
       totalsize: 0,
       totalbytes: 0,
       sizepercent: 0,
-      currentfile: '',
       currentline: '',
       currentrate: '',
       dryrun: false
@@ -135,8 +134,9 @@ export default {
       // <Y><X><s><t><poguax><file><BS><bytes><size><time>
       Y, X, s, t, file, bytes, size
     }, match, line) {
+      size = Number(size)
+      bytes = Number(bytes)
       this.status = 'Running'
-      this.currentfile = file
       this.currentline = line
       if (X === 'f') {
         this.total.add(size, bytes)
@@ -174,7 +174,7 @@ export default {
           this.status = 'Running'
           this.phase = 0 | phase
           this.phasemsg = msg
-          this.currentfile = ''
+          this.currentline = ''
         },
         done: msg => {
           this.status = 'Done'
@@ -191,8 +191,8 @@ export default {
           this.status = 'Launching'
         }
       }).then(code => {
-        console.log('End code', code)
-        this.cb('aqi')
+        console.log('Backup End Code', code)
+        this.cb(this.path)
       }).catch(e => {
         console.error('Backup error', e)
       })
