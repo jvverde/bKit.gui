@@ -23,11 +23,14 @@
       <q-item-label caption v-if="phase">
         Phase {{phase}}: {{phasemsg}}
       </q-item-label>
-      <q-item-label caption v-if="running && currentline">
+      <q-item-label caption v-if="isrunning && currentline">
         {{currentline}}
       </q-item-label>
     </q-item-section>
     <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
+    <q-item-section side v-if="!isdone">
+      <q-spinner-ios color="amber"/>
+    </q-item-section>
     <q-item-section side v-if="error !== null">
       <q-icon name="warning" color="warning"/>
     </q-item-section>
@@ -35,7 +38,7 @@
 </template>
 
 <script>
-import { bKit } from 'src/helpers/bkit'
+import { bKit, stop } from 'src/helpers/bkit'
 import tooltip from 'src/components/tooltip'
 
 const formatBytes = (bytes, decimal = 2) => {
@@ -92,14 +95,15 @@ export default {
       sizepercent: 0,
       currentline: '',
       currentrate: '',
+      process: undefined,
       dryrun: false
     }
   },
   computed: {
-    running () {
+    isrunning () {
       return this.status === 'Running'
     },
-    done () {
+    isdone () {
       return this.status === 'Done'
     },
     filespercent () {
@@ -118,7 +122,7 @@ export default {
       type: String,
       required: true
     },
-    cb: {
+    done: {
       type: Function,
       default: () => console.log('NOOOOOOOOOOO CALL BACK')
     }
@@ -127,7 +131,9 @@ export default {
     formatBytes,
     destroy () {
       // bkit.stop(this.fd)
-      this.$emit('destroy')
+      console.log('emit destroy', this.path)
+      if (this.process) stop(this.process)
+      this.$emit('destroy', this.path)
     },
     sent ({
       // YXcstpoguax
@@ -137,6 +143,7 @@ export default {
       size = Number(size)
       bytes = Number(bytes)
       this.status = 'Running'
+      console.log('Line:', line, this.path)
       this.currentline = line
       if (X === 'f') {
         this.total.add(size, bytes)
@@ -171,14 +178,17 @@ export default {
         // rsyncoptions: ['--dry-run'],
         sent: this.sent,
         newphase: ({ phase, msg }) => {
+          console.log('Phase', phase, this.path)
           this.status = 'Running'
           this.phase = 0 | phase
           this.phasemsg = msg
           this.currentline = ''
         },
         done: msg => {
+          console.log('Done bkit')
           this.status = 'Done'
-          this.phase = undefined
+          this.phase = this.process = undefined
+          this.currentline = ''
         },
         start: () => {
           this.status = 'Starting'
@@ -187,21 +197,27 @@ export default {
           this.status = 'Enqueued'
           this.enqueue = { queue, key }
         },
-        oncespawn: (fd) => {
+        oncespawn: (process) => {
+          console.log('Launching', process, this.path)
           this.status = 'Launching'
+          this.process = process
         }
       }).then(code => {
         console.log('Backup End Code', code)
-        this.cb(this.path)
+        this.done(this.path)
       }).catch(e => {
-        console.error('Backup error', e)
+        console.error('Backup catch error', e, this.path)
       })
     }
   },
   mounted () {
     this.backup()
   },
+  beforeUpdate () {
+    // console.log('beforeUpdate', this.path)
+  },
   beforeDestroy () {
+    console.log('Go to destroy', this.process, this.path)
   }
 }
 </script>

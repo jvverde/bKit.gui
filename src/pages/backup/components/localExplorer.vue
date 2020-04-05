@@ -298,7 +298,7 @@ export default {
     },
     backup (path) {
       this.$emit('backup', path, (a) => {
-        console.log('Aqqqqqqqqqqqqqi (a)=', a)
+        console.log('Backup done for', a)
         this.$refs.snaps.reload()
       })
     },

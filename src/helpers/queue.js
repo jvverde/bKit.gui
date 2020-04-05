@@ -46,7 +46,7 @@ export default class Queue {
     item.promise()
       .then(value => this._resolve(item, value))
       .catch(value => {
-        console.error(`Queue catch error: (${value})`, value)
+        console.error(`Queue catch error: ${value} -`, value)
         this._reject(item, value)
       })
       .finally(() => {

@@ -59,13 +59,13 @@
             v-for="(resource, index) in restores"
             :key="index"
             :resource="resource"
-            @destroy="destroy(index)"
+            @destroy="destroy_restore(index)"
           />
           <backup
             v-for="(backup, index) in backups"
             :key="index"
             v-bind="backup"
-            @destroy="destroy(index)"
+            @destroy="destroy_backup(index)"
           />
         </q-list>
       </template>
@@ -178,11 +178,15 @@ export default {
       // resource.options.push('--dry-run')
       this.restores.push(resource)
     },
-    backup (path, cb) {
-      this.backups.push({ path, cb })
+    backup (path, done) {
+      this.backups.push({ path, done })
     },
-    destroy (index) {
+    destroy_restore (index) {
       this.restores.splice(index, 1)
+    },
+    destroy_backup (index) {
+      this.backups.splice(index, 1)
+      console.log('Destroy', index, this.backups)
     }
   },
   async mounted () {

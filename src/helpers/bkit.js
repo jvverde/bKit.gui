@@ -36,6 +36,27 @@ export function shell () {
   fd.unref()
 }
 
+const terminate = require('terminate')
+
+export function stop (process) {
+  console.log('Stop process')
+  if (process && process.bkitclosed) {
+    console.log('Process already closed')
+    return
+  }
+  if (!process) {
+    console.error(`Process cannot be '${process}'`)
+    return
+  }
+  terminate(process.pid, (err) => {
+    if (err) {
+      console.error('Oopsy: ' + err)
+    } else {
+      console.log(`Process ${process.pid} stop done`)
+    }
+  })
+}
+
 // This is a adapter to invoke bash
 function invokeBash (name, args, events = {}, done = nill) {
   const warn = (err) => console.warn(`Errors from bash script ${name}: ${err}`)
@@ -50,10 +71,25 @@ function invokeBash (name, args, events = {}, done = nill) {
   )
   oncespawn(fd)
   fd.on('close', (code) => {
-    // console.log(`Done spawn ${name} with args`, args)
+    console.log(`Done spawn ${name} with args`, args)
     done(code)
+    fd.bkitclosed = true
   })
-  fd.on('error', onerror)
+  fd.on('error', err => {
+    console.log('Error', err)
+    onerror(err)
+  })
+  fd.on('exit', err => {
+    console.log('Exit', err)
+    err = 0 | err
+    if (err !== 0) {
+      onerror(err)
+      rl.close()
+    }
+  })
+  fd.on('disconnect', err => {
+    console.log('Disconnect', err)
+  })
   const rl = readline.createInterface({
     input: fd.stdout,
     output: process.stdout
@@ -61,6 +97,7 @@ function invokeBash (name, args, events = {}, done = nill) {
   rl.on('line', onreadline)
   fd.stderr.on('data', err => {
     const r = stderr(err)
+    console.log('stderr', r)
     if (r === 'stop') {
       done()
       done = nill
