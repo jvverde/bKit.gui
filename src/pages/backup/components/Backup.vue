@@ -1,8 +1,5 @@
 <template>
   <q-item dense>
-    <q-item-section thumbnail class="q-pl-xs">
-      <q-btn round outline icon="close" color="red" size="xs" @click.stop="destroy"/>
-    </q-item-section>
     <q-item-section>
       <q-item-label>
         {{status}} backup of {{path}}
@@ -20,19 +17,27 @@
           <tooltip label="Bytes transferred"/>
         </q-badge>
       </q-item-label>
-      <q-item-label caption v-if="phase">
+      <q-item-label caption v-if="isRunning && phase">
         Phase {{phase}}: {{phasemsg}}
       </q-item-label>
-      <q-item-label caption v-if="isrunning && currentline">
+      <q-item-label caption v-if="isRunning && currentline">
         {{currentline}}
       </q-item-label>
     </q-item-section>
-    <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
-    <q-item-section side v-if="!isdone">
+     <q-item-section v-if="error">
+      <q-icon name="warning" color="warning">
+        {{error}}
+      </q-icon>
+    </q-item-section>
+     <q-item-section v-if="isRunning">
       <q-spinner-ios color="amber"/>
     </q-item-section>
-    <q-item-section side v-if="error !== null">
-      <q-icon name="warning" color="warning"/>
+    <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
+    <q-item-section side v-if="isDismissible">
+      <q-btn flat round icon="close" color="red" size="xs" @click.stop="$emit('destroy')"/>
+    </q-item-section>
+    <q-item-section side v-if="isCancelable">
+      <q-btn flat round icon="stop" color="red" size="xs" @click.stop="stop"/>
     </q-item-section>
   </q-item>
 </template>
@@ -80,38 +85,37 @@ export default {
       files: new Counter(),
       specials: new Counter(),
       devices: new Counter(),
-      localfiles: 0,
-      localsize: 0,
       phase: undefined,
       phasemsg: '',
-      fd: null,
       fullpath: undefined,
       status: undefined,
       error: null,
-      totalfiles: 0,
-      needatencion: 0,
-      totalsize: 0,
-      totalbytes: 0,
-      sizepercent: 0,
       currentline: '',
-      currentrate: '',
       process: undefined,
       dryrun: false
     }
   },
   computed: {
-    isrunning () {
+    isRunning () {
       return this.status === 'Running'
     },
-    isdone () {
+    isDone () {
       return this.status === 'Done'
     },
-    filespercent () {
-      if (this.totalfiles) return Math.trunc(100 * (this.sent / this.totalfiles))
-      else return 0
+    isCanceled () {
+      return this.status === 'Canceled'
+    },
+    onQueue () {
+      return this.status === 'Enqueued'
+    },
+    isCancelable () {
+      return !this.isDone && !this.isCanceled
     },
     isDryRun () {
       return this.dryrun
+    },
+    isDismissible () {
+      return this.isDone || this.isCanceled
     }
   },
   components: {
@@ -129,11 +133,12 @@ export default {
   },
   methods: {
     formatBytes,
-    destroy () {
+    stop () {
       // bkit.stop(this.fd)
-      console.log('emit destroy', this.path)
+      // console.log('emit destroy', this.path)
       if (this.process) stop(this.process)
-      this.$emit('destroy', this.path)
+      // this.$emit('destroy', this.path)
+      this.status = 'Canceled'
     },
     sent ({
       // YXcstpoguax
@@ -143,7 +148,6 @@ export default {
       size = Number(size)
       bytes = Number(bytes)
       this.status = 'Running'
-      console.log('Line:', line, this.path)
       this.currentline = line
       if (X === 'f') {
         this.total.add(size, bytes)
@@ -171,7 +175,6 @@ export default {
       }
     },
     async backup () {
-      this.totalfiles = this.totalsize = 0
       this.error = null
       // this.dryrun = true
       return bKit(this.path, {
@@ -206,6 +209,7 @@ export default {
         console.log('Backup End Code', code)
         this.done(this.path)
       }).catch(e => {
+        this.error = e
         console.error('Backup catch error', e, this.path)
       })
     }
@@ -217,7 +221,7 @@ export default {
     // console.log('beforeUpdate', this.path)
   },
   beforeDestroy () {
-    console.log('Go to destroy', this.process, this.path)
+    console.log('Before go to destroy', this.process, this.path)
   }
 }
 </script>

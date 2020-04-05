@@ -64,7 +64,8 @@
           <backup
             v-for="(backup, index) in backups"
             :key="index"
-            v-bind="backup"
+            :path="backup.path"
+            :done="backup.done"
             @destroy="destroy_backup(index)"
           />
         </q-list>
