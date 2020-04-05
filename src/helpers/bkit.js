@@ -39,21 +39,20 @@ export function shell () {
 const terminate = require('terminate')
 
 export function stop (process) {
-  console.log('Stop process')
-  if (process && process.bkitclosed) {
-    console.log('Process already closed')
-    return
-  }
-  if (!process) {
-    console.error(`Process cannot be '${process}'`)
-    return
-  }
-  terminate(process.pid, (err) => {
-    if (err) {
-      console.error('Oopsy: ' + err)
-    } else {
-      console.log(`Process ${process.pid} stop done`)
+  return new Promise((resolve, reject) => {
+    if (!process) {
+      return reject(`Process cannot be '${process}'`)
     }
+    if (process.killed) {
+      return reject('Process already closed')
+    }
+    terminate(process.pid, (err) => {
+      if (err) {
+        reject(`Problems to terminate ${err}`)
+      } else {
+        resolve(`Process ${process.pid} stop done`)
+      }
+    })
   })
 }
 
@@ -80,10 +79,10 @@ function invokeBash (name, args, events = {}, done = nill) {
     onerror(err)
   })
   fd.on('exit', err => {
-    console.log('Exit', err)
     err = 0 | err
     if (err !== 0) {
-      onerror(err)
+      const params = args.join(' ')
+      onerror(`'${name} ${params}' exit with code ${err}`)
       rl.close()
     }
   })
@@ -188,8 +187,11 @@ const backupQueue = new Queue() // Dedicated queue for restore requests
 function _Queue (name, args, events = {}, queue = restoreQueue) {
   const { enqueued = nill } = events
   const key = Date.now() + Math.random().toString(36).slice(1)
+  enqueued({
+    dismiss: () => queue.dismiss(key),
+    position: () => queue.position(key)
+  })
   const promise = queue.enqueue(() => asyncInvokeBash(name, args, events), key)
-  enqueued(queue, key) // just inform enqueued on queue
   return promise
 }
 

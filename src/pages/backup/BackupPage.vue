@@ -36,7 +36,7 @@
     <q-splitter
       style="flex-grow: 1"
       class="bkit-spliter-horizontal"
-      :limits="[50, 100]"
+      :limits="[10, 99]"
       horizontal
       v-model="splitter">
       <template v-slot:before>
@@ -75,20 +75,6 @@
 </template>
 
 <script>
-// import fileexplorer from './components/fileExplorer'
-// import restore from './components/Restore'
-
-// var developer = {
-//   title: 'Developer',
-//   department: 'I.T.',
-//   location: 'Building 3, 2nd Floor'
-// }
-
-// var techLeadTitle = { title: 'Tech Lead', location: 'new location' }
-
-// var techLead = { ...developer, ...techLeadTitle }
-
-// console.log(techLead)
 
 import localexplorer from './components/localExplorer'
 import restore from './components/Restore'
@@ -113,7 +99,11 @@ export default {
     splitter: {
       get: function () {
         const length = 10 * (this.restores.length + this.backups.length)
-        return Math.max(30, 100 - Math.max(this.mark, length))
+        if (this.mark === 0) return Math.max(30, 100 - length)
+        else if (length > 2 * this.mark) {
+          return Math.max(30, 100 - 0.6 * length)
+        }
+        return Math.max(30, 100 - this.mark)
       },
       set: function (val) {
         this.mark = 100 - val

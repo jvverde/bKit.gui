@@ -26,7 +26,7 @@
     </q-item-section>
      <q-item-section v-if="error">
       <q-icon name="warning" color="warning">
-        {{error}}
+         <tooltip :label="error"/>
       </q-icon>
     </q-item-section>
      <q-item-section v-if="isRunning">
@@ -92,6 +92,7 @@ export default {
       error: null,
       currentline: '',
       process: undefined,
+      dequeued: () => null,
       dryrun: false
     }
   },
@@ -128,7 +129,7 @@ export default {
     },
     done: {
       type: Function,
-      default: () => console.log('NOOOOOOOOOOO CALL BACK')
+      default: () => console.log('NO CALL BACK')
     }
   },
   methods: {
@@ -136,7 +137,16 @@ export default {
     stop () {
       // bkit.stop(this.fd)
       // console.log('emit destroy', this.path)
-      if (this.process) stop(this.process)
+      if (this.process) {
+        stop(this.process)
+          .then(() => { this.process = undefined })
+          .catch(err => console.error(err))
+      }
+
+      if (this.onQueue && this.dequeued instanceof Function) {
+        console.log('Dequeued')
+        this.dequeued()
+      }
       // this.$emit('destroy', this.path)
       this.status = 'Canceled'
     },
@@ -196,9 +206,9 @@ export default {
         start: () => {
           this.status = 'Starting'
         },
-        enqueued: (queue, key, promise) => {
+        enqueued: (item) => {
           this.status = 'Enqueued'
-          this.enqueue = { queue, key }
+          this.dequeued = item.dismiss
         },
         oncespawn: (process) => {
           console.log('Launching', process, this.path)

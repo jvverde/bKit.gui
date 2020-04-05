@@ -26,6 +26,21 @@ export default class Queue {
     return result
   }
 
+  position (key) {
+    if (!key) return []
+    const result = []
+    for (let i = 0; i < this.queue.length; i++) {
+      if (this.queue[i].key === key) {
+        result.push(i)
+      }
+    }
+    return result
+  }
+
+  dismiss (key) {
+    this.removeItems(key).forEach(e => e.reject('Dismiss from queue'))
+  }
+
   _resolve (item, value) {
     item.resolve(value)
   }
