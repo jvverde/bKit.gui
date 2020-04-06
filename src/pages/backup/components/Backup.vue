@@ -2,7 +2,8 @@
   <q-item dense>
     <q-item-section>
       <q-item-label>
-        {{status}} backup of {{path}}
+        <span>{{status}} backup of {{path}}</span>
+        <q-icon name="check" color="green" v-if="isDone"/>
         <q-badge class="q-ml-xs shadow-1" color="grey-6" v-show="files.files">
           {{files.files}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
@@ -71,6 +72,7 @@ class Counter {
     this.files++
   }
 }
+
 export default {
   name: 'Backup',
   data () {
@@ -135,8 +137,6 @@ export default {
   methods: {
     formatBytes,
     stop () {
-      // bkit.stop(this.fd)
-      // console.log('emit destroy', this.path)
       if (this.process) {
         stop(this.process)
           .then(() => { this.process = undefined })
@@ -231,7 +231,7 @@ export default {
     // console.log('beforeUpdate', this.path)
   },
   beforeDestroy () {
-    console.log('Before go to destroy', this.process, this.path)
+    // console.log('Before go to destroy', this.process, this.path)
   }
 }
 </script>
