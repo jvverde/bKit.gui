@@ -5,7 +5,7 @@
         <snaps :rvid="rvid" :snap.sync="snap" ref="snaps"></snaps>
       </keep-alive>
     </q-toolbar>
-    <q-toolbar inset>
+    <q-toolbar inset v-if="isReady2Show">
       <q-breadcrumbs gutter="xs" separator-color="amber" :separator="sep">
         <q-breadcrumbs-el
           v-if="steps.length > 0"
@@ -21,6 +21,7 @@
       </q-breadcrumbs>
     </q-toolbar>
     <q-splitter
+      v-if="isReady2Show"
       class="bkit-splitter"
       :limits="[0, 80]"
       v-model="verticalSplitter">
@@ -123,7 +124,7 @@ export default {
       invalidateCache: false,
       eventdate: Date.now(),
       root: { isdir, isroot, path, onbackup },
-      snap: ''
+      snap: undefined
     }
   },
   props: {
@@ -144,6 +145,7 @@ export default {
   watch: {
     token: async function () {
       console.log('Token', this.token)
+      if (this.rvid && !this.snap) return
       this.refresh(this.currentPath)
     },
     currentPath: async function (dir, oldir) {
@@ -170,6 +172,9 @@ export default {
     }
   },
   computed: {
+    isReady2Show: function () {
+      return this.snap || !this.rvid
+    },
     steps: function () {
       const rel = relative(this.mountpoint, this.currentPath)
       return this.currentPath !== '' ? `${rel}`.split(sep) : []

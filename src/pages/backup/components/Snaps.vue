@@ -1,10 +1,9 @@
 <template>
   <header class="top">
-    <q-btn round flat icon="sync" color="positive" size="xs" @click.stop="reload()"/>
-    <transition-group name="snaps" tag="div" class="accordion">
+    <transition-group name="snaps" tag="div" class="accordion" v-show="!isEmpty">
       <section class="cell"
         v-for="(snap, index) in snaps"
-        :key="index"
+        :key="snap.id"
         @click="select(index)"
         :class="{selected: snap.id === currentSnap}">
         <header class="spine" :title="snap.date.format('DD-MM-YYYY HH:mm')">
@@ -17,6 +16,10 @@
         </article>
       </section>
     </transition-group>
+    <q-btn round flat icon="sync" color="positive" size="xs"
+      style="margin:auto 0"
+      @click.stop="reload()"
+      :disable="loading"/>
     <q-inner-loading :showing="loading">
       <q-spinner-facebook color="primary" size="40px"/>
     </q-inner-loading>
@@ -35,7 +38,7 @@ export default {
   name: 'Snaps',
   data () {
     return {
-      loading: true,
+      loading: false,
       snaps: []
     }
   },
@@ -53,6 +56,9 @@ export default {
     currentSnap: {
       get () { return this.snap },
       set (val) { this.$emit('update:snap', val) }
+    },
+    isEmpty () {
+      return this.snaps.length === 0
     }
   },
   watch: {
@@ -70,6 +76,7 @@ export default {
       this.reload()
     },
     reload () {
+      this.loading = true
       listSnaps(this.rvid, {
         onreadline: (data) => {
           if (this.snaps.find(e => e.id === data)) return
@@ -93,7 +100,7 @@ export default {
 
 <style type="text/scss">
   .snaps-enter-active, .snaps-leave-active {
-    transition: all 60s;
+    transition: all 1s;
   }
   .snaps-enter, .snaps-leave-to {
     opacity: 0;
@@ -112,8 +119,8 @@ export default {
     max-width:100%;
     display:inline-flex;
     .accordion {
-      height:$heigth;
-      min-width: 2em;
+      /* height:$heigth; */
+      /* min-width: 2em; */
       display: flex;
       justify-content: flex-start;
       align-items: center;

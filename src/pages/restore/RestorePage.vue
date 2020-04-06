@@ -60,7 +60,7 @@
 <script>
 import remoteexplorer from './components/remoteExplorer'
 import restore from './components/Restore'
-import * as bkit from 'src/helpers/bkit'
+import * as bkit from 'src/helpers/bash'
 export default {
   name: 'Server',
   data () {

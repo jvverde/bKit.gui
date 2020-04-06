@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import * as bkit from 'src/helpers/bkit'
+import * as bkit from 'src/helpers/bash'
 const regex = /^"recv\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
 const isDryRun = (element) => element.match(/^--dry-run/) instanceof Array
 export default {

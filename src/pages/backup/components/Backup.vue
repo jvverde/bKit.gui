@@ -44,7 +44,8 @@
 </template>
 
 <script>
-import { bKit, stop } from 'src/helpers/bkit'
+import { bKit } from 'src/helpers/bkit'
+import { stop } from 'src/helpers/bash'
 import tooltip from 'src/components/tooltip'
 
 const formatBytes = (bytes, decimal = 2) => {

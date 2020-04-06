@@ -94,7 +94,8 @@
 
 const os = require('os')
 const { ipcRenderer, remote: { app } } = require('electron')
-import { getServer, user, shell } from 'src/helpers/bkit'
+import { getServer } from 'src/helpers/bkit'
+import { user, shell } from 'src/helpers/bash'
 
 ipcRenderer.on('message', (event, text) => {
   console.log('Event:', event)

@@ -30,7 +30,7 @@ moment.relativeTimeThreshold('m', 119)
 moment.relativeTimeThreshold('h', 47)
 moment.relativeTimeThreshold('d', 59)
 moment.relativeTimeThreshold('M', 23)
-import * as bkit from 'src/helpers/bkit'
+import * as bkit from 'src/helpers/bash'
 export default {
   name: 'Snaps',
   data () {

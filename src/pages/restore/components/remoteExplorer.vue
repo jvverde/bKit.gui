@@ -124,7 +124,7 @@ moment.locale('en')
 // const regexpSize = /([a-z-]+)\s+([0-9,]+)\s+([0-9/]+)\s+([0-9:]+)\s+(.+)/
 import snaps from './Snaps'
 import askuser from './Askuser'
-import * as bkit from 'src/helpers/bkit'
+import * as bkit from 'src/helpers/bash'
 
 const listdir = bkit.enqueueListdir('Listdir on remoteexplorer')
 

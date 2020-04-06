@@ -405,9 +405,10 @@ export async function getVersions (path, ...args) {
   return pGetVersions(path, args)
 }
 
-/* ---------------------getVersions--------------------- */
+/* ---------------------listSnaps--------------------- */
+const qListSnaps = new QueueByKey()
 export async function listSnaps (rvid, events = {}) {
-  return enqueue2bash('./listsnaps.sh', [rvid], events)
+  return enqueue2bash('./listsnaps.sh', [`--rvid=${rvid}`], events, qListSnaps)
 }
 /* *************************** A 2nd-level queue *************************** */
 // We want somethinh near to the high level caller,
