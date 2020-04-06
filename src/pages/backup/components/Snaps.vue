@@ -76,7 +76,10 @@ export default {
       this.reload()
     },
     reload () {
+<<<<<<< HEAD
       this.loading = true
+=======
+>>>>>>> d8da72b040a57999f1af67274735fd4c3e2bb96a
       listSnaps(this.rvid, {
         onreadline: (data) => {
           if (this.snaps.find(e => e.id === data)) return
