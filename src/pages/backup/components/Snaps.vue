@@ -30,7 +30,7 @@ moment.relativeTimeThreshold('m', 119)
 moment.relativeTimeThreshold('h', 47)
 moment.relativeTimeThreshold('d', 59)
 moment.relativeTimeThreshold('M', 23)
-import * as bkit from 'src/helpers/bkit'
+import { listSnaps } from 'src/helpers/bkit'
 export default {
   name: 'Snaps',
   data () {
@@ -70,12 +70,7 @@ export default {
       this.reload()
     },
     reload () {
-      bkit.bash('./listsnaps.sh', [`--rvid=${this.rvid}`], {
-        onclose: (code) => {
-          this.loading = false
-          if (this.snaps.length > 0) this.select(this.snaps.length - 1)
-          console.log(`Script listsnaps ends with code code ${code}`)
-        },
+      listSnaps(this.rvid, {
         onreadline: (data) => {
           if (this.snaps.find(e => e.id === data)) return
           this.snaps.push({
@@ -83,6 +78,10 @@ export default {
             id: data
           })
         }
+      }).then(code => {
+        this.loading = false
+        if (this.snaps.length > 0) this.select(this.snaps.length - 1)
+        console.log(`Script listsnaps ends with code code ${code}`)
       })
     }
   },
