@@ -95,6 +95,7 @@ export default {
       error: null,
       currentline: '',
       process: undefined,
+      pid: null,
       dequeued: () => null,
       dryrun: false
     }
@@ -138,9 +139,9 @@ export default {
   methods: {
     formatBytes,
     stop () {
-      if (this.process) {
-        stop(this.process)
-          .then(() => { this.process = undefined })
+      if (this.pid) {
+        stop(this.pid)
+          .then(() => { this.pid = undefined })
           .catch(err => console.error(err))
       }
 
@@ -204,17 +205,22 @@ export default {
           this.phase = this.process = undefined
           this.currentline = ''
         },
-        start: () => {
+        start: ({ pid }) => {
           this.status = 'Starting'
+          this.pid = pid
+          console.log('Starting with pid ', pid)
         },
         enqueued: (item) => {
           this.status = 'Enqueued'
           this.dequeued = item.dismiss
         },
-        oncespawn: (process) => {
-          console.log('Launching', process, this.path)
+        oncespawn: (p) => {
+          console.log('Launching', p)
+          // rl.write(null, { ctrl: true, name: 'c' })
+          // rl.close()
+          p.stdin.write('\x03')
           this.status = 'Launching'
-          this.process = process
+          this.process = p
         }
       }).then(code => {
         console.log('Backup End Code', code)

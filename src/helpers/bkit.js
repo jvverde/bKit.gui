@@ -181,11 +181,11 @@ function matchLine4bKit (events = {}) {
       re: /^Phase\b\s*(?<phase>\b[^\s]*?\b)\s*-\s*(?<msg>.*$)/,
       handler: match => newphase(match.groups, match)
     }, {
-      re: /^bKit:\s*Done/,
+      re: /^bkit\s*\[\d+:\d*\]\s*:\s*Done/,
       handler: done
     }, {
-      re: /^bkit:\s*Start\s*backup/,
-      handler: start
+      re: /^bkit\s*\[(?<pid>\d+):(?<pgid>\d*)\]\s*:\s*Start\s*backup/,
+      handler: match => start(match.groups, match)
     }
     /* We are not going to use --stats. We do a lot of rsync call ans that will mess the things up
     but in the future this could be helpfull
@@ -410,6 +410,7 @@ const qListSnaps = new QueueByKey()
 export async function listSnaps (rvid, events = {}) {
   return enqueue2bash('./listsnaps.sh', [`--rvid=${rvid}`], events, qListSnaps)
 }
+
 /* *************************** A 2nd-level queue *************************** */
 // We want somethinh near to the high level caller,
 // in order to dismiss previous request for the same path and same RVID but a different snap

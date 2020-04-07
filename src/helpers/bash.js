@@ -35,23 +35,9 @@ export function shell () {
   fd.unref()
 }
 
-const terminate = require('terminate')
-
-export function stop (process) {
+export function stop (pid) {
   return new Promise((resolve, reject) => {
-    if (!process) {
-      return reject(`Process cannot be '${process}'`)
-    }
-    if (process.killed) {
-      return reject('Process already closed')
-    }
-    terminate(process.pid, (err) => {
-      if (err) {
-        reject(`Problems to terminate ${err}`)
-      } else {
-        resolve(`Process ${process.pid} stop done`)
-      }
-    })
+    invokeBash('./killtree.sh', [pid], { onerror: reject }, resolve)
   })
 }
 
@@ -68,18 +54,12 @@ function invokeBash (name, args, events = {}, done = nill) {
     { cwd: bKitPath, windowsHide: true }
   )
 
-  oncespawn(fd)
-
   fd.on('close', (code) => {
     console.log(`Done spawn ${name} with args`, args)
     done(code)
-    fd.bkitclosed = true
   })
 
-  fd.on('error', err => {
-    console.log('Error', err)
-    onerror(err)
-  })
+  fd.on('error', err => onerror(err))
 
   fd.on('exit', err => {
     err = 0 | err
@@ -95,19 +75,21 @@ function invokeBash (name, args, events = {}, done = nill) {
   })
   const rl = readline.createInterface({
     input: fd.stdout,
-    output: process.stdout
+    output: fd.stdin
   })
   rl.on('line', onreadline)
 
   fd.stderr.on('data', err => {
-    const r = stderr(err)
-    console.log('stderr', r)
+    stderr(err)
+    const r = `${err}`
+    console.log('Stderr:', r, err)
     if (r === 'stop') {
       done()
       done = nill
       fd.kill()
     }
   })
+  oncespawn(fd, rl)
 }
 
 export function bash (scriptname, args, {

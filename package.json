@@ -29,6 +29,7 @@
     "quasar": "^1.9.12",
     "slash": "^3.0.0",
     "terminate": "^2.1.2",
+    "tree-kill": "^1.2.2",
     "vue-i18n": "^8.0.0"
   },
   "devDependencies": {
