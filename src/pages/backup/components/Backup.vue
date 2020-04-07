@@ -2,6 +2,10 @@
   <q-item dense v-if="!deleted">
     <q-item-section>
       <q-item-label>
+        <q-spinner-ios color="amber" v-if="isRunning"/>
+        <q-icon name="warning" color="warning" v-if="error">
+          <tooltip :label="error"/>
+        </q-icon>
         <span>{{status}} backup of {{path}}</span>
         <q-icon name="check" color="green" v-if="isDone"/>
         <q-badge class="q-ml-xs shadow-1" color="grey-6" v-show="files.files">
@@ -19,7 +23,7 @@
         </q-badge>
         <q-badge class="q-ml-sm shadow-1" color="warning" v-show="cnterrors">
           {{cnterrors}}
-          <tooltip label="Bytes transferred"/>
+          <tooltip label="Number of errors"/>
         </q-badge>
       </q-item-label>
       <q-item-label caption v-if="isRunning && phase">
@@ -28,14 +32,6 @@
       <q-item-label caption v-if="isRunning && currentline">
         {{currentline}}
       </q-item-label>
-    </q-item-section>
-     <q-item-section v-if="error">
-      <q-icon name="warning" color="warning">
-         <tooltip :label="error"/>
-      </q-icon>
-    </q-item-section>
-     <q-item-section v-if="isRunning">
-      <q-spinner-ios color="amber"/>
     </q-item-section>
     <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
     <q-item-section side v-if="isDismissible">
@@ -101,7 +97,7 @@ export default {
       process: undefined,
       pid: null,
       dequeued: () => null,
-      deleted: false
+      deleted: false,
       dryrun: false
     }
   },
@@ -223,6 +219,7 @@ export default {
           this.status = 'Launching'
         },
         stderr: (line) => {
+          console.warn(line)
           this.currentline = line
           this.cnterrors++
         }

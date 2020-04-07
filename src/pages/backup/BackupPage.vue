@@ -98,7 +98,7 @@ export default {
   computed: {
     splitter: {
       get: function () {
-        const length = 10 * (this.restores.length + this.backups.length)
+        const length = 15 * (this.restores.length + this.backups.length)
         if (this.mark === 0) return Math.max(30, 100 - length)
         else if (length > 2 * this.mark) {
           return Math.max(30, 100 - 0.6 * length)

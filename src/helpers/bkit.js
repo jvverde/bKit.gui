@@ -62,10 +62,11 @@ export async function countFiles (path, ...args) {
   const onreadline = () => cnt++
   return enqueue2bash('bash.sh', ['find', path, ...args], { onreadline }, queue4Local).then(() => cnt)
 }
+
 /* *************************** rKit/bKit *************************** */
 const restoreQueue = new Queue() // Dedicated queue for restore requests
 const backupQueue = new Queue() // Dedicated queue for restore requests
-// Enqueue bash scripts
+// Enqueue  scripts
 function _Queue (name, args, events = {}, queue = restoreQueue) {
   const { enqueued = nill } = events
   const key = Date.now() + Math.random().toString(36).slice(1)
@@ -77,6 +78,29 @@ function _Queue (name, args, events = {}, queue = restoreQueue) {
   return promise
 }
 
+function _kit (scriptname, path, params = {}) {
+  console.log('Enqueue', scriptname)
+
+  const {
+    options = [],
+    rsyncoptions = [],
+    onreadline = nill,
+    queue = new Queue(),
+    ...events
+  } = params
+
+  const args = [
+    ...options,
+    '--', // now rsync options
+    ...rsyncoptions,
+    // '--dry-run', // TEMPORÁRIO SÓ PARA TESTES
+    path
+  ]
+
+  return _Queue(scriptname, args, { ...events, onreadline }, queue)
+}
+
+/* ---------------------rkit--------------------- */
 export function rKit (path, options, rsyncoptions, events) {
   const specificOptions = [
     '--no-A', '--no-g', '--no-p',
@@ -90,18 +114,6 @@ export function rKit (path, options, rsyncoptions, events) {
     rsyncoptions: [...rsyncoptions, ...specificOptions],
     onreadline,
     queue: restoreQueue
-  })
-}
-
-export function bKit (path, params = {}) {
-  // rsyncoptions.push('--dry-run')
-  const { options = [], rsyncoptions = [], ...extra } = params
-  const events = matchLine4bKit(extra)
-  return _kit('./bkit.sh', path, {
-    options,
-    rsyncoptions,
-    queue: backupQueue,
-    ...events
   })
 }
 
@@ -141,20 +153,25 @@ function matchLine4rKit ({
   } // anounymous function
 }
 
+/* ---------------------bKit--------------------- */
+export function bKit (path, params = {}) {
+  // rsyncoptions.push('--dry-run')
+  const { options = [], rsyncoptions = [], ...extra } = params
+  const events = matchLine4bKit(extra)
+  return _kit('./bkit.sh', path, {
+    options,
+    rsyncoptions,
+    queue: backupQueue,
+    ...events
+  })
+}
+
 function matchLine4bKit (events = {}) {
   const {
     start = nill,
     sent = nill,
     newphase = nill,
     done = nill,
-    /* nfiles = nill,
-    cfiles = nill,
-    dfiles = nill,
-    tfiles = nill,
-    totalsize = nill,
-    transfsize = nill,
-    totalsentbytes = nill,
-    totalrecvbytes = nill */
     ...extra
   } = events
 
@@ -187,52 +204,6 @@ function matchLine4bKit (events = {}) {
       re: /^bKit\s*\[(?<pid>\d+):(?<pgid>\d*)\]\s*:\s*Start\s*backup/,
       handler: match => start(match.groups, match)
     }
-    /* We are not going to use --stats. We do a lot of rsync call ans that will mess the things up
-    but in the future this could be helpfull
-    , {
-      // Number of files: 4 (reg: 3, dir: 1)
-      re: /^Number of files: (?<nfiles>\d+) (?<extra>.+)/,
-      handler: match => nfiles(match.groups, match)
-    }, {
-      // Number of created files: 4 (reg: 3, dir: 1)
-      re: /^Number of created files: (?<cfiles>\d+) (?<extra>.+)/,
-      handler: match => cfiles(match.groups, match)
-    }, {
-      // Number of deleted files: 0
-      re: /^Number of deleted files: (?<dfiles>.+)/,
-      handler: match => dfiles(match.groups, match)
-    }, {
-      // Nummber of regular files transferred: 3
-      re: /^Number of regular files transferred: (?<tfiles>.+)/,
-      handler: match => tfiles(match.groups, match)
-    }, {
-      // Total file size: 49 bytes
-      re: /^Total file size: (?<dfiles>.+)/,
-      handler: match => totalsize(match.groups, match)
-    }, {
-      // Total transferred file size: 49 bytes
-      re: /^Total transferred file size: (?<dfiles>.+)/,
-      handler: match => transfsize(match.groups, match)
-    }, {
-      // Total bytes sent: 5,886
-      re: /^Total bytes sent: (?<dfiles>.+)/,
-      handler: match => totalsentbytes(match.groups, match)
-    }, {
-      // Total bytes received: 32
-      re: /^Total bytes received: (?<dfiles>.+)/,
-      handler: match => totalrecvbytes(match.groups, match)
-    }
-    */
-    /*
-      rKit line: Literal data: 0 bytes
-      rKit line: Matched data: 0 bytes
-      rKit line: File list size: 0
-      rKit line: File list generation time: 0.002 seconds
-      rKit line: File list transfer time: 0.000 seconds
-      rKit line:
-      rKit line: sent 5,886 bytes  received 32 bytes  3,945.33 bytes/sec
-      rKit line: total size is 49  speedup is 0.01 (DRY RUN)
-    */
   ]
 
   const onreadline = (data) => {
@@ -247,28 +218,6 @@ function matchLine4bKit (events = {}) {
   }
 
   return { ...extra, onreadline }
-}
-
-function _kit (scriptname, path, params = {}) {
-  console.log('Enqueue', scriptname)
-
-  const {
-    options = [],
-    rsyncoptions = [],
-    onreadline = nill,
-    queue = new Queue(),
-    ...events
-  } = params
-
-  const args = [
-    ...options,
-    '--', // now rsync options
-    ...rsyncoptions,
-    // '--dry-run', // TEMPORÁRIO SÓ PARA TESTES
-    path
-  ]
-
-  return _Queue(scriptname, args, { ...events, onreadline }, queue)
 }
 
 /* *************************** rKit/bKit End *************************** */
