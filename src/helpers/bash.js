@@ -5,6 +5,7 @@ let username = require('os').userInfo().username
 const { spawn, execSync } = require('child_process')
 const readline = require('readline')
 const { ipcRenderer } = require('electron')
+
 const nill = () => null
 
 import { warn } from './notify'
@@ -35,12 +36,6 @@ export function shell () {
   fd.unref()
 }
 
-export function stop (pid) {
-  return new Promise((resolve, reject) => {
-    invokeBash('./killtree.sh', [pid], { onerror: reject }, resolve)
-  })
-}
-
 // This is a adapter to invoke bash
 function invokeBash (name, args, events = {}, done = nill) {
   const warn = (err) => console.warn(`Errors from bash script ${name}: ${err}`)
@@ -59,7 +54,7 @@ function invokeBash (name, args, events = {}, done = nill) {
     done(code)
   })
 
-  fd.on('error', err => onerror(err))
+  fd.on('error', onerror)
 
   fd.on('exit', err => {
     err = 0 | err
@@ -80,10 +75,9 @@ function invokeBash (name, args, events = {}, done = nill) {
   rl.on('line', onreadline)
 
   fd.stderr.on('data', err => {
-    stderr(err)
-    const r = `${err}`
-    console.log('Stderr:', r, err)
-    if (r === 'stop') {
+    const error = `${err}`
+    const result = stderr(error)
+    if (result === 'stop') {
       done()
       done = nill
       fd.kill()
@@ -108,5 +102,11 @@ export function asyncInvokeBash (name, args, events = {}) {
     const done = () => resolve(lines)
     const onerror = reject
     invokeBash(name, args, { ...events, onreadline, onerror }, done)
+  })
+}
+
+export function killtree (pid) {
+  return new Promise((resolve, reject) => {
+    invokeBash('./killtree.sh', [pid], { onerror: reject }, resolve)
   })
 }

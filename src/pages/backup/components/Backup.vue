@@ -1,5 +1,5 @@
 <template>
-  <q-item dense>
+  <q-item dense v-if="!deleted">
     <q-item-section>
       <q-item-label>
         <span>{{status}} backup of {{path}}</span>
@@ -9,12 +9,16 @@
           <q-icon name="description" color="white" class="q-ml-xs"/>
           <tooltip label="Files uploaded/updated"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="red" v-show="files.size">
+        <q-badge class="q-ml-sm shadow-1" color="green" v-show="files.size">
           {{formatBytes(files.size)}}
           <tooltip label="Size of files uploaded/updated"/>
         </q-badge>
         <q-badge class="q-ml-sm shadow-1" color="blue" v-show="total.bytes">
           {{formatBytes(total.bytes)}}
+          <tooltip label="Bytes transferred"/>
+        </q-badge>
+        <q-badge class="q-ml-sm shadow-1" color="warning" v-show="cnterrors">
+          {{cnterrors}}
           <tooltip label="Bytes transferred"/>
         </q-badge>
       </q-item-label>
@@ -35,17 +39,17 @@
     </q-item-section>
     <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
     <q-item-section side v-if="isDismissible">
-      <q-btn flat round icon="close" color="red" size="xs" @click.stop="$emit('destroy')"/>
+      <q-btn flat round icon="close" color="red" size="xs" @click.stop="deleted = true"/>
     </q-item-section>
     <q-item-section side v-if="isCancelable">
-      <q-btn flat round icon="stop" color="red" size="xs" @click.stop="stop"/>
+      <q-btn flat round icon="stop" color="red" size="xs" @click.stop="cancel"/>
     </q-item-section>
   </q-item>
 </template>
 
 <script>
 import { bKit } from 'src/helpers/bkit'
-import { stop } from 'src/helpers/bash'
+import { killtree } from 'src/helpers/bash'
 import tooltip from 'src/components/tooltip'
 
 const formatBytes = (bytes, decimal = 2) => {
@@ -90,13 +94,14 @@ export default {
       devices: new Counter(),
       phase: undefined,
       phasemsg: '',
-      fullpath: undefined,
       status: undefined,
       error: null,
+      cnterrors: 0,
       currentline: '',
       process: undefined,
       pid: null,
       dequeued: () => null,
+      deleted: false
       dryrun: false
     }
   },
@@ -138,9 +143,9 @@ export default {
   },
   methods: {
     formatBytes,
-    stop () {
+    cancel () {
       if (this.pid) {
-        stop(this.pid)
+        killtree(this.pid)
           .then(() => { this.pid = undefined })
           .catch(err => console.error(err))
       }
@@ -149,7 +154,7 @@ export default {
         console.log('Dequeued')
         this.dequeued()
       }
-      // this.$emit('destroy', this.path)
+
       this.status = 'Canceled'
     },
     sent ({
@@ -208,26 +213,25 @@ export default {
         start: ({ pid }) => {
           this.status = 'Starting'
           this.pid = pid
-          console.log('Starting with pid ', pid)
+          console.log('Starting with pid', pid)
         },
         enqueued: (item) => {
           this.status = 'Enqueued'
           this.dequeued = item.dismiss
         },
-        oncespawn: (p) => {
-          console.log('Launching', p)
-          // rl.write(null, { ctrl: true, name: 'c' })
-          // rl.close()
-          p.stdin.write('\x03')
+        oncespawn: () => {
           this.status = 'Launching'
-          this.process = p
+        },
+        stderr: (line) => {
+          this.currentline = line
+          this.cnterrors++
         }
       }).then(code => {
-        console.log('Backup End Code', code)
+        console.log('Backup Done with code', code)
         this.done(this.path)
       }).catch(e => {
-        this.error = e
         console.error('Backup catch error', e, this.path)
+        this.error = e
       })
     }
   },
