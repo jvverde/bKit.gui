@@ -15,7 +15,7 @@ const queue4Local = new QueueByKey() // This is intend to queue local request
 const defaultQueue = new QueueByKey() // To be used for everything else
 
 // Enqueue bash scripts
-export function enqueue2bash (name, args, events = {}, queue = defaultQueue) {
+export function enqueue2bash (name, args = [], events = {}, queue = defaultQueue) {
   if (events instanceof Queue) {
     queue = events
     events = {}
@@ -45,7 +45,12 @@ export async function* listLocalDisks () {
 }
 
 export async function getServer () {
-  return enqueue2bash('./server.sh', [], queue4Local)
+  const servers = await enqueue2bash('./server.sh')
+  return servers[0]
+}
+
+export async function listServers () {
+  return enqueue2bash('./listservers.sh')
 }
 
 export async function getSize (path) {

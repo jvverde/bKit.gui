@@ -61,6 +61,17 @@
             </router-link>
           </q-item-section>
         </q-item>
+        <q-item clickable>
+          <q-item-section avatar>
+            <q-icon color="primary" name="backup" />
+          </q-item-section>
+          <q-item-section>
+            <router-link tag="span" to="/servers">
+              <q-item-label>Servers</q-item-label>
+              <q-item-label caption>Manage Servers</q-item-label>
+            </router-link>
+          </q-item-section>
+        </q-item>
         <q-item clickable @click="terminal">
           <q-item-section avatar>
             <q-icon color="primary" name="fas fa-terminal" />

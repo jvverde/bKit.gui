@@ -6,7 +6,8 @@ const routes = [
     children: [
       {
         path: '',
-        component: () => import('pages/HomePage.vue')
+        component: () => import('pages/HomePage.vue'),
+        name: 'Home'
       },
       {
         path: 'restore',
@@ -17,6 +18,11 @@ const routes = [
         path: 'backup',
         component: () => import('pages/backup/BackupPage.vue'),
         name: 'Backup'
+      },
+      {
+        path: 'servers',
+        component: () => import('pages/servers.vue'),
+        name: 'Servers'
       }
       /*,
       {
