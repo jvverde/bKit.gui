@@ -12,7 +12,9 @@
         />
 
         <q-toolbar-title>
-          bKit at {{server}}
+          <span v-if="server">
+            bKit at {{server}}
+          </span>
         </q-toolbar-title>
 
         <div>{{user}}@{{hostname}} | v{{version}}</div>
@@ -63,7 +65,7 @@
         </q-item>
         <q-item clickable>
           <q-item-section avatar>
-            <q-icon color="primary" name="backup" />
+            <q-icon color="primary" name="storage" />
           </q-item-section>
           <q-item-section>
             <router-link tag="span" to="/servers">
@@ -94,9 +96,17 @@
     </q-drawer>
 
     <q-page-container class="bkit-container">
-      <keep-alive>
+      <keep-alive v-if="server || $route.name === 'Servers'">
         <router-view/>
       </keep-alive>
+      <q-page v-else padding class="relative flex flex-center" style="height:100vh;width:100vw">
+        <div class="absolute-center column flex-center">
+          <img alt="bKit logo" src="~assets/logotipo.svg"
+            @click="$router.push('/servers')"
+            style="width:50%;height:50%;cursor:pointer">
+          <div>Please select a server on left menu</div>
+        </div>
+      </q-page>
     </q-page-container>
   </q-layout>
 </template>
@@ -121,19 +131,29 @@ export default {
       leftDrawerOpen: false,
       user: user(),
       version: app.getVersion(),
-      hostname: os.hostname(),
-      server: ''
+      hostname: os.hostname()
+    }
+  },
+  computed: {
+    server: {
+      get () {
+        return this.$store.state.global.server
+      },
+      set (server) {
+        this.$store.commit('global/setServer', server)
+      }
     }
   },
   mounted () {
-    getServer()
-      .then(data => {
-        console.log('Server:', data)
-        const name = data instanceof Array ? data[0] : `${data}`
-        this.server = name
-      })
+    this.getServer()
   },
   methods: {
+    getServer () {
+      getServer()
+        .then(server => {
+          this.server = server
+        })
+    },
     terminal () {
       console.log('open a shell')
       shell()

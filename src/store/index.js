@@ -13,11 +13,12 @@ Vue.use(Vuex)
  * async/await or return a Promise which resolves
  * with the Store instance.
  */
+import global from './global'
 
 export default function (/* { ssrContext } */) {
   const Store = new Vuex.Store({
     modules: {
-      // example
+      global
     },
 
     // enable strict mode (adds overhead!)

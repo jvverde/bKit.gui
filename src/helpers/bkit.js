@@ -48,7 +48,10 @@ export async function getServer () {
   const servers = await enqueue2bash('./server.sh')
   return servers[0]
 }
-
+export async function changeServer (server) {
+  const servers = await enqueue2bash('./server.sh', ['-s', server])
+  return servers[0]
+}
 export async function listServers () {
   return enqueue2bash('./listservers.sh')
 }
