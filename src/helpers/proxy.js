@@ -1,5 +1,10 @@
 'use strict'
+import { Store } from 'src/store'
+
+const server = () => Store.getters['global/server']
+
 const deepclone = require('lodash.clonedeep')
+
 function deepFreeze (object) {
   // Retrieve the property names defined on object
   var propNames = Object.getOwnPropertyNames(object)
@@ -46,7 +51,7 @@ export default function proxyIt (fn, { cache = _global, name = 'default' }) {
         args.splice(index, 1)
       }
 
-      const key = target.name + args.join('')
+      const key = [target.name, server(), ...args].flat().join('|')
 
       if (index >= 0) {
         console.log(target.name, 'Invalidate Cache for key ', key)

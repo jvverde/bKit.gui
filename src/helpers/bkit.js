@@ -1,10 +1,11 @@
 // let wsList = {}
 'use strict'
 import { bash, asyncInvokeBash } from './bash'
+import { Store } from 'src/store'
 
 const path = require('path')
 const nill = () => null
-
+const server = () => Store.getters['global/server']
 // asyncInvokeBash('./listdisks.sh', [])
 //  .then(disk => console.log('RVID:', disk))
 
@@ -20,7 +21,8 @@ export function enqueue2bash (name, args = [], events = {}, queue = defaultQueue
     queue = events
     events = {}
   }
-  const key = name + args.join('')
+  const key = [name, ...args, server()].join('|')
+  console.log('Key for enqueue2bash', key)
   return queue.enqueue(() => asyncInvokeBash(name, args, events), key)
 }
 // enqueue2bash('./listdisks.sh', [])
@@ -77,7 +79,7 @@ const backupQueue = new Queue() // Dedicated queue for restore requests
 // Enqueue  scripts
 function _Queue (name, args, events = {}, queue = restoreQueue) {
   const { enqueued = nill } = events
-  const key = Date.now() + Math.random().toString(36).slice(1)
+  const key = Date.now() + Math.random().toString(36).slice(1) + server()
   enqueued({
     dismiss: () => queue.dismiss(key),
     position: () => queue.position(key)
@@ -380,7 +382,7 @@ export async function listDir4Snap (path, snap, rvid, {
   args = [],
   queue = listdirQueue
 } = {}) {
-  const key = rvid + path + args.join('')
+  const key = rvid + path + args.join('') + server()
   args = [`--rvid=${rvid}`, ...args]
   if (snap) args.push(`--snap=${snap}`)
   const promise = () => listDirs(path, args) // A future promise as required by queue.enqueue
@@ -392,7 +394,7 @@ export async function diffList4Snap (path, snap, {
   queue = dkitQueue,
   invalidateCache = false
 } = {}) {
-  const key = path + args.join('')
+  const key = path + args.join('') + server()
   if (snap) args.push(`--snap=${snap}`)
   if (invalidateCache) {
     // In this case it needs to go directly to the proxy/cache to invalidade it
@@ -425,7 +427,7 @@ export async function diffLastDir (path, snap, {
   queue = queue4last,
   invalidateCache = false
 } = {}) {
-  const key = 'diffLastDir'
+  const key = 'diffLastDir' + server()
   if (snap) args.push(`--snap=${snap}`)
   if (invalidateCache) {
     // In this case it needs to go directly to the proxy/cache to invalidade it

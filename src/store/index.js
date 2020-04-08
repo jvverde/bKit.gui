@@ -15,16 +15,28 @@ Vue.use(Vuex)
  */
 import global from './global'
 
-export default function (/* { ssrContext } */) {
-  const Store = new Vuex.Store({
-    modules: {
-      global
-    },
+// From https://forum.quasar-framework.org/topic/4276/how-to-use-vuex-store-without-access-to-vue-instance/2
+// Don't if this is a SSR
+export const Store = new Vuex.Store({
+  modules: {
+    global
+  },
 
-    // enable strict mode (adds overhead!)
-    // for dev mode only
-    strict: process.env.DEV
-  })
+  // enable strict mode (adds overhead!)
+  // for dev mode only
+  strict: process.env.DEV
+})
+
+export default function (/* { ssrContext } */) {
+  // const Store = new Vuex.Store({
+  //   modules: {
+  //     global
+  //   },
+
+  //   // enable strict mode (adds overhead!)
+  //   // for dev mode only
+  //   strict: process.env.DEV
+  // })
 
   return Store
 }

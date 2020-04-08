@@ -1,6 +1,6 @@
 <template>
   <q-page padding class="relative">
-    <q-list padding class="absolute-center" style="min-width:25em">
+    <q-list padding class="absolute-center" style="min-width:20em">
       <q-item>
         <q-item-section>
           <q-item-label>Change to bKit server:</q-item-label>
@@ -20,14 +20,24 @@
 
       <q-item>
         <q-item-section>
-          <q-input rounded outlined dense
+          <q-input rounded outlined dense clearable
+            @keyup.enter="add"
+            @keydown.tab="add"
             type="url"
             v-model="newserver"
+            :loading="loading"
+            :error="!!error"
+            :error-message="`Server '${newserver}' not found`"
+            @clear="error=false"
             placeholder="IP Address or Server Name"
             hint="Address of a bKit server"
             label="Add Server">
-            <template v-slot:after>
-              <q-btn flat icon="add" no-caps stack label="Connect"/>
+            <template v-slot:append>
+              <q-btn outline icon="add" no-caps stack
+                @click="add"
+                size="xs"
+                round
+                color="green"/>
             </template>
           </q-input>
         </q-item-section>
@@ -38,6 +48,7 @@
 
 <script>
 import { listServers, getServer, changeServer } from 'src/helpers/bkit'
+import { warn } from 'src/helpers/notify'
 
 export default {
   name: 'Servers',
@@ -45,7 +56,14 @@ export default {
     return {
       current: undefined,
       newserver: undefined,
+      loading: false,
+      error: false,
       servers: []
+    }
+  },
+  watch: {
+    current (val) {
+      console.log('Current', val)
     }
   },
   methods: {
@@ -54,6 +72,20 @@ export default {
     },
     change (server) {
       changeServer(server).then(() => this.reload())
+    },
+    add () {
+      if (!this.newserver) return
+      this.error = null
+      this.loading = true
+      changeServer(this.newserver)
+        .then(() => this.reload())
+        .catch(err => {
+          this.error = err
+          warn(err)
+        })
+        .finally(() => {
+          this.loading = false
+        })
     },
     reload () {
       listServers()
