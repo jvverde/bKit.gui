@@ -1,6 +1,6 @@
 <template>
   <div class="bkit-explorer relative-position">
-    <q-toolbar class="bkit-toolbar" v-if="rvid">
+    <q-toolbar class="bkit-toolbar justify-center" v-if="rvid">
       <keep-alive>
         <snaps :rvid="rvid" :snap.sync="snap" ref="snaps"></snaps>
       </keep-alive>
@@ -122,7 +122,7 @@ export default {
       loading: false,
       currentFiles: [],
       invalidateCache: false,
-      eventdate: Date.now(),
+      diskEvent: '',
       root: { isdir, isroot, path, onbackup },
       snap: undefined
     }
@@ -142,53 +142,55 @@ export default {
     tree,
     item
   },
+  computed: {
+    isReady2Show () {
+      return this.snap !== undefined || !this.rvid
+    },
+    steps () {
+      const rel = relative(this.mountpoint, this.currentPath)
+      return this.currentPath !== '' ? `${rel}`.split(sep) : []
+    },
+    drive () {
+      return this.mountpoint.replace(/[\\/]+$/, '')
+    },
+    token () {
+      // token depends on snap, rvid, current path and any diskevent
+      return [this.snap, this.rvid, this.currentPath, this.diskEvent].join('|')
+    }
+  },
   watch: {
-    token: async function () {
-      console.log('Token', this.token)
-      if (this.rvid && !this.snap) return
+    token (val, old) {
+      console.log('TOKEN O', old)
+      console.log('TOKEN V', val)
+      if (this.rvid && this.snap === undefined) return // Don't refresh yet. Wait until snaps has retrieved
       this.refresh(this.currentPath)
     },
-    currentPath: async function (dir, oldir) {
-      // console.log(`${this.currentPath} [${oldir} => ${dir}]`)
-      this.currentFiles = []
-      this.eventdate = Date.now()
-      // this.refresh(dir)
-      if (this.mountpoint) { // only if is a local drive/disk
-        if (this.watcher) {
-          await this.watcher.close()
-          this.watcher.add(dir)
-        } else {
-          this.watcher = chokidar.watch(dir, chokidarOptions)
+    currentPath: {
+      immediate: true,
+      async handler (dir, oldir) {
+        this.currentFiles = []
+        if (this.mountpoint) { // only if is a local drive/disk
+          if (this.watcher) {
+            await this.watcher.close()
+            this.watcher.add(dir)
+          } else {
+            this.watcher = chokidar.watch(dir, chokidarOptions)
+          }
+          this.watcher.on('all', (event, path) => {
+            this.diskEvent = [event, path].join('|')
+            console.log('Event', this.diskEvent)
+            this.invalidateCache = true
+          })
         }
-        this.watcher.on('all', (event, path) => {
-          this.eventdate = Date.now()
-          this.invalidateCache = true
-          // this.refresh(dir)
-        })
       }
     },
     snap: function () {
       // this.currentFiles = []
     }
   },
-  computed: {
-    isReady2Show: function () {
-      return this.snap || !this.rvid
-    },
-    steps: function () {
-      const rel = relative(this.mountpoint, this.currentPath)
-      return this.currentPath !== '' ? `${rel}`.split(sep) : []
-    },
-    drive: function () {
-      return this.mountpoint.replace(/[\\/]+$/, '')
-    },
-    token () {
-      const r = Math.random().toString(36).substring(2)
-      return [this.currentPath, this.snap, this.rvid, this.eventdate, r].join('')
-    }
-  },
   mounted () {
-    this.show(this.mountpoint)
+    // this.show(this.mountpoint)
+    // console.log('mountpoint', this.mountpoint)
   },
   methods: {
     usesnap (snap) {
@@ -196,7 +198,7 @@ export default {
     },
     stepto (index) {
       const fullpath = join(this.mountpoint, this.steps.slice(0, index).join('/'))
-      console.log('go to', fullpath)
+      console.log('Go to', fullpath)
       this.show(fullpath)
     },
     show (fullpath) {
@@ -229,6 +231,7 @@ export default {
       })
     },
     async load (fullpath) {
+      console.log('LOAD', fullpath)
       if (!this.mountpoint || !fs.existsSync(fullpath)) return
       this.loading = 'Reading local disk'
       for await (const entry of readdir(fullpath)) {

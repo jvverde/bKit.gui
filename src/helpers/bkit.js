@@ -14,6 +14,7 @@ import Queue, { QueueLast, QueueByKey } from './queue'
 const queue4Remote = new QueueByKey() // This is intend to queue remote request
 const queue4Local = new QueueByKey() // This is intend to queue local request
 const defaultQueue = new QueueByKey() // To be used for everything else
+import { exclusiveProxy, invalidateCacheObj } from './proxy' // Get an exclusive proxy as well a invalidate cache object
 
 // Enqueue bash scripts
 export function enqueue2bash (name, args = [], events = {}, queue = defaultQueue) {
@@ -22,13 +23,9 @@ export function enqueue2bash (name, args = [], events = {}, queue = defaultQueue
     events = {}
   }
   const key = [name, ...args, server()].join('|')
-  console.log('Key for enqueue2bash', key)
+  // console.log('Key for enqueue2bash', key)
   return queue.enqueue(() => asyncInvokeBash(name, args, events), key)
 }
-// enqueue2bash('./listdisks.sh', [])
-//  .then(disk => console.log('ENQUED RVID:', disk))
-
-import { exclusiveProxy, InvalidateCache } from './proxy'
 
 // Proxy (via to Queue) to Bash
 const proxy2Q2bash = exclusiveProxy(enqueue2bash, { size: 50, name: 'bash' })
@@ -319,11 +316,9 @@ async function _dKit (path, ...args) {
 
 const pDKit = exclusiveProxy(_dKit, { size: 50, name: 'dkit' })
 
-const _invalidateCache = new InvalidateCache()
-
 export async function dKit (path, args, { invalidateCache = false } = {}) {
   if (invalidateCache) {
-    return pDKit(path, ...args, _invalidateCache)
+    return pDKit(path, ...args, invalidateCacheObj)
   } else {
     return pDKit(path, ...args)
   }
@@ -367,7 +362,15 @@ export async function getVersions (path, ...args) {
 /* ---------------------listSnaps--------------------- */
 const qListSnaps = new QueueByKey()
 export async function listSnaps (rvid, events = {}) {
-  return enqueue2bash('./listsnaps.sh', [`--rvid=${rvid}`], events, qListSnaps)
+  const { stderr = (err) => {
+    // rsync: link_stat "/C.2689075C.OS.3.NTFS/.snapshots/@GMT-*" (in SRPT.WIN10.0586AEB1-C5C9-4790-95FE-4591160EE0FA.user.jvv) failed: No such file or directory (2)
+    console.warn(`listSnaps Error: ${err}`)
+    const error = `${err}`
+    const match = error.match(/rsync: link_stat ".+" \(in .+\) failed: No such file or directory/)
+    if (match) return 'stop'
+    else return undefined
+  } } = events
+  return enqueue2bash('./listsnaps.sh', [`--rvid=${rvid}`], { ...events, stderr }, qListSnaps)
 }
 
 /* *************************** A 2nd-level queue *************************** */

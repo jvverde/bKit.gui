@@ -11,8 +11,12 @@
       :expand-icon-class="isdir ? 'expandicon' : 'noexpandicon'">
       <template v-slot:header> <!-- this is the header line template -->
 
-        <q-item-section side>
-          <q-icon :name="leaf ? 'description' : open ? 'folder_open' : 'folder'" color="bkiticoncolor"/>
+        <q-item-section side v-if="leaf">
+          <q-icon name="description" color="bkiticoncolor"/>
+        </q-item-section>
+
+        <q-item-section side v-else @click.stop="see">
+          <q-icon :name="open ? 'folder_open' : 'folder'" color="bkiticoncolor"/>
         </q-item-section>
 
         <q-item-section side>
@@ -26,9 +30,11 @@
           />
         </q-item-section>
 
-        <q-item-section no-wrap :class="{ isSelected: isSelected }" @click.stop="see">
+        <q-item-section no-wrap :class="{ isSelected: isSelected }">
           <q-item-label class="ellipsis">
-            {{name}}
+            <span :class="{ wasDeleted: wasdeleted }" @click.stop="see">
+              {{name}}
+            </span>
             <q-icon name="done" color="green" v-if="isUpdate"/>
             <q-icon name="call_merge" color="teal-3" v-else-if="wasmodified"/>
             <q-icon name="arrow_upward" color="amber" v-else-if="isnew"/>
@@ -414,6 +420,9 @@ export default {
 <style scoped lang="scss">
   .isSelected {
     color:$primary;
+  }
+  .wasDeleted {
+    text-decoration: line-through;
   }
 </style>
 

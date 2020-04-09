@@ -36,6 +36,8 @@ class CacheException extends Error {
 export class InvalidateCache {
 }
 
+export const invalidateCacheObj = new InvalidateCache()
+
 const _global = new LRUcache(10)
 
 export default function proxyIt (fn, { cache = _global, name = 'default' }) {

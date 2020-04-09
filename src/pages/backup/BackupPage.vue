@@ -15,8 +15,8 @@
         active-color="amber">
         <q-tab
           v-for="disk in disks"
-          :key="disk.uuid"
-          :name="disk.uuid"
+          :key="disk.id"
+          :name="disk.id"
           :ripple="{ early: true, color: 'indigo'}"
           icon="far fa-hdd"
           :style="{ color: color(disk) }"
@@ -43,10 +43,10 @@
         <q-tab-panels v-model="disktab" animated keep-alive class="bkit-panels">
           <q-tab-panel
             class="bkit-panel"
-            :name="disk.uuid"
+            :name="disk.id"
             v-for="disk in disks"
-            :key="disk.uuid">
-              <localexplorer v-bind="disk" @backup="backup" @restore="restore" @recover="recover"/>
+            :key="disk.id">
+              <explorer v-bind="disk" @backup="backup" @restore="restore" @recover="recover"/>
           </q-tab-panel>
         </q-tab-panels>
         <q-inner-loading :showing="loading">
@@ -76,7 +76,7 @@
 
 <script>
 
-import localexplorer from './components/localExplorer'
+import explorer from './components/Explorer'
 import restore from './components/Restore'
 import backup from './components/Backup'
 import { listDisksOnBackup, listLocalDisks } from 'src/helpers/bkit'
@@ -120,7 +120,7 @@ export default {
     }
   },
   components: {
-    localexplorer,
+    explorer,
     restore,
     backup
   },
@@ -153,9 +153,9 @@ export default {
       for await (const rvid of listDisksOnBackup()) {
         console.log('RVID:', rvid)
         const [letter, uuid, label] = rvid.split('.')
-        const index = this.disks.findIndex(e => e.uuid === uuid)
+        const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label)
         if (index >= 0) {
-          const updatedisk = { ...this.disks[index], rvid, letter, present: true }
+          const updatedisk = { ...this.disks[index], rvid, letter, present: true, id: rvid }
           this.disks.splice(index, 1, updatedisk) // as requested by Vue reactiveness
         } else {
           this.disks.push({ name: letter, rvid, uuid, label, letter, mountpoint: undefined, present: false })
@@ -167,7 +167,7 @@ export default {
         console.log('Local disk', disk)
         const [mountpoint, label, uuid, fs] = disk.split(/\|/)
         const name = mountpoint
-        this.disks.push({ name, mountpoint, label, uuid, fs })
+        this.disks.push({ name, mountpoint, label, uuid, fs, id: disk })
       }
     },
     restore (resource) {

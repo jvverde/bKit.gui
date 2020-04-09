@@ -17,9 +17,13 @@
       </section>
     </transition-group>
     <q-btn round flat icon="sync" color="positive" size="xs"
+      v-if="currentSnap"
       style="margin:auto 0"
       @click.stop="reload()"
       :disable="loading"/>
+    <span v-else-if="!loading">
+      No snapshots yet
+    </span>
     <q-inner-loading :showing="loading">
       <q-spinner-facebook color="primary" size="40px"/>
     </q-inner-loading>
@@ -49,7 +53,7 @@ export default {
     },
     snap: {
       type: String,
-      default: ''
+      default: undefined
     }
   },
   computed: {
@@ -68,8 +72,11 @@ export default {
   },
   methods: {
     select (index) {
-      this.currentSnap = this.snaps[index].id
-      // this.$emit('usesnap', this.currentSnap, this.rvid)
+      if (index >= 0) {
+        this.currentSnap = this.snaps[index].id
+      } else {
+        this.currentSnap = null
+      }
     },
     load_snaps () {
       this.snaps.splice(0, this.snaps.length) // empty snaps
@@ -87,7 +94,7 @@ export default {
         }
       }).then(code => {
         this.loading = false
-        if (this.snaps.length > 0) this.select(this.snaps.length - 1)
+        this.select(this.snaps.length - 1)
         console.log(`Script listsnaps ends with code code ${code}`)
       })
     }

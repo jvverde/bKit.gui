@@ -77,13 +77,13 @@ function invokeBash (name, args, events = {}, done = nill) {
   fd.stderr.on('data', err => {
     const error = `${err}`
     const result = stderr(error)
-    if (result === 'stop') {
-      done()
-      done = nill
-      fd.kill()
+    if (result === 'stop') { // if receive a stop from upper layers
+      done() // send a empty done
+      done = nill // and disable aditional dones
+      fd.kill() // also kill the process
     }
   })
-  oncespawn(fd, rl)
+  oncespawn(fd)
 }
 
 export function bash (scriptname, args, {
