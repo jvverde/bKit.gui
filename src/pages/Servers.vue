@@ -17,7 +17,6 @@
           <q-item-label>{{server}}</q-item-label>
         </q-item-section>
       </q-item>
-
       <q-item>
         <q-item-section>
           <q-input rounded outlined dense clearable
@@ -35,6 +34,7 @@
             <template v-slot:append>
               <q-btn outline icon="add" no-caps stack
                 @click="add"
+                v-if="!error"
                 size="xs"
                 round
                 color="green"/>
@@ -43,6 +43,9 @@
         </q-item-section>
       </q-item>
     </q-list>
+    <q-inner-loading :showing="loading">
+      <q-spinner-ios size="6em" color="amber"/>
+    </q-inner-loading>
   </q-page>
 </template>
 

@@ -205,7 +205,7 @@ export default {
       this.currentPath = fullpath
     },
     updateCurrentFiles (entry) {
-      entry.verified = this.token
+      entry.token = this.token
       const currentFiles = this.currentFiles
       const index = currentFiles.findIndex(e => e.path === entry.path)
       if (index >= 0) {
@@ -216,10 +216,10 @@ export default {
       }
       currentFiles.sort(compare)
     },
-    rmUnverified () {
+    cleanup () {
       let i = this.currentFiles.length
       while (i--) {
-        if (this.currentFiles[i].verified !== this.token) {
+        if (this.currentFiles[i].token !== this.token) {
           this.currentFiles.splice(i, 1) // remove it from list
         }
       }
@@ -242,10 +242,12 @@ export default {
       this.loading = false
     },
     async refresh (fullpath) {
+      if (!fullpath) return
       await this.load(fullpath)
       await this.readDirOnBackup(fullpath)
       await this.comparedir(fullpath)
-      this.rmUnverified()
+      this.markFiltered()
+      this.cleanup()
     },
     async comparedir (fullpath) {
       const { snap, path, mountpoint, rvid } = this
@@ -260,7 +262,6 @@ export default {
             entry.checked = true
             if (this.currentPath === fullpath) this.updateCurrentFiles(entry)
           })
-          this.markFiltered()
           this.invalidateCache = false
         })
         .catch(err => {
