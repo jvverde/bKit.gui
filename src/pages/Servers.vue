@@ -24,7 +24,7 @@
             @keydown.tab="add"
             type="url"
             v-model="newserver"
-            :loading="loading"
+            :loading="adding"
             :error="!!error"
             :error-message="`Server '${newserver}' not found`"
             @clear="error=false"
@@ -60,6 +60,7 @@ export default {
       current: undefined,
       newserver: undefined,
       loading: false,
+      adding: false,
       error: false,
       servers: []
     }
@@ -80,7 +81,7 @@ export default {
     add () {
       if (!this.newserver) return
       this.error = null
-      this.loading = true
+      this.adding = true
       changeServer(this.newserver)
         .then(() => this.reload())
         .catch(err => {
@@ -88,20 +89,23 @@ export default {
           warn(err)
         })
         .finally(() => {
-          this.loading = false
+          this.adding = false
         })
     },
     reload () {
-      listServers()
+      this.loading = true
+      const p1 = listServers()
         .then(servers => {
           this.servers = servers
         })
 
-      getServer()
+      const p2 = getServer()
         .then(server => {
           this.current = server
           this.$store.commit('global/setServer', server)
         })
+      return Promise.all([p1, p2])
+        .finally(() => (this.loading = false))
     }
   },
   mounted () {
