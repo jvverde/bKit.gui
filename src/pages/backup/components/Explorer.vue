@@ -44,7 +44,7 @@
       <template v-slot:after>
         <div>
           <transition name="loading">
-            <div v-show="loading" class="row justify-center relative-position">
+            <div v-show="loading" class="bkit-loading row justify-center relative-position">
               <q-spinner-ios color="amber" class="q-my-md"/>
               <div class="q-my-md q-ml-xs">{{loading}}...</div>
             </div>
@@ -251,7 +251,7 @@ export default {
     },
     async comparedir (fullpath) {
       const { snap, path, mountpoint, rvid } = this
-      if (!fs.existsSync(fullpath || !rvid || this.currentPath !== fullpath)) return
+      if (!fs.existsSync(fullpath) || !rvid || !snap || this.currentPath !== fullpath) return
       this.loading = 'Comparing with backup'
       const invalidateCache = this.invalidateCache
       return diffLastDir(fullpath, snap, { invalidateCache })
@@ -275,12 +275,12 @@ export default {
     },
     async readDirOnBackup (fullpath) {
       const { snap, rvid, path, mountpoint, currentFiles } = this
-      if (!rvid || this.currentPath !== fullpath) {
-        // only if it still the current path and a Remote Volume (rvid) exists
-        currentFiles.forEach(e => {
+      // Only if it still the current path and a Remote Volume (rvid) and snap exists
+      // Otherwise mark is as checked and return
+      if (!rvid || !snap || this.currentPath !== fullpath) {
+        return currentFiles.forEach(e => {
           e.checked = e.nobackup = true
-        }) // mark files as cheched,
-        return
+        }) // mark files as cheched and with no backup
       }
       // console.log(`Check ${fullpath} status on server`)
 
@@ -372,11 +372,15 @@ export default {
       }
     }
   }
+  .bkit-loading {
+    height: 3em;
+  }
   .loading-leave-active {
-    transition: margin-top .6s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+    /* transition: margin-top .6s cubic-bezier(1.0, 0.5, 0.8, 1.0); */
+    transition: margin-top .6s ease-in-out;
     opacity: 0;
   }
   .loading-leave-to {
-    margin-top: -2em;
+    margin-top: -3em;
   }
 </style>

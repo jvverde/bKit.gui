@@ -187,7 +187,7 @@ export default {
       }
     },
     isloading () {
-      return this.loading !== 0
+      return this.loading
     },
     isdir () {
       return this.entry.isdir
@@ -219,8 +219,7 @@ export default {
     wasmodified () { return this.onbackup && this.onlocal && !!this.entry.wasmodified },
     isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified },
     token () {
-      const r = Math.random().toString(36).substring(2)
-      return [this.path, this.snap, this.rvid, this.eventdate, r].join('')
+      return [this.path, this.snap, this.rvid, this.eventdate].join('|')
     }
   },
   watch: {
@@ -281,13 +280,10 @@ export default {
     },
     async diffDir () {
       const { invalidateCache, snap, rvid, path, isdir, mountpoint, updateChildrens } = this
-      if (!rvid || !isdir) return
-      // Tt doesn't make any sense unless it is a dir and a remote volume ID (rvid) exists
-      if (!mountpoint || !fs.existsSync(path)) return
+      if (!rvid || !snap || !isdir || !mountpoint || !fs.existsSync(path)) return
+      // It doesn't make any sense unless it is a dir and a remote volume ID (rvid) exists
       // As well it only make sense if dir exists localy on the corresponding disk
       // console.log('diffDir', path)
-
-      this.loading++
 
       return diffList4Snap(path, snap, { invalidateCache })
         .then(entries => {
@@ -307,15 +303,13 @@ export default {
             console.error('Catch in diffList4Snap', err.name, err.message, err)
           }
         })
-        .finally(() => this.loading--)
     },
     async readDirOnBackup () {
       const { snap, rvid, path, isdir, mountpoint, updateChildrens, onbackup } = this
-      if (!isdir || !onbackup) return
+      if (!isdir || !onbackup || !rvid || !snap) return
       // Only read backups dir if it is a directory and itself is on backup
 
       // console.log('readDirOnBackup', path)
-      this.loading++
 
       let mountRelative = mountpoint ? relative(mountpoint, path) : path
       mountRelative = slash(posix.normalize(`/${mountRelative}/`))
@@ -335,10 +329,9 @@ export default {
             console.error('Catch in listDir4Snap', err.name, err.message, err)
           }
         })
-        .finally(() => this.loading--)
     },
     updateChildrens (entry) {
-      entry.verified = this.token
+      entry.token = this.token
       entry.isfiltered = undefined
       const childrens = this.childrens
       const index = childrens.findIndex(e => e.path === entry.path)
@@ -353,26 +346,26 @@ export default {
     markAsUnverified () {
       this.childrens.forEach(c => {
         c.wasmodified = c.isnew = c.wasdeleted = c.onbackup = undefined
-        if (!c.onlocal) c.verified = false
+        if (!c.onlocal) c.token = undefined
       })
     },
     rmUnverifield () {
       let i = this.childrens.length
       while (i--) {
         if (this.childrens[i].onlocal) continue // local files should never be removed
-        if (this.childrens[i].verified !== this.token) {
+        if (this.childrens[i].token !== this.token) {
           this.childrens.splice(i, 1) // remove it from list
         }
       }
     },
     markFiltered () {
+      if (!this.rvid || !this.snap) return // Don't make sense if there is no snaps available
       this.childrens.filter(e => (e.onlocal && !e.onbackup && !e.isnew)).forEach(e => {
         e.isfiltered = true
       })
     },
     async checkDirOnBackup () {
       if (!this.isdir) return
-      // console.log('checkDirOnBackup', this.path)
       this.markAsUnverified()
       await this.diffDir() // This only give diferences between local and remote. It doesn't include the deleted ones
       await this.readDirOnBackup() // This give us all files on remote dir. The diference will be the deleted ones
@@ -382,23 +375,22 @@ export default {
     async readdir () {
       if (!this.mountpoint || !fs.existsSync(this.path) || !this.isdir) return
       // Only if directory exists on local disk and it correspond to the backup
-      this.loading = true
       for await (const entry of readdir(this.path)) {
         entry.selected = this.selected // inherit select status from parent
         this.updateChildrens(entry)
       }
-      this.loading = false
     },
     async opendir () {
       if (!this.isdir) return
       this.childrens = []
-      await this.readdir()
-      await this.checkDirOnBackup()
-      this.loaded = true // Remember that is load and allow avoid reload again
+      await this.refresh()
+      this.loaded = true // Remember that is load to avoid reload again
     },
     async refresh () {
+      this.loading = true
       await this.readdir()
       await this.checkDirOnBackup()
+      this.loading = false
     }
   },
   mounted () {
