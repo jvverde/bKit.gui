@@ -62,8 +62,8 @@ export default {
     }
   },
   watch: {
-    current (val) {
-      console.log('Current', val)
+    current (value, oldvalue) {
+      if (oldvalue && value) this.$router.push('/backup')
     }
   },
   methods: {
@@ -71,7 +71,8 @@ export default {
       return server === this.current ? 'green' : 'cyan'
     },
     change (server) {
-      changeServer(server).then(() => this.reload())
+      changeServer(server)
+        .then(() => this.reload())
     },
     add () {
       if (!this.newserver) return

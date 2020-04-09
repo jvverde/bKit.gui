@@ -108,6 +108,15 @@ export default {
       set: function (val) {
         this.mark = 100 - val
       }
+    },
+    server () {
+      return this.$store.state.global.server
+    }
+  },
+  watch: {
+    server () {
+      this.disks = []
+      this.load()
     }
   },
   components: {
@@ -178,13 +187,16 @@ export default {
     destroy_backup (index) {
       this.backups.splice(index, 1)
       console.log('Destroy', index, this.backups)
+    },
+    async load () {
+      this.loading = true
+      await this.getLocalDisks()
+      await this.getDisksOnBackup()
+      this.loading = false
     }
   },
-  async mounted () {
-    this.loading = true
-    await this.getLocalDisks()
-    await this.getDisksOnBackup()
-    this.loading = false
+  mounted () {
+    this.load()
   }
 }
 </script>
