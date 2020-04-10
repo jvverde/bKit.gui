@@ -111,8 +111,6 @@ let download = app.getPath('downloads') || app.getPath('temp')
 export default {
   name: 'localexplorer',
   data () {
-    const [isdir, isroot, path] = [true, true, this.mountpoint]
-    const onbackup = !!this.rvid
     return {
       verticalSplitter: 55,
       watcher: undefined,
@@ -123,7 +121,6 @@ export default {
       currentFiles: [],
       invalidateCache: false,
       diskEvent: '',
-      root: { isdir, isroot, path, onbackup },
       snap: undefined
     }
   },
@@ -143,6 +140,12 @@ export default {
     item
   },
   computed: {
+    root () {
+      const [isdir, isroot, path] = [true, true, this.mountpoint]
+      const onbackup = !!this.snap
+      const onlocal = !!this.mountpoint
+      return { isdir, isroot, path, onbackup, onlocal }
+    },
     isReady2Show () {
       return this.snap !== undefined || !this.rvid
     },
@@ -159,9 +162,7 @@ export default {
     }
   },
   watch: {
-    token (val, old) {
-      console.log('TOKEN O', old)
-      console.log('TOKEN V', val)
+    token () {
       if (this.rvid && this.snap === undefined) return // Don't refresh yet. Wait until snaps has retrieved
       this.refresh(this.currentPath)
     },
@@ -231,7 +232,6 @@ export default {
       })
     },
     async load (fullpath) {
-      console.log('LOAD', fullpath)
       if (!this.mountpoint || !fs.existsSync(fullpath)) return
       this.loading = 'Reading local disk'
       for await (const entry of readdir(fullpath)) {
@@ -365,18 +365,10 @@ export default {
 </style>
 
 <style lang="scss">
-  .bkit-explorer{
-    .bkit-splitter {
-      .q-icon {
-        // font-size: initial;
-      }
-    }
-  }
   .bkit-loading {
     height: 3em;
   }
   .loading-leave-active {
-    /* transition: margin-top .6s cubic-bezier(1.0, 0.5, 0.8, 1.0); */
     transition: margin-top .6s ease-in-out;
     opacity: 0;
   }

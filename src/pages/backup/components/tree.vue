@@ -275,6 +275,7 @@ export default {
       }
     },
     see () {
+      if (!this.isdir) return
       this.selectedNode = this.path
       this.$emit('show', this.path)
     },
