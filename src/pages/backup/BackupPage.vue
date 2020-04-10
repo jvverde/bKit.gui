@@ -17,6 +17,7 @@
           v-for="disk in disks"
           :key="disk.id"
           :name="disk.id"
+          :disable="loading"
           :ripple="{ early: true, color: 'indigo'}"
           icon="far fa-hdd"
           :style="{ color: color(disk) }"

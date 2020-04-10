@@ -3,11 +3,11 @@
     <q-item-section>
       <q-item-label>
         <q-spinner-ios color="amber" v-if="isRunning"/>
+        <q-icon name="check" color="green" v-if="isDone"/>
         <q-icon name="warning" color="warning" v-if="error">
           <tooltip :label="error"/>
         </q-icon>
         <span>{{status}} backup of {{path}}</span>
-        <q-icon name="check" color="green" v-if="isDone"/>
         <q-badge class="q-ml-xs shadow-1" color="grey-6" v-show="files.files">
           {{files.files}}
           <q-icon name="description" color="white" class="q-ml-xs"/>

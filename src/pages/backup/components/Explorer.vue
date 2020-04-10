@@ -325,7 +325,6 @@ export default {
         buttonLabel: 'Recover to here',
         properties: ['openDirectory', 'promptToCreate']
       }).then((result) => {
-        console.log('result', result)
         if (result.filePaths instanceof Array) {
           download = result.filePaths[0]
           if (download !== null) {
