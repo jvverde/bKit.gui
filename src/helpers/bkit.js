@@ -115,26 +115,29 @@ export function rKit (path, options, rsyncoptions, events) {
     '--progress',
     '--info=PROGRESS2,STATS2,NAME2'
   ]
-  const onreadline = matchLine4rKit(events)
+  const _events = matchLine4rKit(events)
   return _kit('./rkit.sh', path, {
     options,
     rsyncoptions: [...rsyncoptions, ...specificOptions],
-    onreadline,
+    ..._events,
     queue: restoreQueue
   })
 }
 
-function matchLine4rKit ({
-  onstart = nill,
-  onfinish = nill,
-  onrecvfile = nill,
-  ontotalfiles = (n) => null,
-  ontotalsize = (val) => null,
-  onprogress = null
-} = {}) {
+function matchLine4rKit (events = {}) {
+  const {
+    onstart = nill,
+    onfinish = nill,
+    onrecvfile = nill,
+    ontotalfiles = nill,
+    ontotalsize = nill,
+    onprogress = null,
+    ...extra
+  } = events
+
   const rKitRegEx = /^"send\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
 
-  return (data) => {
+  const onreadline = (data) => {
     console.info('rKit line:', data)
     if (data.match(/^Start Restore/)) onstart(data)
     else if (data.match(/^Finish at/)) onfinish(data)
@@ -158,6 +161,7 @@ function matchLine4rKit ({
       } // inner else
     } // else
   } // anounymous function
+  return { ...extra, onreadline }
 }
 
 /* ---------------------bKit--------------------- */

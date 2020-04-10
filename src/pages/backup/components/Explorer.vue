@@ -318,7 +318,7 @@ export default {
     },
     recover (path) {
       const { snap, rvid, mountpoint } = this
-      if (!mountpoint) path = unixPath('', path)
+      path = unixPath(mountpoint, path)
       dialog.showOpenDialog({
         title: 'Where you want to recover your data',
         defaultPath: download,

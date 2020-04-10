@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { rKit, bKit } from 'src/helpers/bkit'
+import { rKit } from 'src/helpers/bkit'
 import { Resource } from 'src/helpers/types'
 
 const isDryRun = (element) => element.match(/^--dry-run/) instanceof Array
@@ -133,29 +133,6 @@ export default {
         `--rvid=${rvid}`
       )
       rKit(path, options, rsyncoptions, {
-        onstart: () => {
-          this.status = 'running'
-        },
-        onrecvfile: (match) => {
-          this.recv++
-          this.currentfile = match[4]
-        },
-        onfinish: () => {
-          this.status = 'done'
-        },
-        onprogress: (match) => {
-          this.sizepercent = 0 | match[2]
-          this.totalsize = match[1]
-          this.currentrate = match[3]
-        },
-        ontotalfiles: (n) => { this.totalfiles = n },
-        ontotalsize: (val) => { this.totalsize = val }
-      })
-    },
-    backup () {
-      this.totalfiles = this.totalsize = 0
-      this.error = null
-      bKit(this.path, [], [], {
         onstart: () => {
           this.status = 'running'
         },
