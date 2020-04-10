@@ -110,20 +110,22 @@ function _kit (scriptname, path, params = {}) {
 /* ---------------------rkit--------------------- */
 export function rKit (path, options, rsyncoptions, events) {
   const specificOptions = [
-    '--no-A', '--no-g', '--no-p',
+    // '--no-A', '--no-g', '--no-p',
     '--delay-updates', // if we want to receive a file list ahead
     '--progress',
     '--info=PROGRESS2,STATS2,NAME2'
   ]
-  const _events = matchLine4rKit(events)
+  const onreadline = matchLine4rKit(events)
   return _kit('./rkit.sh', path, {
     options,
     rsyncoptions: [...rsyncoptions, ...specificOptions],
-    ..._events,
+    ...events,
+    onreadline,
     queue: restoreQueue
   })
 }
 
+// Match Line for rkit => invoke handlers
 function matchLine4rKit (events = {}) {
   const {
     onstart = nill,
@@ -131,37 +133,47 @@ function matchLine4rKit (events = {}) {
     onrecvfile = nill,
     ontotalfiles = nill,
     ontotalsize = nill,
-    onprogress = null,
-    ...extra
+    onprogress = nill
   } = events
 
-  const rKitRegEx = /^"send\|(.)(.)([^|]+)\|([^|]+)\|([^|]+)\|.*"$/
-
-  const onreadline = (data) => {
-    console.info('rKit line:', data)
-    if (data.match(/^Start Restore/)) onstart(data)
-    else if (data.match(/^Finish at/)) onfinish(data)
-    else {
-      const recv = data.match(rKitRegEx)
-      if (recv instanceof Array) onrecvfile(recv)
-      else {
-        const match = data.match(/^\s*(\d+)\s+files/)
-        if (match instanceof Array) {
-          ontotalfiles(0 | match[1])
-        } else {
-          const matchsize = data.match(/^total size is (.+?)\s/)
-          if (matchsize instanceof Array) ontotalsize(matchsize[1])
-          else if (onprogress) { // don't waist time if handler is not defined
-            const progress = data.match(/\s*([0-9.mkgb]+)\s+([0-9]+)%\s+([0-9.mkgb/s]+)/i)
-            if (progress instanceof Array) {
-              onprogress(progress)
-            }
-          } // inner inner inner else
-        } // inner inner else
-      } // inner else
-    } // else
-  } // anounymous function
-  return { ...extra, onreadline }
+  const regexs = [
+    {
+      re: /^Start Restore/,
+      handler: onstart
+    },
+    {
+      re: /^Finish at/,
+      handler: onfinish
+    },
+    {
+      // "recv|.f         |README.TXT|2001/10/28-17:18:28|0|6770|2020/04/10 16:58:50"
+      // itemize format (%i): YXcstpoguax
+      re: /^"recv\|(?<Y>.)(?<X>.)(?<cstpoguax>[^|]+)\|(?<file>[^|]+)\|([^|]+)\|(?<bytes>[^|]+)\|(?<size>[^|]+)\|.*"$/,
+      handler: (match, line) => onrecvfile(match.groups, line)
+    },
+    {
+      re: /^\s*(?<nfiles>\d+)\s+files/,
+      handler: (match) => ontotalfiles(match.groups.nfiles)
+    },
+    {
+      re: /^total size is (?<size>.+?)\s/,
+      handler: (match) => ontotalsize(match.groups.size)
+    },
+    {
+      re: /\s*(?<size>[0-9.mkgb]+)\s+(?<percent>[0-9]+)%\s+(?<rate>[0-9.mkgb/s]+)/i,
+      handler: (match) => onprogress(match.groups)
+    }
+  ]
+  return (line) => {
+    console.info('rKit line:', line)
+    for (const elem of regexs) {
+      const result = line.match(elem.re)
+      if (result) {
+        elem.handler(result, line)
+        break
+      }
+    }
+  }
 }
 
 /* ---------------------bKit--------------------- */
@@ -218,7 +230,7 @@ function matchLine4bKit (events = {}) {
   ]
 
   const onreadline = (data) => {
-    console.info('rKit line:', data)
+    console.info('bKit line:', data)
     for (const elem of regexs) {
       const result = data.match(elem.re)
       if (result) {

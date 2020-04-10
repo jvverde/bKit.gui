@@ -55,6 +55,7 @@
       <q-btn flat no-caps stack
         color="positive"
         icon="backup"
+        size="xs"
         @click="backup"
         v-show="isnew|wasmodified|isdir">
         <span class="text-weight-light">Backup</span>
@@ -62,6 +63,7 @@
       <q-btn flat no-caps stack
         :color="wasmodified ? 'orange' : 'positive'"
         icon="restore"
+        size="xs"
         @click="restore"
         v-show="wasmodified|wasdeleted">
         <span class="text-weight-light">Restore</span>

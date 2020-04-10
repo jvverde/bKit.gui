@@ -136,17 +136,17 @@ export default {
         onstart: () => {
           this.status = 'running'
         },
-        onrecvfile: (match) => {
-          this.recv++
-          this.currentfile = match[4]
-        },
         onfinish: () => {
           this.status = 'done'
         },
-        onprogress: (match) => {
-          this.sizepercent = 0 | match[2]
-          this.totalsize = match[1]
-          this.currentrate = match[3]
+        onrecvfile: ({ file }) => {
+          this.recv++
+          this.currentfile = file
+        },
+        onprogress: ({ size, percent, rate }) => {
+          this.sizepercent = Number(percent)
+          this.totalsize = Number(size)
+          this.currentrate = rate
         },
         ontotalfiles: (n) => { this.totalfiles = n },
         ontotalsize: (val) => { this.totalsize = val }
