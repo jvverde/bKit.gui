@@ -60,7 +60,7 @@
         <span class="text-weight-light">Backup</span>
       </q-btn>
       <q-btn flat no-caps stack
-        color="wasmodified ? 'orange' : 'positive'"
+        :color="wasmodified ? 'orange' : 'positive'"
         icon="restore"
         @click="restore"
         v-show="wasmodified|wasdeleted">

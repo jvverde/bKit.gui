@@ -320,7 +320,7 @@ export default {
       const { snap, rvid, mountpoint } = this
       path = unixPath(mountpoint, path)
       dialog.showOpenDialog({
-        title: 'Where you want to recover your data',
+        title: 'Where do you want to recover your data',
         defaultPath: download,
         buttonLabel: 'Recover to here',
         properties: ['openDirectory', 'promptToCreate']
@@ -336,7 +336,7 @@ export default {
         download = null
         console.error('Catch on showOpenDialog', err)
       }).finally(() => {
-        console.log('_________________________')
+        // console.log('')
       })
     }
 
