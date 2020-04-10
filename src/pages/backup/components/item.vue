@@ -31,6 +31,7 @@
           :loading="loading"
           strech
           dense
+          size="sm"
           @click="getVersions"
           >
           <q-list separator class="q-pa-xd" >
@@ -55,7 +56,7 @@
       <q-btn flat no-caps stack
         color="positive"
         icon="backup"
-        size="xs"
+        size="sm"
         @click="backup"
         v-show="isnew|wasmodified|isdir">
         <span class="text-weight-light">Backup</span>
@@ -63,7 +64,7 @@
       <q-btn flat no-caps stack
         :color="wasmodified ? 'orange' : 'positive'"
         icon="restore"
-        size="xs"
+        size="sm"
         @click="restore"
         v-show="wasmodified|wasdeleted">
         <span class="text-weight-light">Restore</span>
@@ -72,6 +73,7 @@
       <q-btn flat no-caps stack
         color="positive"
         icon="save_alt"
+        size="sm"
         @click="recover"
         v-show="wasmodified|wasdeleted|isUpdate">
         <span class="text-weight-light">Recover</span>
@@ -214,11 +216,12 @@ export default {
   $bkitsize: 5em;
   $biconsize: $bkitsize;
   .bkit-item {
-    min-width: 3.3 * $bkitsize;
+    min-width: 2.4 * $bkitsize;
     .bkit-text{
-      max-width: 2 * $bkitsize;
+      max-width: 1 * $bkitsize;
       overflow-wrap: break-word;
-      text-align:center
+      text-align:center;
+      font-size: small;
     }
     .bkit-icon{
       font-size: $biconsize;
