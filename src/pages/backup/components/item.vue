@@ -17,7 +17,7 @@
         :color="color">
         <tooltip :label="description"/>
       </q-icon>
-      <div class="bkit-text">
+      <div class="bkit-text" @click="debug">
         {{name}}
       </div>
       <div v-if="hasbackup && !wasdeleted"
@@ -70,7 +70,7 @@
         dense
         ripple
         @click="restore"
-        v-show="wasmodified|wasdeleted">
+        v-show="isRestorable">
         <span class="text-weight-light">Restore</span>
         <tooltip label="Restore lo original location"/>
       </q-btn>
@@ -81,7 +81,7 @@
         dense
         ripple
         @click="recover"
-        v-show="wasmodified|wasdeleted|isUpdate">
+        v-show="isRestorable">
         <span class="text-weight-light">Recover</span>
         <tooltip label="Recover to a different location"/>
       </q-btn>
@@ -156,7 +156,8 @@ export default {
       }
       return null
     },
-    isBackupable () { return !this.isUpdate || this.isdir }
+    isBackupable () { return this.onlocal && (!this.isUpdate || this.isdir) },
+    isRestorable () { return this.wasmodified || this.wasdeleted || (this.isdir && this.hasbackup) }
   },
   props: {
     isdir: obooleans,
@@ -211,6 +212,9 @@ export default {
     },
     backup () {
       this.$emit('backup', this.path)
+    },
+    debug () {
+      console.log(this)
     }
   },
   mounted () {

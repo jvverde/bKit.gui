@@ -205,12 +205,12 @@ export default {
     show (fullpath) {
       this.currentPath = fullpath
     },
-    updateCurrentFiles (entry) {
+    updateCurrentFiles (entry, reset) {
       entry.token = this.token
       const currentFiles = this.currentFiles
       const index = currentFiles.findIndex(e => e.path === entry.path)
       if (index >= 0) {
-        const file = { ...currentFiles[index], ...entry }
+        const file = reset ? entry : { ...currentFiles[index], ...entry }
         currentFiles.splice(index, 1, file)
       } else {
         currentFiles.push(entry)
@@ -237,7 +237,7 @@ export default {
       for await (const entry of readdir(fullpath)) {
         entry.checked = false
         // prevent the situation where dir path is no longer the current path
-        if (this.currentPath === fullpath) this.updateCurrentFiles(entry)
+        if (this.currentPath === fullpath) this.updateCurrentFiles(entry, true)
       }
       this.loading = false
     },
