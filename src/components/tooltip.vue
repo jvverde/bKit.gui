@@ -1,8 +1,8 @@
 <template>
-  <q-tooltip anchor="top middle" self="top left"
+  <q-tooltip anchor="top middle" self="center left"
     content-class="bg-grey-1 text-black shadow-4"
-    :delay="550"
-    :hide-delay="650"
+    :delay="650"
+    :hide-delay="50"
     transition-show="scale"
     transition-hide="scale">
     <span>{{label}}</span>

@@ -1,66 +1,69 @@
 <template>
   <q-item dense>
-    <q-item-section thumbnail class="q-pl-xs">
-      <q-btn round outline icon="close" color="red" size="xs" @click.stop="destroy"/>
-    </q-item-section>
     <q-item-section>
       <q-item-label>
-        {{message}} {{path}}
-        <q-badge class="q-ml-xs shadow-1" color="grey-6" v-show="totalfiles">
+        <q-spinner-ios color="amber" v-if="isRunning"/>
+        <q-icon name="check" color="green" v-if="isDone"/>
+        <q-icon name="warning" color="warning" v-if="error">
+          <tooltip :label="error"/>
+        </q-icon>
+        <span>{{message}} {{path}}</span>
+        <q-badge class="q-ml-xs shadow-1" color="indigo" v-if="totalfiles">
           {{totalfiles}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
+          <tooltip label="Number of files"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="green" v-if="recv">
-          {{recv}}
+        <q-badge class="q-ml-sm shadow-1" color="green" v-if="isRunning && cntfiles">
+          {{cntfiles}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
+          <tooltip label="Number of files so far"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="red" v-show="totalsize">
+        <q-badge class="q-ml-sm shadow-1" color="cyan" v-if="totalsize">
           {{totalsize}}
+          <tooltip label="Size of transferred files"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="blue" v-if="currentrate && running">
+        <q-badge class="q-ml-sm shadow-1" color="teal" v-if="isRunning && currentsize">
+          {{currentsize}}
+          <tooltip label="Total size so far"/>
+        </q-badge>
+        <q-badge class="q-ml-sm shadow-1" color="blue" v-if="isRunning && currentrate">
           {{currentrate}}
+          <tooltip label="Actual download rate"/>
         </q-badge>
       </q-item-label>
-      <q-item-label caption v-if="running && currentfile">
+      <q-item-label caption v-if="isRunning && currentfile">
         {{currentfile}}
       </q-item-label>
     </q-item-section>
-    <q-item-section side v-if="running && sizepercent">
+    <q-item-section side v-if="isRunning && sizepercent">
       <q-circular-progress
         show-value
         font-size="9px"
         :value="sizepercent"
         size="55px"
         :thickness="0.22"
-        color="teal"
+        color="green"
         track-color="grey-3"
         class="q-ma-md">
         {{ sizepercent }}% size
       </q-circular-progress>
     </q-item-section>
-    <q-item-section side v-if="running && filespercent">
+    <q-item-section side v-if="isRunning && filespercent">
       <q-circular-progress
         show-value
         font-size="9px"
         :value="filespercent"
         size="55px"
         :thickness="0.22"
-        color="teal"
+        color="green"
         track-color="grey-3"
         class="q-ma-md">
         {{ filespercent }}% files
       </q-circular-progress>
     </q-item-section>
     <q-item-section side v-if="isDryRun">[DRY-RUN]</q-item-section>
-    <q-item-section side v-if="error !== null">
-      <q-icon name="warning" color="warning"/>
-    </q-item-section>
-    <q-item-section side>
-      <q-spinner-gears  v-if="running && totalfiles === 0"
-        color="primary"
-        size="2em"
-      />
-      <q-icon name="done_all" color="positive" v-if="done"/>
+    <q-item-section thumbnail class="q-pl-xs">
+      <q-btn round outline icon="close" color="red" size="xs" @click.stop="destroy"/>
     </q-item-section>
   </q-item>
 </template>
@@ -68,6 +71,9 @@
 <script>
 import { rKit } from 'src/helpers/bkit'
 import { Resource } from 'src/helpers/types'
+import { formatBytes } from 'src/helpers/utils'
+
+import tooltip from 'src/components/tooltip'
 
 const isDryRun = (element) => element.match(/^--dry-run/) instanceof Array
 export default {
@@ -80,34 +86,41 @@ export default {
       status: undefined,
       error: null,
       totalfiles: 0,
-      recv: 0,
+      cntfiles: 0,
       needatencion: 0,
       updated: 0,
       totalsize: 0,
-      sizepercent: 0,
+      currentpercent: 0,
       currentfile: '',
       currentrate: '',
+      currentsize: 0,
+      currentsizeinbytes: 0,
       watch: null
     }
   },
+  components: {
+    tooltip
+  },
   computed: {
     message () {
-      if (this.running) return 'Restoring'
-      else if (this.done) return 'Done restore of'
+      if (this.isRunning) return 'Restoring'
+      else if (this.isDone) return 'Done restore of'
       else return ''
     },
     path () {
       return this.resource.path
     },
-    running () {
-      return this.status === 'running'
+    isRunning () {
+      return this.status === 'Running'
     },
-    done () {
-      return this.status === 'done'
+    isDone () {
+      return this.status === 'Done'
     },
     filespercent () {
-      if (this.totalfiles) return Math.trunc(100 * (this.recv / this.totalfiles))
-      else return 0
+      return this.totalfiles ? Math.trunc(100 * (this.cntfiles / this.totalfiles)) : 0
+    },
+    sizepercent () {
+      return this.currentpercent
     },
     isDryRun () {
       return this.resource.rsyncoptions.some(isDryRun) || this.resource.options.some(isDryRun)
@@ -120,12 +133,13 @@ export default {
     }
   },
   methods: {
+    formatBytes,
     destroy () {
       // bkit.stop(this.fd)
       this.$emit('destroy')
     },
     restore () {
-      this.totalfiles = this.totalsize = 0
+      this.totalfiles = this.totalsize = this.cntfiles = 0
       this.error = null
       const { path, options, rsyncoptions, snap, rvid } = this.resource
       options.push(
@@ -134,27 +148,27 @@ export default {
       )
       rKit(path, options, rsyncoptions, {
         onstart: () => {
-          this.status = 'running'
+          this.status = 'Running'
         },
         onfinish: () => {
-          this.status = 'done'
+          this.status = 'Done'
         },
-        onrecvfile: ({ file }) => {
-          this.recv++
+        onrecvfile: ({ file, size }) => {
+          this.cntfiles++
           this.currentfile = file
+          this.currentsizeinbytes += Number(size)
         },
         onprogress: ({ size, percent, rate }) => {
-          this.sizepercent = Number(percent)
-          this.totalsize = Number(size)
+          this.currentpercent = Number(percent)
+          this.currentsize = size
           this.currentrate = rate
         },
-        ontotalfiles: (n) => { this.totalfiles = n },
+        ontotalfiles: (n) => { this.totalfiles = Number(n) },
         ontotalsize: (val) => { this.totalsize = val }
       })
     }
   },
   mounted () {
-    console.log('I am ready to restore', this.resource)
     this.restore()
   },
   beforeDestroy () {
