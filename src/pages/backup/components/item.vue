@@ -60,7 +60,7 @@
         dense
         ripple
         @click="backup"
-        v-show="isnew|wasmodified|isdir">
+        v-show="isBackupable">
         <span class="text-weight-light">Backup</span>
       </q-btn>
       <q-btn flat no-caps stack
@@ -155,7 +155,8 @@ export default {
         return 'nobackup'
       }
       return null
-    }
+    },
+    isBackupable () { return !this.isUpdate || this.isdir }
   },
   props: {
     isdir: obooleans,
