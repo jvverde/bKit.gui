@@ -57,6 +57,8 @@
         color="positive"
         icon="backup"
         size="sm"
+        dense
+        ripple
         @click="backup"
         v-show="isnew|wasmodified|isdir">
         <span class="text-weight-light">Backup</span>
@@ -65,6 +67,8 @@
         :color="wasmodified ? 'orange' : 'positive'"
         icon="restore"
         size="sm"
+        dense
+        ripple
         @click="restore"
         v-show="wasmodified|wasdeleted">
         <span class="text-weight-light">Restore</span>
@@ -74,6 +78,8 @@
         color="positive"
         icon="save_alt"
         size="sm"
+        dense
+        ripple
         @click="recover"
         v-show="wasmodified|wasdeleted|isUpdate">
         <span class="text-weight-light">Recover</span>
@@ -216,7 +222,7 @@ export default {
   $bkitsize: 5em;
   $biconsize: $bkitsize;
   .bkit-item {
-    min-width: 2.4 * $bkitsize;
+    min-width: 2 * $bkitsize;
     .bkit-text{
       max-width: 1 * $bkitsize;
       overflow-wrap: break-word;
