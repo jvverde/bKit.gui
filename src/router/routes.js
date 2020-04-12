@@ -9,11 +9,11 @@ const routes = [
         component: () => import('pages/HomePage.vue'),
         name: 'Home'
       },
-      {
-        path: 'restore',
-        component: () => import('pages/restore/RestorePage.vue'),
-        name: 'Restore'
-      },
+      // {
+      //   path: 'restore',
+      //   component: () => import('pages/restore/RestorePage.vue'),
+      //   name: 'Restore'
+      // },
       {
         path: 'backup',
         component: () => import('pages/backup/BackupPage.vue'),

@@ -9,8 +9,11 @@ export default {
   name: 'PageIndex',
   methods: {
     go () {
-      this.$router.push('/restore')
+      this.$router.push('/backup')
     }
+  },
+  mounted () {
+    this.go()
   }
 }
 </script>

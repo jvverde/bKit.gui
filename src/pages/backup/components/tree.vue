@@ -223,35 +223,35 @@ export default {
     }
   },
   watch: {
-    selected: function (val) {
+    selected (val) {
       // console.log(`Watch selectet change to ${val} on ${this.path}`)
       if (val !== null) this.childrens.forEach(c => { c.selected = val })
     },
-    displayNode: function (fullpath) {
+    displayNode (fullpath) {
       if (!this.leaf && fullpath.includes(this.path)) {
         // console.log(`Watch displayNode change to ${fullpath} on ${this.path}`)
         this.showChildrens()
       }
     },
-    isOpen: function (val) {
+    isOpen (val) {
       if (val && !this.loaded) {
         // Don't waste resources reloading. We have a chockidar mounted to watch for changes
         this.opendir()
       }
     },
-    snap: async function () {
+    snap () {
       // this is obvious. If snap change it needs to check/compare with backup
       if (this.loaded) {
         this.checkDirOnBackup()
       }
     },
-    onbackup: async function (val) {
+    onbackup (val) {
       // If parent (=this) changed status it should check with backup
       if (this.loaded) {
         this.checkDirOnBackup()
       }
     },
-    isnew: async function (val) {
+    isnew (val) {
       // If parent changed status it should check with backup
       if (this.loaded) {
         this.checkDirOnBackup()

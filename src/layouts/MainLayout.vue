@@ -41,7 +41,7 @@
             </q-item-label>
           </q-item-section>
         </q-item>
-        <q-item clickable>
+        <!-- <q-item clickable>
           <q-item-section avatar>
             <q-icon color="primary" name="restore" />
           </q-item-section>
@@ -51,7 +51,7 @@
               <q-item-label caption>Browse backups</q-item-label>
             </router-link>
           </q-item-section>
-        </q-item>
+        </q-item> -->
         <q-item clickable>
           <q-item-section avatar>
             <q-icon color="primary" name="backup" />

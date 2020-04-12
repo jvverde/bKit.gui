@@ -30,10 +30,8 @@ export function enqueue2bash (name, args = [], events = {}, queue = defaultQueue
 // Proxy (via to Queue) to Bash
 const proxy2Q2bash = exclusiveProxy(enqueue2bash, { size: 50, name: 'bash' })
 
-export async function* listDisksOnBackup () {
-  for (const disk of await proxy2Q2bash('./listdisks.sh', [], queue4Remote)) {
-    yield disk
-  }
+export async function listDisksOnBackup () {
+  return await proxy2Q2bash('./listdisks.sh', [], queue4Remote) || []
 }
 
 export async function* listLocalDisks () {
