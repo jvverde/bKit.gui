@@ -32,9 +32,11 @@
 
         <q-item-section no-wrap :class="{ isSelected: isSelected }">
           <q-item-label class="ellipsis">
+            <q-spinner-ios color="amber" v-if="isloading"/>
             <span :class="{ wasDeleted: wasdeleted }" @click.stop="see">
               {{name}}
             </span>
+            <q-icon color="transparent" size="xs" name="help" @click.stop="debug(entry)"/>
             <q-icon name="done" color="green" v-if="isUpdate"/>
             <q-icon name="call_merge" color="teal-3" v-else-if="wasmodified"/>
             <q-icon name="arrow_upward" color="amber" v-else-if="isnew"/>
@@ -43,19 +45,9 @@
           </q-item-label>
         </q-item-section>
 
-        <q-item-section side v-if="isloading">
-          <q-spinner-ios color="amber"/>
-        </q-item-section>
-
         <q-item-section side no-wrap>
            <q-btn-group flat rounded>
             <q-btn round color="positive" flat size="sm" icon="restore"/>
-          </q-btn-group>
-        </q-item-section>
-
-        <q-item-section side no-wrap>
-           <q-btn-group flat rounded>
-            <q-btn round color="black" flat size="xs" icon="help" @click.stop="debug(entry)"/>
           </q-btn-group>
         </q-item-section>
 

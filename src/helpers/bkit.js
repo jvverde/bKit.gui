@@ -34,11 +34,8 @@ export async function listDisksOnBackup () {
   return await proxy2Q2bash('./listdisks.sh', [], queue4Remote) || []
 }
 
-export async function* listLocalDisks () {
-  // We don't use cache/proxy for local requests, so we enqueue it directly
-  for (const disk of await enqueue2bash('./lib/getdevs.sh', [], queue4Local)) {
-    yield disk
-  }
+export async function listLocalDisks () {
+  return await enqueue2bash('./lib/getdevs.sh', [], queue4Local) || []
 }
 
 export async function getServer () {
@@ -109,7 +106,7 @@ function _kit (scriptname, path, params = {}) {
 export function rKit (path, options, rsyncoptions, events) {
   const specificOptions = [
     // '--no-A', '--no-g', '--no-p',
-    '--delay-updates', // if we want to receive a file list ahead
+    // '--delay-updates', // if we want to receive a file list ahead
     '--progress',
     '--info=PROGRESS2,STATS2,NAME2'
   ]
@@ -136,11 +133,11 @@ function matchLine4rKit (events = {}) {
 
   const regexs = [
     {
-      re: /^Start Restore/,
-      handler: onstart
+      re: /^rKit\s*\[(?<pid>\d+):(?<pgid>\d*)\]\s*:\s*Start\s*Restore/,
+      handler: (match, line) => onstart(match.groups, line)
     },
     {
-      re: /^Finish at/,
+      re: /^rKit\s*\[\d+:\d*\]\s*:\s*Done/,
       handler: onfinish
     },
     {

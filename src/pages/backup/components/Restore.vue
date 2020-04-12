@@ -1,5 +1,5 @@
 <template>
-  <q-item dense>
+  <q-item dense v-if="!deleted">
     <q-item-section>
       <q-item-label>
         <q-spinner-ios color="amber" v-if="isRunning"/>
@@ -7,7 +7,7 @@
         <q-icon name="warning" color="warning" v-if="error">
           <tooltip :label="error"/>
         </q-icon>
-        <span>{{message}} {{path}}</span>
+        <span>{{status}} restore of {{path}}</span>
         <q-badge class="q-ml-xs shadow-1" color="indigo" v-if="totalfiles">
           {{totalfiles}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
@@ -62,8 +62,11 @@
       </q-circular-progress>
     </q-item-section>
     <q-item-section side v-if="isDryRun">[DRY-RUN]</q-item-section>
-    <q-item-section thumbnail class="q-pl-xs">
-      <q-btn round outline icon="close" color="red" size="xs" @click.stop="destroy"/>
+    <q-item-section side v-if="isDismissible">
+      <q-btn flat round icon="close" color="red" size="xs" @click.stop="deleted = true"/>
+    </q-item-section>
+    <q-item-section side v-if="isCancelable">
+      <q-btn flat round icon="stop" color="red" size="xs" @click.stop="cancel"/>
     </q-item-section>
   </q-item>
 </template>
@@ -72,6 +75,7 @@
 import { rKit } from 'src/helpers/bkit'
 import { Resource } from 'src/helpers/types'
 import { formatBytes } from 'src/helpers/utils'
+import { killtree } from 'src/helpers/bash'
 
 import tooltip from 'src/components/tooltip'
 
@@ -94,7 +98,10 @@ export default {
       currentfile: '',
       currentrate: '',
       currentsize: 0,
+      deleted: false,
       currentsizeinbytes: 0,
+      pid: undefined,
+      dequeued: () => null,
       watch: null
     }
   },
@@ -102,11 +109,6 @@ export default {
     tooltip
   },
   computed: {
-    message () {
-      if (this.isRunning) return 'Restoring'
-      else if (this.isDone) return 'Done restore of'
-      else return ''
-    },
     path () {
       return this.resource.path
     },
@@ -115,6 +117,18 @@ export default {
     },
     isDone () {
       return this.status === 'Done'
+    },
+    isCanceled () {
+      return this.status === 'Canceled'
+    },
+    isDismissible () {
+      return this.isDone || this.isCanceled
+    },
+    onQueue () {
+      return this.status === 'Enqueued'
+    },
+    isCancelable () {
+      return !this.isDone && !this.isCanceled
     },
     filespercent () {
       return this.totalfiles ? Math.trunc(100 * (this.cntfiles / this.totalfiles)) : 0
@@ -134,6 +148,20 @@ export default {
   },
   methods: {
     formatBytes,
+    cancel () {
+      if (this.pid) {
+        killtree(this.pid)
+          .then(() => { this.pid = undefined })
+          .catch(err => console.error(err))
+      }
+
+      if (this.onQueue && this.dequeued instanceof Function) {
+        console.log('Dequeued')
+        this.dequeued()
+      }
+
+      this.status = 'Canceled'
+    },
     destroy () {
       // bkit.stop(this.fd)
       this.$emit('destroy')
@@ -147,18 +175,34 @@ export default {
         `--rvid=${rvid}`
       )
       rKit(path, options, rsyncoptions, {
-        onstart: () => {
-          this.status = 'Running'
+        enqueued: (item) => {
+          this.status = 'Enqueued'
+          this.dequeued = item.dismiss
+        },
+        onstart: ({ pid }) => {
+          this.status = 'Starting'
+          this.pid = pid
+          console.log(`Starting rKit [pid:${pid}]`)
+        },
+        oncespawn: () => {
+          this.status = 'Launching'
+        },
+        stderr: (line) => {
+          console.warn(line)
+          this.currentline = line
+          this.cnterrors++
         },
         onfinish: () => {
           this.status = 'Done'
         },
         onrecvfile: ({ file, size }) => {
+          this.status = 'Running'
           this.cntfiles++
           this.currentfile = file
           this.currentsizeinbytes += Number(size)
         },
         onprogress: ({ size, percent, rate }) => {
+          this.status = 'Running'
           this.currentpercent = Number(percent)
           this.currentsize = size
           this.currentrate = rate

@@ -160,16 +160,18 @@ export default {
           const updatedisk = { ...this.disks[index], rvid, letter, present: true, id: rvid }
           this.disks.splice(index, 1, updatedisk) // as requested by Vue reactiveness
         } else {
-          this.disks.push({ name: letter, rvid, uuid, label, letter, mountpoint: undefined, present: false })
+          this.disks.push({ name: letter, rvid, uuid, label, letter, id: rvid, mountpoint: undefined, present: false })
         }
       }
     },
     async getLocalDisks () {
-      for await (const disk of listLocalDisks()) {
-        console.log('Local disk', disk)
-        const [mountpoint, label, uuid, fs] = disk.split(/\|/)
+      const disks = await listLocalDisks() || []
+      for (const disk of disks) {
+        console.log('Local disk:', disk)
+        const disk2 = disk.replace(/\|(?=\|)/g, '|_') // replace all the sequences '||' by '|_|'
+        const [mountpoint, label, uuid, fs] = disk2.split(/\|/)
         const name = mountpoint
-        this.disks.push({ name, mountpoint, label, uuid, fs, id: disk })
+        this.disks.push({ name, mountpoint, label, uuid, fs, id: disk2 })
       }
     },
     restore (resource) {
