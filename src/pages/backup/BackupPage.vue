@@ -151,7 +151,8 @@ export default {
       } else return `[${disk.uuid}]`
     },
     async getDisksOnBackup () {
-      for await (const rvid of listDisksOnBackup()) {
+      const disks = await listDisksOnBackup() || []
+      for (const rvid of disks) {
         console.log('RVID:', rvid)
         const [letter, uuid, label] = rvid.split('.')
         const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label)

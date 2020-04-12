@@ -307,8 +307,12 @@ export default {
     },
     backup (path) {
       this.$emit('backup', path, (a) => {
-        console.log('Ba ckup done for', a)
-        this.$refs.snaps.reload()
+        console.log('Backup done for', a)
+        if (this.$refs.snaps) { // Prevent an error on the first time backup
+          this.$refs.snaps.reload()
+        } else {
+          // nothing
+        }
       })
     },
     restore (path) {
