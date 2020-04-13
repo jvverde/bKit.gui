@@ -80,6 +80,8 @@ export default {
       phasemsg: '',
       status: undefined,
       error: null,
+      ok: undefined,
+      finished: false,
       cnterrors: 0,
       currentline: '',
       process: undefined,
@@ -214,9 +216,12 @@ export default {
       }).then(code => {
         console.log('Backup Done with code', code)
         this.done(this.path)
+        this.ok = true
       }).catch(e => {
         console.error('Backup catch error', e, this.path)
         this.error = e
+      }).finally(() => {
+        this.finished = true
       })
     }
   },

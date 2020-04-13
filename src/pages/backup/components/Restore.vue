@@ -31,8 +31,8 @@
           <tooltip label="Actual download rate"/>
         </q-badge>
       </q-item-label>
-      <q-item-label caption v-if="isRunning && currentfile">
-        {{currentfile}}
+      <q-item-label caption v-if="isRunning && currentline">
+        {{currentline}}
       </q-item-label>
     </q-item-section>
     <q-item-section side v-if="isRunning && sizepercent">
@@ -89,13 +89,15 @@ export default {
       recoverydir: undefined,
       status: undefined,
       error: null,
+      ok: undefined,
+      finished: false,
       totalfiles: 0,
       cntfiles: 0,
       needatencion: 0,
       updated: 0,
       totalsize: 0,
       currentpercent: 0,
-      currentfile: '',
+      currentline: null,
       currentrate: '',
       currentsize: 0,
       deleted: false,
@@ -144,6 +146,10 @@ export default {
     resource: {
       type: Resource,
       required: true
+    },
+    done: {
+      type: Function,
+      default: () => console.log('NO CALL BACK')
     }
   },
   methods: {
@@ -151,7 +157,10 @@ export default {
     cancel () {
       if (this.pid) {
         killtree(this.pid)
-          .then(() => { this.pid = undefined })
+          .then(() => {
+            this.pid = undefined
+            this.status = 'Canceled'
+          })
           .catch(err => console.error(err))
       }
 
@@ -159,8 +168,6 @@ export default {
         console.log('Dequeued')
         this.dequeued()
       }
-
-      this.status = 'Canceled'
     },
     destroy () {
       // bkit.stop(this.fd)
@@ -195,10 +202,10 @@ export default {
         onfinish: () => {
           this.status = 'Done'
         },
-        onrecvfile: ({ file, size }) => {
+        onrecvfile: ({ size }, line) => {
           this.status = 'Running'
           this.cntfiles++
-          this.currentfile = file
+          this.currentline = line
           this.currentsizeinbytes += Number(size)
         },
         onprogress: ({ size, percent, rate }) => {
@@ -207,8 +214,17 @@ export default {
           this.currentsize = size
           this.currentrate = rate
         },
-        ontotalfiles: (n) => { this.totalfiles = Number(n) },
+        ontotalfiles: (n) => { this.totalfiles = Number(n) }, // Not fired without rsync '--delay-updates'
         ontotalsize: (val) => { this.totalsize = val }
+      }).then(code => {
+        console.log('Restore Done with code', code)
+        this.done(this.path)
+        this.ok = true
+      }).catch(e => {
+        console.error('Restore catch error', e, this.path)
+        this.error = e
+      }).finally(() => {
+        this.finished = true
       })
     }
   },
