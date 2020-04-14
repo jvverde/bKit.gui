@@ -11,6 +11,9 @@
       :selected.sync="selected"
       :grid="grid"
     >
+    <template v-slot:body-cell-TaskToRun="props">
+      <td>Val:{{props.value}}</td>
+    </template>
     </q-table>
   </q-page>
 </template>
@@ -28,7 +31,7 @@ export default {
       selected: [],
       columns: [{ name: 'id', label: 'id', field: 'id' }],
       data: [],
-      visible: ['TaskName', 'Schedule Type', 'Days', 'Months', 'Start Time', 'Status', 'Task To Run']
+      visible: ['TaskName', 'ScheduleType', 'Days', 'Months', 'StartTime', 'Status', 'TaskToRun']
     }
   },
   watch: {
@@ -59,8 +62,9 @@ export default {
             // })
             const headers = lines.shift().split(/","/)
             headers.forEach(h => {
-              if (this.columns.find(e => e.name === h)) return
-              this.columns.push({ name: h, label: h, field: h })
+              if (this.columns.find(e => e.field === h)) return
+              const name = h.replace(/\s+/g, '')
+              this.columns.push({ name, label: h, field: h })
             })
             lines.forEach(line => {
               const values = line.split(/","/)
@@ -70,9 +74,6 @@ export default {
               }
               this.data.push(data)
             })
-            console.log('COLS', this.columns.map(c => c.name))
-            console.log('DATA', this.data)
-            console.log('LINES:', lines)
           })
       })
     }).catch(e => console.error(e))
