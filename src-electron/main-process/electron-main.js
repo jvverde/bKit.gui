@@ -30,9 +30,6 @@ if (process.env.PROD) {
 let mainWindow
 
 function createWindow () {
-  /**
-   * Initial window options
-   */
 
   const windowStateKeeper = require('electron-window-state')
   const mainWindowState = windowStateKeeper({
@@ -41,6 +38,7 @@ function createWindow () {
   })
 
   mainWindow = new BrowserWindow({
+    // backgroundColor: '#2e2c29',
     width: mainWindowState.width,
     height: mainWindowState.height,
     x: mainWindowState.x,
@@ -56,11 +54,15 @@ function createWindow () {
     }
   })
 
+  // const splash = new BrowserWindow({width: 810, height: 610, transparent: true, frame: false, alwaysOnTop: true});
+  // splash.loadURL(`file://${__dirname}/splash.html`);
+
   mainWindow.loadURL(process.env.APP_URL)
 
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
   mainWindowState.manage(mainWindow)
 }
 
@@ -105,9 +107,6 @@ const template = [
     role: 'fileMenu',
     submenu: [
       {
-        role: 'quit'
-      },
-      {
         label: 'Upgrade',
         submenu: [
           {
@@ -122,6 +121,9 @@ const template = [
             }
           }
         ]
+      },
+      {
+        role: 'quit'
       }
     ]
   },{
@@ -191,7 +193,6 @@ app.on('ready', () => {
       buttonLabel: 'This is the bKit directory',
       properties: ['openDirectory']
     })
-    console.log('bkitdir=', bkitdir)
     if (bkitdir) config.bkit = bkitdir[0]
   }
   createWindow()
@@ -205,7 +206,6 @@ app.on('window-all-closed', () => {
 })
 
 app.on('activate', () => {
-  console.log('on activate')
   if (mainWindow === null) {
     createWindow()
   }
@@ -213,7 +213,6 @@ app.on('activate', () => {
 
 ipcMain.on('debug', (event, arg) => {
   mainWindow.webContents.openDevTools()
-  console.log('on debug')
 })
 
 const Store = require('electron-store')
@@ -228,9 +227,11 @@ ipcMain.on('getbKitPath', (event) => {
   console.log('getbKitPath')
   event.returnValue = config.bkit
 })
+
 ipcMain.on('app_version', (event) => {
   event.returnValue = app.getVersion()
 })
+
 // Workaround to close all processes / sub-processes after closing the app
 // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
 app.once('window-all-closed', app.quit)

@@ -21,8 +21,13 @@ const routes = [
       },
       {
         path: 'servers',
-        component: () => import('pages/servers.vue'),
+        component: () => import('pages/Servers.vue'),
         name: 'Servers'
+      },
+      {
+        path: 'tasks',
+        component: () => import('pages/Tasks.vue'),
+        name: 'tasks'
       }
       /*,
       {

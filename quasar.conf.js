@@ -169,6 +169,7 @@ module.exports = function (ctx) {
         // https://www.electron.build/configuration/configuration
 
         appId: 'gui.bkit.pt',
+        copyright: 'Copyright © 2020 ${author}',
         generateUpdatesFilesForAllChannels: true,
         publish: [
           {
@@ -177,11 +178,15 @@ module.exports = function (ctx) {
           }
         ],
         productName: 'bKit',
-        artifactName: '${productName}-${os}-${arch}-${version}.${ext}',
+        artifactName: '${productName}-${os}-${X-arch}-${version}.${ext}',
         nsis: {
           // oneClick: false,
           // allowToChangeInstallationDirectory: true,
           perMachine: true
+        },
+        nsisWeb : {
+          appPackageUrl: 'Setup-${productName}-${os}-${X-arch}-${version}.${ext}',
+          artifactName: '${productName}-${os}-${arch}-${version}.${ext}'
         }
       },
 

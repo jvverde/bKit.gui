@@ -1,6 +1,6 @@
 {
   "name": "bkit-gui",
-  "version": "1.3.1",
+  "version": "1.3.3-beta",
   "description": "A bKit Client App",
   "productName": "bKit",
   "cordovaId": "org.cordova.quasar.app",
@@ -30,7 +30,8 @@
     "slash": "^3.0.0",
     "terminate": "^2.1.2",
     "tree-kill": "^1.2.2",
-    "vue-i18n": "^8.0.0"
+    "vue-i18n": "^8.0.0",
+    "windows-scheduler": "^1.0.1"
   },
   "devDependencies": {
     "@quasar/app": "^1.6.0",

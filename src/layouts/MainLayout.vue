@@ -74,6 +74,15 @@
             </router-link>
           </q-item-section>
         </q-item>
+        <q-item clickable @click="$router.push('/tasks')">
+          <q-item-section avatar>
+            <q-icon color="primary" name="assignment" />
+          </q-item-section>
+          <q-item-section>
+              <q-item-label>Tasks</q-item-label>
+              <q-item-label caption>Manage Schedule Tasks</q-item-label>
+          </q-item-section>
+        </q-item>
         <q-item clickable @click="terminal">
           <q-item-section avatar>
             <q-icon color="primary" name="fas fa-terminal" />
