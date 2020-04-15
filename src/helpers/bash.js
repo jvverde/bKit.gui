@@ -86,16 +86,17 @@ function invokeBash (name, args, events = {}, done = nill) {
   oncespawn(fd)
 }
 
-export function bash (scriptname, args, {
-  onclose = () => console.log('Close', scriptname),
-  onreadline = () => false,
-  onerror = (err) => warn(`Error calling script ${scriptname}: ${err}`, true)
-}) {
-  return invokeBash(scriptname, args, { onreadline, onerror }, onclose)
+export function bash (scriptname, args = [], events = {}) {
+  const {
+    onclose = () => console.log('Close', scriptname),
+    onreadline = () => false,
+    onerror = (err) => warn(`Error calling script ${scriptname}: ${err}`, true)
+  } = events
+  return invokeBash(scriptname, args, { ...events, onreadline, onerror }, onclose)
 }
 
 // Provide a promise to invoke bash
-export function asyncInvokeBash (name, args, events = {}) {
+export function asyncInvokeBash (name, args = [], events = {}) {
   const lines = []
   const { onreadline = line => lines.push(line) } = events
   return new Promise((resolve, reject) => {

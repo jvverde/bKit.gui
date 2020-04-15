@@ -36,7 +36,6 @@
 
 import { readfile } from 'src/helpers/readfs'
 import { getDiskName } from 'src/helpers/bkit'
-const task = require('windows-scheduler')
 
 export default {
   name: 'Job2run',
@@ -71,7 +70,6 @@ export default {
         this.diskuuid = match2.groups.uuid
         this.diskname = [...await getDiskName(this.diskuuid)][0]
       }
-      console.log('task:', task)
     }
   },
   mounted () {
