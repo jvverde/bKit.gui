@@ -38,6 +38,10 @@ export async function listLocalDisks () {
   return await enqueue2bash('./lib/getdevs.sh', [], queue4Local) || []
 }
 
+export async function getDiskName (uuid) {
+  return enqueue2bash('./lib/getdev.sh', [uuid], queue4Local)
+}
+
 export async function getServer () {
   const servers = await enqueue2bash('./server.sh')
   return servers[0]

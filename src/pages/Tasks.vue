@@ -12,7 +12,9 @@
       :grid="grid"
     >
     <template v-slot:body-cell-TaskToRun="props">
-      <td>Val:{{props.value}}</td>
+      <td>
+        <job2run :path="sanitize(props.value)"/>
+      </td>
     </template>
     </q-table>
   </q-page>
@@ -20,13 +22,14 @@
 
 <script>
 
-import { readfile } from 'src/helpers/readfs'
+import job2run from 'src/components/Job2run'
 const task = require('windows-scheduler')
 
 export default {
   name: 'Servers',
   data () {
     return {
+      tasks: {},
       grid: false,
       selected: [],
       columns: [{ name: 'id', label: 'id', field: 'id' }],
@@ -34,12 +37,18 @@ export default {
       visible: ['TaskName', 'ScheduleType', 'Days', 'Months', 'StartTime', 'Status', 'TaskToRun']
     }
   },
+  components: {
+    job2run
+  },
   watch: {
     selected (val) {
       console.log(val)
     }
   },
   methods: {
+    sanitize (path) {
+      return path.replace(/^["\s]+|["\s]+$/g, '')
+    }
   },
   mounted () {
     this.selected = []
@@ -52,7 +61,6 @@ export default {
       const matchArray = result.match(/(?<=TaskName:\s*.*?)BKIT.+?[\r\n]/igm)
       const uniqueNames = [...new Set(matchArray)]
       uniqueNames.forEach(taskname => {
-        console.log('Task', taskname)
         task.get(taskname, 'CSV', true)
           .then((result) => {
             const lines = (result.split(/[\n\r]+/) || []).filter(e => e)
@@ -77,26 +85,7 @@ export default {
           })
       })
     }).catch(e => console.error(e))
-      .finally(() => {
-        this.data.forEach(line => {
-          const path = line['Task To Run'].replace(/^["\s]+|["\s]+$/g, '')
-          console.log(`path=${path}`)
-          const task = {}
-          readfile(path)
-            .then(result => {
-              const batch = result.toString()
-              const match = batch.match(/REM path='(?<path>.+?)'[\s\n\r]+/im)
-              if (match) {
-                task.path = match.groups.path
-              }
-              const match2 = batch.match(/REM uuid='(?<uuid>.+?)'[\s\n\r]+/im)
-              if (match2) {
-                task.uuid = match2.groups.uuid
-              }
-              console.log('task:', task)
-            })
-        })
-      })
+      .finally(() => { })
   }
 }
 </script>
