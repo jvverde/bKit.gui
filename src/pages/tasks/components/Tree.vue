@@ -45,7 +45,6 @@
         <!-- dirs -->
         <tree
           :entry="folder"
-          :mountpoint="mountpoint"
           :selected.sync="folder.selected"
           @update:selected="childSelect"
           v-for="folder in folders"
@@ -53,7 +52,6 @@
         <!-- files-->
         <tree
           :entry="file"
-          :mountpoint="mountpoint"
           :selected.sync="file.selected"
           @update:selected="childSelect"
           v-for="file in files"
@@ -84,8 +82,6 @@ function compare (a, b) {
 const isChecked = node => node.selected === true
 const isNotChecked = node => node.selected === false
 
-const { chokidar, chokidarOptions } = require('src/helpers/chockidar')
-
 export default {
   name: 'tree',
   data () {
@@ -104,10 +100,6 @@ export default {
     selected: {
       type: Boolean,
       default: false
-    },
-    mountpoint: {
-      type: String,
-      required: true
     }
   },
   computed: {
@@ -205,7 +197,7 @@ export default {
       this.loading = false
     },
     async readdir () {
-      if (!this.mountpoint || !fs.existsSync(this.path) || !this.isdir) return
+      if (!fs.existsSync(this.path) || !this.isdir) return
       // Only if directory exists on local disk and it correspond to the backup
       for await (const entry of readdir(this.path)) {
         entry.selected = this.selected // inherit select status from parent
@@ -214,16 +206,7 @@ export default {
     }
   },
   mounted () {
-    if (this.isroot) this.showChildrens()
-    if (this.isdir) {
-      chokidar.watch(this.path, chokidarOptions).on('all', async (event, path) => {
-        if (this.loaded) { // only care if the dir is loaded
-          console.log(`On tree node ${this.path} Event ${event} for ${path}`)
-          this.childrens = []
-          await this.refresh()
-        }
-      })
-    }
+    // if (this.isroot) this.showChildrens()
   }
 }
 </script>
