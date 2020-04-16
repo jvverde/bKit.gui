@@ -118,9 +118,7 @@ export default {
     return {
       open: false,
       loading: 0,
-      stat: null,
-      deletedChildrens: 0,
-      loaded: false, // the inital stat is unloaded
+      loaded: false, // the inital status is unloaded
       invalidateCache: false,
       eventdate: Date.now(),
       childrens: []
