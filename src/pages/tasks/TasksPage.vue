@@ -1,48 +1,35 @@
 <template>
-  <q-page padding class="relative">
-    <jobs v-if="selected === 345"/>
-    <tree
-      :entry="{ isdir: true, isroot: true, path: disk.mountpoint }"
-      v-for="disk in disks" :key="disk.id"
-      :selected.sync="selected"/>
+  <q-page padding class="relative column no-wrap">
+    <jobs/>
+    <q-btn icon="add" push outline rounded no-caps color="green"
+      label="New Task" class="q-ma-sm" @click="add = true" v-if="!add"/>
+    <job v-if="add"/>
   </q-page>
 </template>
 
 <script>
 
 import jobs from './components/Schtasks'
-import tree from './components/Tree'
-import { listLocalDisks } from 'src/helpers/bkit'
+import job from './components/NewTask'
 
 export default {
   name: 'TasksPage',
   data () {
     return {
-      disks: [],
-      root: { isdir: true, isroot: true, path: 'c:/' },
-      selected: undefined
+      add: false
     }
   },
   computed: {
   },
   components: {
     jobs,
-    tree
+    job
   },
   watch: {
   },
   methods: {
-    async getLocalDisks () {
-      const disks = await listLocalDisks() || []
-      for (const disk of disks) {
-        console.log('Local disk:', disk)
-        const [mountpoint, label, uuid, fs] = disk.split(/\|/)
-        this.disks.push({ mountpoint, label, uuid, fs, disk })
-      }
-    }
   },
   mounted () {
-    this.getLocalDisks()
   }
 }
 </script>
