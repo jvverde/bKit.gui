@@ -1,10 +1,12 @@
 <template>
   <main class="relative scroll">
     <q-stepper
+      class="row no-wrap justify-between b-stepper"
       v-model="step"
       vertical
       color="primary"
       keep-alive
+      ref="stepper"
       animated>
       <q-step
         :name="1"
@@ -13,18 +15,10 @@
         icon="settings"
         :done="step > 1"
       >
-        <div class="row no-wrap justify-between">
-          <div>
-            <tree
-              :entry="{ isdir: true, isroot: true, path: disk.mountpoint }"
-              v-for="disk in disks" :key="disk.id"
-              :selected.sync="selected"/>
-          </div>
-          <q-stepper-navigation class="column no-wrap align-center">
-            <q-btn @click="step = 2" color="positive" label="Continue" />
-            <q-btn @click="cancel" color="negative" label="Cancel" />
-          </q-stepper-navigation>
-        </div>
+        <tree
+          :entry="{ isdir: true, isroot: true, path: disk.mountpoint }"
+          v-for="disk in disks" :key="disk.id"
+          :selected.sync="selected"/>
       </q-step>
       <q-step
         :name="2"
@@ -33,12 +27,33 @@
         icon="assignment"
         :done="step > 2"
       >
-        <q-stepper-navigation>
-          <q-btn @click="step = 4" color="primary" label="Continue" />
-          <q-btn flat @click="step = 1" color="primary" label="Back" class="q-ml-sm" />
-        </q-stepper-navigation>
-        An ad group contains one or more ads which target a shared set of keywords.
+        <div class="column no-wrap items-center">
+          <div class="q-gutter-sm row items-center">
+            <span>Every</span>
+            <q-input
+              v-model.number="freq"
+              maxlength="2"
+              outlined
+              dense
+              style="max-width:5em"
+              type="number"/>
+            <q-radio v-model="every" val="-m" label="Minute" />
+            <q-radio v-model="every" val="-h" label="Hour" />
+            <q-radio v-model="every" val="-d" label="Day" />
+            <q-radio v-model="every" val="-w" label="Week" />
+          </div>
+          <div class="q-gutter-sm row items-center">
+            <span>Start at</span>
+            <q-input v-model="start" dense outlined type="time"/>
+          </div>
+        </div>
       </q-step>
+      <template v-slot:navigation>
+        <q-stepper-navigation class="column no-wrap">
+          <q-btn @click="$refs.stepper.next()" color="primary" :label="step === 3 ? 'Create Task' : 'Continue'" />
+          <q-btn v-if="step > 1" flat color="primary" @click="$refs.stepper.previous()" label="Back" class="q-ml-sm" />
+        </q-stepper-navigation>
+      </template>
     </q-stepper>
   </main>
 </template>
@@ -54,7 +69,10 @@ export default {
     return {
       disks: [],
       step: 1,
-      selected: undefined
+      selected: undefined,
+      freq: 1,
+      every: '-d',
+      start: undefined
     }
   },
   computed: {
@@ -82,3 +100,8 @@ export default {
   }
 }
 </script>
+<style type="text/scss">
+  .b-stepper > :first-child {
+    flex-grow:1
+  }
+</style>
