@@ -3,7 +3,7 @@
     <jobs/>
     <q-btn icon="add" push outline rounded no-caps color="green"
       label="New Task" class="q-ma-sm" @click="add = true" v-if="!add"/>
-    <job v-if="add"/>
+    <job v-if="add" @cancel="add = false"/>
   </q-page>
 </template>
 

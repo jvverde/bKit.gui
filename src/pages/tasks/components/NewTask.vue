@@ -20,8 +20,9 @@
               v-for="disk in disks" :key="disk.id"
               :selected.sync="selected"/>
           </div>
-          <q-stepper-navigation>
+          <q-stepper-navigation class="column no-wrap align-center">
             <q-btn @click="step = 2" color="positive" label="Continue" />
+            <q-btn @click="cancel" color="negative" label="Cancel" />
           </q-stepper-navigation>
         </div>
       </q-step>
@@ -53,7 +54,6 @@ export default {
     return {
       disks: [],
       step: 1,
-      choose: false,
       selected: undefined
     }
   },
@@ -72,6 +72,9 @@ export default {
         const [mountpoint, label, uuid, fs] = disk.split(/\|/)
         this.disks.push({ mountpoint, label, uuid, fs, disk })
       }
+    },
+    cancel () {
+      this.$emit('cancel')
     }
   },
   mounted () {
