@@ -115,12 +115,13 @@ export default {
         return !elem ? false : elem.op === '-' ? null : true
       },
       set (val) {
-        const selected = this.selected.filter(e => e.path !== this.path)
+        const { path, isdir } = this
+        const selected = this.selected.filter(e => e.path !== path)
         if (val === null) {
-          const result = [{ path: this.path, op: '-' }, ...selected]
+          const result = [{ path, op: '-', isdir }, ...selected]
           this.$emit('update:selected', result)
         } else if (val) {
-          const result = [{ path: this.path, op: '+' }, ...selected]
+          const result = [{ path, op: '+', isdir }, ...selected]
           this.$emit('update:selected', result)
         } else {
           this.$emit('update:selected', selected)

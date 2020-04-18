@@ -85,6 +85,9 @@
           <q-btn v-if="showNext" @click="next" no-caps outline color="positive" label="Next" />
           <q-btn v-else-if="showLast" @click="finish" no-caps outline color="positive" label="Finish" />
           <q-btn v-if="showBack" flat color="positive" no-caps @click="back" label="Back" class="q-ma-sm" />
+          <div v-for="(filter, index) in filters" :key="index">
+            {{index}}: {{filter}}
+          </div>
           <q-btn flat color="warning" @click="cancel" no-caps label="Cancel" class="q-ma-sm" style="margin-top: auto"/>
         </q-stepper-navigation>
       </template>
@@ -96,6 +99,20 @@
 
 import tree from './Tree'
 import { listLocalDisks } from 'src/helpers/bkit'
+const path = require('path')
+
+const byop = (a, b) => {
+  if (a.op === b.op) return bypath(a, b)
+  else if (!a.op) return -1
+  else if (!b.op) return 1
+  else return bypath(a, b)
+}
+const bypath = (a, b) => {
+  if (a.path.toLowerCase() < b.path.toLowerCase()) return 1
+  if (a.path.toLowerCase() > b.path.toLowerCase()) return -1
+  return 0
+}
+const compare = byop
 
 export default {
   name: 'newtask',
@@ -122,6 +139,33 @@ export default {
     },
     canIgo () {
       return true
+    },
+    filters () {
+      const selected = this.selected
+      const includes = selected.filter(e => e.op === '+')
+      const excludes = selected.filter(e => e.op === '-')
+      const reducer = (a, v) => [...a, [a.pop(), v].join(path.sep)]
+      const parents = includes.flatMap(file => {
+        const steps = file.path.split(path.sep)
+        steps.splice(-1) // Remove basename. I just want parents
+        console.log('steps', steps)
+        const root = steps.shift()
+        return steps.reduce(reducer, [root])
+      })
+      const ancestores = [...new Set(parents)].map(path => ({ path }))
+      console.log('includes', includes)
+      console.log('ancestores', ancestores)
+      const result = [...includes, ...excludes, ...ancestores]
+        .sort(compare)
+        .map(e => {
+          if (e.op === '-' && e.isdir) return '-/ ' + [e.path, '*'].join(path.sep)
+          else if (e.op === '-') return '-/ ' + e.path
+          else if (e.op === '+' && e.isdir) return '+/ ' + [e.path, ''].join(path.sep)
+          else if (e.op === '+') return '+/ ' + e.path
+          else return '+/ ' + e.path
+        })
+      console.log('result', result)
+      return result
     }
   },
   components: {
@@ -129,7 +173,6 @@ export default {
   },
   watch: {
     selected (val) {
-      console.log('Root selected', val.map(e => e.op + e.path))
     }
   },
   methods: {
