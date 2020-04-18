@@ -1,9 +1,9 @@
 <template>
   <q-page padding class="relative column no-wrap">
     <jobs ref="jobs"/>
-    <q-btn icon="add" push outline rounded no-caps color="green"
-      label="New Task" class="q-ma-sm" @click="add = true" v-if="!add"/>
-    <job v-if="add" @cancel="add = false" @finish="refresh"/>
+    <q-btn v-if="!add" icon="add" push outline rounded no-caps color="green"
+      label="New Task" class="q-ma-sm" @click="add = true"/>
+    <job v-else @cancel="cancel" @finish="refresh"/>
   </q-page>
 </template>
 
@@ -30,6 +30,10 @@ export default {
   methods: {
     refresh () {
       this.$refs.jobs.load()
+      this.add = true
+    },
+    cancel () {
+      this.add = false
     }
   },
   mounted () {

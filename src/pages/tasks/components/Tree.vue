@@ -35,7 +35,7 @@
             <span>
               {{name}}
             </span>
-            <q-icon color="transparent" size="xs" name="help" @click.stop="debug(entry)"/>
+            <q-icon color="black" size="xs" name="help" @click.stop="debug(entry)"/>
           </q-item-label>
         </q-item-section>
 
@@ -79,7 +79,7 @@ function compare (a, b) {
   else return 0
 }
 
-const isChecked = node => node.selected === true
+const isChecked = node => node.selected === node.path
 const isNotChecked = node => node.selected === false
 
 export default {
@@ -98,7 +98,7 @@ export default {
       required: true
     },
     selected: {
-      type: Boolean,
+      type: [Boolean, String, Array],
       default: false
     }
   },
@@ -111,10 +111,21 @@ export default {
     },
     checked: {
       get () {
-        return this.selected
+        // Selected is an Array => means some childs are selected
+        return this.selected instanceof Array ? null : !!this.selected
       },
       set (val) {
-        this.$emit('update:selected', val)
+        if (val === null) {
+          // If set to null collect all paths od chindrems and descendants
+          const result = (this.childrens.filter(e => e.selected).map(e => e.selected) || []).flat()
+          console.log('Emit', result, 'on path', this.path)
+          this.$emit('update:selected', result)
+        } else if (val) {
+          // If is this is select => means everythinh under this.path is selected
+          this.$emit('update:selected', this.path)
+        } else {
+          this.$emit('update:selected', false)
+        }
       }
     },
     isloading () {
@@ -141,8 +152,11 @@ export default {
   },
   watch: {
     selected (val) {
-      // console.log(`Watch selectet change to ${val} on ${this.path}`)
-      if (val !== null) this.childrens.forEach(c => { c.selected = val })
+      console.log(`On ${this.path} selectet change to`, val)
+      if (!(val instanceof Array)) {
+        // If it resumes everything unde it just mark chindrens as so
+        this.childrens.forEach(c => { c.selected = val ? c.path : false })
+      }
     },
     isOpen (val) {
       if (val && !this.loaded) {
@@ -159,11 +173,15 @@ export default {
       this.open = true
     },
     childSelect () {
+      console.log(`Check childs on ${this.path}, select=${this.selected}`)
       if (this.childrens.every(isChecked)) {
+        console.log('Got', true)
         this.checked = true
       } else if (this.childrens.every(isNotChecked)) {
+        console.log('Got', false)
         this.checked = false
       } else {
+        console.log('Got', null)
         this.checked = null
       }
     },

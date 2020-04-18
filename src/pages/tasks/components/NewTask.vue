@@ -15,11 +15,11 @@
         icon="receipt"
         :done="step > 1"
       >
-        <div>Selected:{{selected}}</div>
         <tree
+          :ref="disk.id"
           :entry="{ isdir: true, isroot: true, path: disk.mountpoint }"
-          v-for="disk in disks" :key="disk.id"
-          :selected.sync="selected"/>
+          v-for="(disk, index) in disks" :key="disk.id"
+          :selected.sync="selecteds[index]"/>
       </q-step>
       <q-step
         :name="2"
@@ -104,10 +104,10 @@ export default {
     return {
       disks: [],
       step: 1,
-      selected: undefined,
       freq: 1,
       every: '-d',
       start: undefined,
+      selecteds: [],
       taskname: undefined
     }
   },
@@ -129,6 +129,9 @@ export default {
     tree
   },
   watch: {
+    selecteds (val) {
+      console.log('Root selected', val)
+    }
   },
   methods: {
     async getLocalDisks () {
@@ -137,6 +140,7 @@ export default {
         console.log('Local disk:', disk)
         const [mountpoint, label, uuid, fs] = disk.split(/\|/)
         this.disks.push({ mountpoint, label, uuid, fs, disk })
+        this.selecteds.push(false)
       }
     },
     cancel () {
