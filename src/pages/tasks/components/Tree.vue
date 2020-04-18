@@ -45,15 +45,15 @@
         <!-- dirs -->
         <tree
           :entry="folder"
-          :selected.sync="folder.selected"
-          @update:selected="childSelect"
+          :selected.sync="selected"
+          @update:selected="select"
           v-for="folder in folders"
           :key="folder.path"/>
         <!-- files-->
         <tree
           :entry="file"
-          :selected.sync="file.selected"
-          @update:selected="childSelect"
+          :selected.sync="selected"
+          @update:selected="select"
           v-for="file in files"
           :key="file.path"/>
       </div>
@@ -79,8 +79,8 @@ function compare (a, b) {
   else return 0
 }
 
-const isChecked = node => node.selected === node.path
-const isNotChecked = node => node.selected === false
+// const isChecked = node => node.selected
+// const isNotChecked = node => node.selected === false
 
 export default {
   name: 'tree',
@@ -98,8 +98,8 @@ export default {
       required: true
     },
     selected: {
-      type: [Boolean, String, Array],
-      default: false
+      type: Array,
+      default: () => []
     }
   },
   computed: {
@@ -111,20 +111,27 @@ export default {
     },
     checked: {
       get () {
-        // Selected is an Array => means some childs are selected
-        return this.selected instanceof Array ? null : !!this.selected
+        if (this.selected.find(e => (e.path === this.path && e.op === '+'))) {
+          return true
+        } else if (this.selected.find(e => (e.path === this.path && e.op === '-'))) {
+          return null
+        }
+        console.log('Get false for path', this.path, this.selected)
+        return false
       },
       set (val) {
+        const others = this.selected.filter(e => e.path !== this.path)
         if (val === null) {
-          // If set to null collect all paths od chindrems and descendants
-          const result = (this.childrens.filter(e => e.selected).map(e => e.selected) || []).flat()
-          console.log('Emit', result, 'on path', this.path)
+          const result = [{ path: this.path, op: '-' }, ...others]
+          console.log('On null Emit', result, 'on path', this.path)
           this.$emit('update:selected', result)
         } else if (val) {
-          // If is this is select => means everythinh under this.path is selected
-          this.$emit('update:selected', this.path)
+          const result = [{ path: this.path, op: '+' }, ...others]
+          console.log('On true Emit', result, 'on path', this.path)
+          this.$emit('update:selected', result)
         } else {
-          this.$emit('update:selected', false)
+          console.log('on false Emit', others, 'on path', this.path)
+          this.$emit('update:selected', others)
         }
       }
     },
@@ -151,13 +158,6 @@ export default {
     }
   },
   watch: {
-    selected (val) {
-      console.log(`On ${this.path} selectet change to`, val)
-      if (!(val instanceof Array)) {
-        // If it resumes everything unde it just mark chindrens as so
-        this.childrens.forEach(c => { c.selected = val ? c.path : false })
-      }
-    },
     isOpen (val) {
       if (val && !this.loaded) {
         // Don't waste resources reloading. We have a chockidar mounted to watch for changes
@@ -172,18 +172,8 @@ export default {
     showChildrens () {
       this.open = true
     },
-    childSelect () {
-      console.log(`Check childs on ${this.path}, select=${this.selected}`)
-      if (this.childrens.every(isChecked)) {
-        console.log('Got', true)
-        this.checked = true
-      } else if (this.childrens.every(isNotChecked)) {
-        console.log('Got', false)
-        this.checked = false
-      } else {
-        console.log('Got', null)
-        this.checked = null
-      }
+    select (val) {
+      this.$emit('update:selected', val)
     },
     see () {
       if (!this.isdir) return
