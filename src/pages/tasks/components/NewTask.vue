@@ -101,18 +101,18 @@ import tree from './Tree'
 import { listLocalDisks } from 'src/helpers/bkit'
 const path = require('path')
 
-const byop = (a, b) => {
-  if (a.op === b.op) return bypath(a, b)
-  else if (!a.op) return -1
-  else if (!b.op) return 1
-  else return bypath(a, b)
-}
-const bypath = (a, b) => {
-  if (a.path.toLowerCase() < b.path.toLowerCase()) return 1
-  if (a.path.toLowerCase() > b.path.toLowerCase()) return -1
+// const byop = (a, b) => {
+//   if (a.op === b.op) return bypath(a, b)
+//   else if (!a.op) return -1 // no op, means ancestor and as so should be the first
+//   else if (!b.op) return 1
+//   else return bypath(a, b)
+// }
+const compare = (a, b) => {
+  if (a.toLowerCase() < b.toLowerCase()) return 1
+  if (a.toLowerCase() > b.toLowerCase()) return -1
   return 0
 }
-const compare = byop
+const bypath = (a, b) => compare(a.path, b.path)
 
 export default {
   name: 'newtask',
@@ -148,24 +148,23 @@ export default {
       const parents = includes.flatMap(file => {
         const steps = file.path.split(path.sep)
         steps.splice(-1) // Remove basename. I just want parents
-        console.log('steps', steps)
         const root = steps.shift()
         return steps.reduce(reducer, [root])
       })
-      const ancestores = [...new Set(parents)].map(path => ({ path }))
-      console.log('includes', includes)
-      console.log('ancestores', ancestores)
-      const result = [...includes, ...excludes, ...ancestores]
-        .sort(compare)
+      const ancestores = [...new Set(parents)].map(path => '+/ ' + path).sort(compare)
+
+      const plus = includes.sort(bypath)
         .map(e => {
-          if (e.op === '-' && e.isdir) return '-/ ' + [e.path, '*'].join(path.sep)
-          else if (e.op === '-') return '-/ ' + e.path
-          else if (e.op === '+' && e.isdir) return '+/ ' + [e.path, ''].join(path.sep)
-          else if (e.op === '+') return '+/ ' + e.path
+          if (e.isdir) return '+/ ' + [e.path, ''].join(path.sep)
           else return '+/ ' + e.path
         })
-      console.log('result', result)
-      return result
+
+      const minus = excludes.sort(bypath)
+        .map(e => {
+          if (e.isdir) return '-/ ' + [e.path, '**'].join(path.sep)
+          else return '-/ ' + e.path
+        })
+      return [...ancestores, ...plus, ...minus]
     }
   },
   components: {
