@@ -129,7 +129,7 @@ export default {
   },
   watch: {
     selected (val) {
-      console.log('Root selected', val)
+      console.log('Root selected', val.map(e => e.op + e.path))
     }
   },
   methods: {

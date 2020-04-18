@@ -45,15 +45,15 @@
         <!-- dirs -->
         <tree
           :entry="folder"
-          :selected.sync="selected"
-          @update:selected="select"
+          :selected.sync="childChecked"
+          @update:selected="updateSelect"
           v-for="folder in folders"
           :key="folder.path"/>
         <!-- files-->
         <tree
           :entry="file"
-          :selected.sync="selected"
-          @update:selected="select"
+          :selected.sync="childChecked"
+          @update:selected="updateSelect"
           v-for="file in files"
           :key="file.path"/>
       </div>
@@ -116,7 +116,6 @@ export default {
         } else if (this.selected.find(e => (e.path === this.path && e.op === '-'))) {
           return null
         }
-        console.log('Get false for path', this.path, this.selected)
         return false
       },
       set (val) {
@@ -133,6 +132,14 @@ export default {
           console.log('on false Emit', others, 'on path', this.path)
           this.$emit('update:selected', others)
         }
+      }
+    },
+    childChecked: {
+      get () {
+        return this.selected
+      },
+      set (val) {
+        this.$emit('update:selected', val)
       }
     },
     isloading () {
@@ -172,8 +179,9 @@ export default {
     showChildrens () {
       this.open = true
     },
-    select (val) {
-      this.$emit('update:selected', val)
+    updateSelect (val) {
+      this.childChecked = val
+      // this.$emit('update:selected', val)
     },
     see () {
       if (!this.isdir) return
@@ -208,7 +216,7 @@ export default {
       if (!fs.existsSync(this.path) || !this.isdir) return
       // Only if directory exists on local disk and it correspond to the backup
       for await (const entry of readdir(this.path)) {
-        entry.selected = this.selected // inherit select status from parent
+        entry.selected = this.selected // inherit updateSelect status from parent
         this.updateChildrens(entry)
       }
     }
