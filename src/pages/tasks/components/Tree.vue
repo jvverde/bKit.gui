@@ -35,7 +35,7 @@
             <span>
               {{name}}
             </span>
-            <q-icon color="black" size="xs" name="help" @click.stop="debug(entry)"/>
+            <q-icon color="transparent" size="xs" name="help" @click.stop="debug(entry)"/>
           </q-item-label>
         </q-item-section>
 
@@ -111,26 +111,19 @@ export default {
     },
     checked: {
       get () {
-        if (this.selected.find(e => (e.path === this.path && e.op === '+'))) {
-          return true
-        } else if (this.selected.find(e => (e.path === this.path && e.op === '-'))) {
-          return null
-        }
-        return false
+        const elem = this.selected.find(e => e.path === this.path)
+        return !elem ? false : elem.op === '-' ? null : true
       },
       set (val) {
-        const others = this.selected.filter(e => e.path !== this.path)
+        const selected = this.selected.filter(e => e.path !== this.path)
         if (val === null) {
-          const result = [{ path: this.path, op: '-' }, ...others]
-          console.log('On null Emit', result, 'on path', this.path)
+          const result = [{ path: this.path, op: '-' }, ...selected]
           this.$emit('update:selected', result)
         } else if (val) {
-          const result = [{ path: this.path, op: '+' }, ...others]
-          console.log('On true Emit', result, 'on path', this.path)
+          const result = [{ path: this.path, op: '+' }, ...selected]
           this.$emit('update:selected', result)
         } else {
-          console.log('on false Emit', others, 'on path', this.path)
-          this.$emit('update:selected', others)
+          this.$emit('update:selected', selected)
         }
       }
     },
@@ -181,12 +174,6 @@ export default {
     },
     updateSelect (val) {
       this.childChecked = val
-      // this.$emit('update:selected', val)
-    },
-    see () {
-      if (!this.isdir) return
-      this.selectedNode = this.path
-      this.$emit('show', this.path)
     },
     updateChildrens (entry) {
       entry.token = this.token
@@ -214,39 +201,16 @@ export default {
     },
     async readdir () {
       if (!fs.existsSync(this.path) || !this.isdir) return
-      // Only if directory exists on local disk and it correspond to the backup
+      // Only if directory exists
       for await (const entry of readdir(this.path)) {
-        entry.selected = this.selected // inherit updateSelect status from parent
         this.updateChildrens(entry)
       }
     }
   },
   mounted () {
-    // if (this.isroot) this.showChildrens()
   }
 }
 </script>
 
 <style scoped lang="scss">
-  .isSelected {
-    color:$primary;
-  }
-  .wasDeleted {
-    text-decoration: line-through;
-  }
-</style>
-
-<style lang="scss">
-  @import 'src/css/app.scss';
-
-  .expandicon, .noexpandicon {
-    margin: 0px;
-    padding: 0px;
-    padding-right: 5px;
-    color: $bkit-check-color;
-  }
-  .noexpandicon {
-    visibility: hidden;
-  }
-
 </style>
