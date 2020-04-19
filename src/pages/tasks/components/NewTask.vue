@@ -147,7 +147,7 @@ export default {
       const reducer = (a, v) => [...a, [a.pop(), v].join(path.sep)]
       const parents = includes.flatMap(file => {
         const steps = file.path.split(path.sep)
-        // steps.splice(-1) // Remove basename. I just want parents
+        // steps.splice(-1) // #No!!! It show be ancestores-or-self
         const root = steps.shift()
         return steps.reduce(reducer, [root])
       })
@@ -157,12 +157,13 @@ export default {
         .map(e => {
           if (e.op === '+') {
             if (e.isdir) return '+/ ' + [e.path, '**'].join(path.sep)
-            else return '+/ ' + e.path
+            // else return '+/ ' + e.path #there is no need to include file itsel
           } else {
             if (e.isdir) return '-/ ' + [e.path, '**'].join(path.sep)
             else return '-/ ' + e.path
           }
-        })
+          return undefined
+        }).filter(e => e)
       return [...ancestores, ...filters]
     }
   },
