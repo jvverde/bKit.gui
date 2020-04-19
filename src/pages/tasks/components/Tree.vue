@@ -35,7 +35,7 @@
             <span>
               {{name}}
             </span>
-            <q-icon color="transparent" size="xs" name="help" @click.stop="debug(entry)"/>
+            <q-icon color="transparent" size="xs" name="help" @click.stop="debug([ancestors,selected])"/>
           </q-item-label>
         </q-item-section>
 
@@ -46,14 +46,12 @@
         <tree
           :entry="folder"
           :selected.sync="childChecked"
-          @update:selected="updateSelect"
           v-for="folder in folders"
           :key="folder.path"/>
         <!-- files-->
         <tree
           :entry="file"
           :selected.sync="childChecked"
-          @update:selected="updateSelect"
           v-for="file in files"
           :key="file.path"/>
       </div>
@@ -62,9 +60,11 @@
 </template>
 <script>
 
-const { basename } = require('path')
+const { basename, sep: SEP } = require('path')
 const fs = require('fs')
 import { readdir } from 'src/helpers/readfs'
+
+const reducer = (a, v) => [...a, [a.pop(), v].join(SEP)]
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -136,6 +136,15 @@ export default {
         this.$emit('update:selected', val)
       }
     },
+    ancestors () {
+      const steps = this.path.split(SEP)
+      const root = steps.shift()
+      steps.splice(-1)
+      return steps.reduce(reducer, [root]).reverse()
+    },
+    // included () {
+    //  this.selected.
+    // },
     isloading () {
       return this.loading
     },
