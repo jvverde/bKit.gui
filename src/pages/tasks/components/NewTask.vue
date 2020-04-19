@@ -4,7 +4,8 @@
       class="row no-wrap justify-between b-stepper"
       v-model="step"
       vertical
-      color="positive"
+      color="secondary"
+      header-nav
       keep-alive
       ref="stepper"
       animated>
@@ -28,21 +29,21 @@
         :done="step > 2"
       >
         <div class="column no-wrap items-center">
-          <div class="q-gutter-sm row items-center">
+          <div class="q-gutter-sm row items-center no-wrap">
             <q-input
               v-model.number="freq"
               maxlength="2"
               outlined
               dense
               label="Every"
-              style="max-width:5em"
+              style="max-width:7em;min-width:5em"
               type="number"/>
             <q-radio v-model="every" val="-m" label="Minute(s)" />
             <q-radio v-model="every" val="-h" label="Hour(s)" />
             <q-radio v-model="every" val="-d" label="Day(s)" />
             <q-radio v-model="every" val="-w" label="Week(s)" />
           </div>
-          <div class="q-gutter-sm row items-center">
+          <div class="q-gutter-sm row items-center no-wrap">
             <span>Start at</span>
             <q-input v-model="start" dense outlined type="time"/>
           </div>
@@ -85,13 +86,22 @@
           <q-btn v-if="showNext" @click="next" no-caps outline color="positive" label="Next" />
           <q-btn v-else-if="showLast" @click="finish" no-caps outline color="positive" label="Finish" />
           <q-btn v-if="showBack" flat color="positive" no-caps @click="back" label="Back" class="q-ma-sm" />
-          <div>
+          <div class="q-ma-md">
+            <q-bar dense v-if="hasBackups">Backup</q-bar>
             <q-chip dense color="green" outline :label="b"
               size="sm"
               v-for="(b, i) in backups" :key="'b' + i"/>
+            <q-bar dense v-if="hasExcludes">Excluding</q-bar>
+            <q-chip dense color="red" outline :label="e.path"
+              size="sm"
+              v-for="e in excludes" :key="'e' + e.path"/>
+            <q-bar dense v-if="hasNeeds2include">Including</q-bar>
+            <q-chip dense color="green" outline :label="n.path"
+              size="sm"
+              v-for="n in needs2include" :key="'n' + n.path"/>
           </div>
           <div v-for="(filter, index) in filters" :key="index">
-            {{index}}: {{filter}}
+            <!-- {{index}}: {{filter}} -->
           </div>
           <q-btn flat color="warning" @click="cancel" no-caps label="Cancel" class="q-ma-sm" style="margin-top: auto"/>
         </q-stepper-navigation>
@@ -106,18 +116,13 @@ import tree from './Tree'
 import { listLocalDisks } from 'src/helpers/bkit'
 const { sep: _SEP } = require('path')
 
-// const byop = (a, b) => {
-//   if (a.op === b.op) return bypath(a, b)
-//   else if (!a.op) return -1 // no op, means ancestor and as so should be the first
-//   else if (!b.op) return 1
-//   else return bypath(a, b)
-// }
 const compare = (a, b) => {
-  if (a.toLowerCase() < b.toLowerCase()) return 1
-  if (a.toLowerCase() > b.toLowerCase()) return -1
+  if (a.toLowerCase() < b.toLowerCase()) return -1
+  if (a.toLowerCase() > b.toLowerCase()) return 1
   return 0
 }
-const bypath = (a, b) => compare(a.path, b.path)
+const compareReverse = (a, b) => compare(b, a)
+const bypath = (a, b) => compareReverse(a.path, b.path)
 
 export default {
   name: 'newtask',
@@ -146,25 +151,47 @@ export default {
       return true
     },
     backups () {
-      const includes = this.selected.filter(e => e.op === '+')
-      const paths = includes.map(e => e.path).sort(compare).reverse()
+      const paths = this.includes.map(e => e.path).sort(compare)
       const reducer = (acc, v) => {
         if (acc.some(e => v.startsWith(`${e}${_SEP}`))) return acc
         else return [...acc, v]
       }
       return paths.reduce(reducer, [])
     },
-    filters () {
-      const selected = this.selected
-      const includes = selected.filter(e => e.op === '+')
-      const excludes = selected.filter(e => e.op === '-')
+    hasBackups () {
+      return this.backups.length > 0
+    },
+    includes () {
+      return this.selected.filter(e => e.op === '+')
+    },
+    hasIncludes () {
+      return this.includes.length > 0
+    },
+    excludes () {
+      return this.selected.filter(e => e.op === '-')
+    },
+    hasExcludes () {
+      return this.excludes.length > 0
+    },
+    needs2include () { // Needs2include = Includes - Backups
+      return this.includes.filter(e => !this.backups.includes(e.path))
+    },
+    hasNeeds2include () {
+      return this.needs2include.length > 0
+    },
+    ancestors () {
       const reducer = (a, v) => [...a, [a.pop(), v].join(_SEP)]
-      const parents = includes.flatMap(file => {
+
+      const parents = this.includes.flatMap(file => {
         const steps = file.path.split(_SEP)
         const root = steps.shift()
         return steps.reduce(reducer, [root]) // parents-or-self
       })
-      const ancestores = [...new Set(parents)].map(path => `+/ ${path}`).sort(compare)
+
+      return [...new Set(parents)].map(path => `+/ ${path}`).sort(compareReverse)
+    },
+    filters () {
+      const { includes, excludes, ancestors } = this
 
       const filters = [...includes, ...excludes].sort(bypath)
         .map(e => {
@@ -177,7 +204,8 @@ export default {
           }
           return undefined
         }).filter(e => e)
-      return [...ancestores, ...filters]
+
+      return [...ancestors, ...filters]
     }
   },
   components: {
@@ -218,5 +246,8 @@ export default {
 <style type="text/scss">
   .b-stepper > :first-child {
     flex-grow: 1
+  }
+  .b-stepper > :last-child {
+    max-width: 40%;
   }
 </style>

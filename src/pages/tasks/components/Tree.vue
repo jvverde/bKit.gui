@@ -7,7 +7,7 @@
       class="b-tree"
       :ref="path"
       expand-icon="keyboard_arrow_down"
-      :expand-icon-class="isdir ? 'expandicon' : 'noexpandicon'">
+      :expand-icon-class="isdir ? '' : 'noexpandicon'">
       <template v-slot:header> <!-- this is the header line template -->
 
         <q-item-section side v-if="leaf">
@@ -123,9 +123,6 @@ export default {
         return !elem ? false : elem.op === '-' ? null : true
       },
       set (val) {
-        console.log('this.isIncluded', this.isIncluded)
-        console.log('this.isExcluded', this.isExcluded)
-        console.log('Val', val)
         if (val === null && !this.isIncluded) { // Don't allow an exclude if is is not Included by an ancestor
           this.checked = false
         } else if (val === true && this.isIncluded) { // Don't need to be redundant
@@ -264,5 +261,8 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
+  .noexpandicon {
+    visibility: hidden;
+  }
 </style>
