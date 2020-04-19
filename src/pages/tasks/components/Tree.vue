@@ -32,10 +32,10 @@
         <q-item-section no-wrap>
           <q-item-label class="ellipsis">
             <q-spinner-ios color="amber" v-if="isloading"/>
-            <span>
+            <span :style="{ color: markcolor }">
               {{name}}
             </span>
-            <q-icon color="transparent" size="xs" name="help" @click.stop="debug([ancestors,selected])"/>
+            <q-icon color="transparent" size="xs" name="help" @click.stop="debug()"/>
           </q-item-label>
         </q-item-section>
 
@@ -71,13 +71,21 @@ function comparenames (a, b) {
   if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
   return 0
 }
-function compare (a, b) {
+function compareChildrens (a, b) {
   if (a.isdir && b.isdir) return comparenames(a, b)
   else if (!a.isdir && !b.isdir) return comparenames(a, b)
   else if (a.isdir) return -1
   else if (b.isdir) return 1
   else return 0
 }
+
+const compareReverse = (a, b) => {
+  if (a.toLowerCase() < b.toLowerCase()) return 1
+  if (a.toLowerCase() > b.toLowerCase()) return -1
+  return 0
+}
+
+const compareAncestors = (a, b) => compareReverse(a.path, b.path)
 
 // const isChecked = node => node.selected
 // const isNotChecked = node => node.selected === false
@@ -142,9 +150,23 @@ export default {
       steps.splice(-1)
       return steps.reduce(reducer, [root]).reverse()
     },
-    // included () {
-    //  this.selected.
-    // },
+    included () {
+      const set = new Set(this.ancestors)
+      return this.selected.filter(e => set.has(e.path)) // get marked ancestores
+        .sort(compareAncestors) // sort them by more specific one
+        .map(e => e.op + e.path) // return in the got +path or -path
+    },
+    isIncluded () {
+      return (this.included[0] || '').startsWith('+')
+    },
+    isExcluded () {
+      return (this.included[0] || '').startsWith('-')
+    },
+    markcolor () {
+      const isIncluded = this.checked || (this.isIncluded && this.checked !== null)
+      const isExcluded = this.checked === null || this.isExcluded
+      return isIncluded ? 'green' : isExcluded ? 'red' : 'initial'
+    },
     isloading () {
       return this.loading
     },
@@ -176,14 +198,11 @@ export default {
     }
   },
   methods: {
-    debug (entry) {
+    debug (entry = this) {
       console.log(entry)
     },
     showChildrens () {
       this.open = true
-    },
-    updateSelect (val) {
-      this.childChecked = val
     },
     updateChildrens (entry) {
       entry.token = this.token
@@ -196,7 +215,7 @@ export default {
       } else {
         childrens.push(entry)
       }
-      childrens.sort(compare)
+      childrens.sort(compareChildrens)
     },
     async opendir () {
       if (!this.isdir) return
@@ -212,7 +231,7 @@ export default {
     async readdir () {
       if (!fs.existsSync(this.path) || !this.isdir) return
       // Only if directory exists
-      for await (const entry of readdir(this.path)) {
+      for await (const entry of readdir(`${this.path}/`)) {
         this.updateChildrens(entry)
       }
     }

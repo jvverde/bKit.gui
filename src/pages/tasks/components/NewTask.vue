@@ -180,7 +180,8 @@ export default {
       for (const disk of disks) {
         console.log('Local disk:', disk)
         const [mountpoint, label, uuid, fs] = disk.split(/\|/)
-        this.disks.push({ mountpoint, label, uuid, fs, disk, selected: [] })
+        const letter = mountpoint.replace(/\\$/, '')
+        this.disks.push({ mountpoint: letter, label, uuid, fs, disk, selected: [] })
       }
     },
     cancel () {

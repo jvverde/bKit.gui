@@ -4,7 +4,7 @@ const path = require('path')
 const onlocal = true
 export async function* readdir (dir) {
   try {
-    const fullpath = path.normalize(dir)
+    const fullpath = path.normalize(`${dir}/`)
     const stat = await fs.lstat(fullpath)
     if (stat.isDirectory()) {
       const files = await fs.readdir(fullpath)
