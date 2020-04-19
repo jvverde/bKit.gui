@@ -85,6 +85,11 @@
           <q-btn v-if="showNext" @click="next" no-caps outline color="positive" label="Next" />
           <q-btn v-else-if="showLast" @click="finish" no-caps outline color="positive" label="Finish" />
           <q-btn v-if="showBack" flat color="positive" no-caps @click="back" label="Back" class="q-ma-sm" />
+          <div>
+            <q-chip dense color="green" outline :label="b"
+              size="sm"
+              v-for="(b, i) in backups" :key="'b' + i"/>
+          </div>
           <div v-for="(filter, index) in filters" :key="index">
             {{index}}: {{filter}}
           </div>
@@ -99,7 +104,7 @@
 
 import tree from './Tree'
 import { listLocalDisks } from 'src/helpers/bkit'
-const { set: SEP } = require('path')
+const { sep: _SEP } = require('path')
 
 // const byop = (a, b) => {
 //   if (a.op === b.op) return bypath(a, b)
@@ -140,26 +145,34 @@ export default {
     canIgo () {
       return true
     },
+    backups () {
+      const includes = this.selected.filter(e => e.op === '+')
+      const paths = includes.map(e => e.path).sort(compare).reverse()
+      const reducer = (acc, v) => {
+        if (acc.some(e => v.startsWith(`${e}${_SEP}`))) return acc
+        else return [...acc, v]
+      }
+      return paths.reduce(reducer, [])
+    },
     filters () {
       const selected = this.selected
       const includes = selected.filter(e => e.op === '+')
       const excludes = selected.filter(e => e.op === '-')
-      const reducer = (a, v) => [...a, [a.pop(), v].join(SEP)]
+      const reducer = (a, v) => [...a, [a.pop(), v].join(_SEP)]
       const parents = includes.flatMap(file => {
-        const steps = file.path.split(SEP)
-        // steps.splice(-1) // #No!!! It show be ancestores-or-self
+        const steps = file.path.split(_SEP)
         const root = steps.shift()
-        return steps.reduce(reducer, [root])
+        return steps.reduce(reducer, [root]) // parents-or-self
       })
-      const ancestores = [...new Set(parents)].map(path => `+/  ${path}${SEP}`).sort(compare)
+      const ancestores = [...new Set(parents)].map(path => `+/ ${path}`).sort(compare)
 
       const filters = [...includes, ...excludes].sort(bypath)
         .map(e => {
           if (e.op === '+') {
-            if (e.isdir) return '+/ ' + [e.path, '**'].join(SEP)
+            if (e.isdir) return '+/ ' + [e.path, '**'].join(_SEP)
             // else return '+/ ' + e.path #there is no need to include file itsel
           } else {
-            if (e.isdir) return '-/ ' + [e.path, '**'].join(SEP)
+            if (e.isdir) return '-/ ' + [e.path, '**'].join(_SEP)
             else return '-/ ' + e.path
           }
           return undefined
@@ -203,7 +216,10 @@ export default {
 }
 </script>
 <style type="text/scss">
+  .b-stepper > :last-child {
+    max-width: 80%;
+  }
   .b-stepper > :first-child {
-    flex-grow:1
+    flex-grow: 1
   }
 </style>
