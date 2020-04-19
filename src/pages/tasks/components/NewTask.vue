@@ -99,7 +99,7 @@
 
 import tree from './Tree'
 import { listLocalDisks } from 'src/helpers/bkit'
-const path = require('path')
+const { set: SEP } = require('path')
 
 // const byop = (a, b) => {
 //   if (a.op === b.op) return bypath(a, b)
@@ -144,22 +144,22 @@ export default {
       const selected = this.selected
       const includes = selected.filter(e => e.op === '+')
       const excludes = selected.filter(e => e.op === '-')
-      const reducer = (a, v) => [...a, [a.pop(), v].join(path.sep)]
+      const reducer = (a, v) => [...a, [a.pop(), v].join(SEP)]
       const parents = includes.flatMap(file => {
-        const steps = file.path.split(path.sep)
+        const steps = file.path.split(SEP)
         // steps.splice(-1) // #No!!! It show be ancestores-or-self
         const root = steps.shift()
         return steps.reduce(reducer, [root])
       })
-      const ancestores = [...new Set(parents)].map(path => '+/ ' + path).sort(compare)
+      const ancestores = [...new Set(parents)].map(path => `+/  ${path}${SEP}`).sort(compare)
 
       const filters = [...includes, ...excludes].sort(bypath)
         .map(e => {
           if (e.op === '+') {
-            if (e.isdir) return '+/ ' + [e.path, '**'].join(path.sep)
+            if (e.isdir) return '+/ ' + [e.path, '**'].join(SEP)
             // else return '+/ ' + e.path #there is no need to include file itsel
           } else {
-            if (e.isdir) return '-/ ' + [e.path, '**'].join(path.sep)
+            if (e.isdir) return '-/ ' + [e.path, '**'].join(SEP)
             else return '-/ ' + e.path
           }
           return undefined

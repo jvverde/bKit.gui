@@ -29,49 +29,32 @@
     >
       <q-list>
         <q-item-label header>Menu</q-item-label>
-        <q-item clickable>
+        <q-item clickable @click="$router.push('/')">
           <q-item-section avatar>
             <q-icon color="primary" name="home" />
           </q-item-section>
           <q-item-section>
             <q-item-label>
-              <router-link tag="span" to="/">
-                Home
-              </router-link>
+              Home
             </q-item-label>
           </q-item-section>
         </q-item>
-        <!-- <q-item clickable>
-          <q-item-section avatar>
-            <q-icon color="primary" name="restore" />
-          </q-item-section>
-          <q-item-section>
-            <router-link tag="span" to="/restore">
-              <q-item-label>Restore</q-item-label>
-              <q-item-label caption>Browse backups</q-item-label>
-            </router-link>
-          </q-item-section>
-        </q-item> -->
-        <q-item clickable>
+        <q-item clickable @click="$router.push('/backup')">
           <q-item-section avatar>
             <q-icon color="primary" name="backup" />
           </q-item-section>
           <q-item-section>
-            <router-link tag="span" to="/backup">
-              <q-item-label>Backup</q-item-label>
-              <q-item-label caption>Browse local files</q-item-label>
-            </router-link>
+            <q-item-label>Backup</q-item-label>
+            <q-item-label caption>Browse local files</q-item-label>
           </q-item-section>
         </q-item>
-        <q-item clickable>
+        <q-item clickable @click="$router.push('/servers')">
           <q-item-section avatar>
             <q-icon color="primary" name="storage" />
           </q-item-section>
           <q-item-section>
-            <router-link tag="span" to="/servers">
-              <q-item-label>Servers</q-item-label>
-              <q-item-label caption>Manage Servers</q-item-label>
-            </router-link>
+            <q-item-label>Servers</q-item-label>
+            <q-item-label caption>Manage Servers</q-item-label>
           </q-item-section>
         </q-item>
         <q-item clickable @click="$router.push('/tasks')">
@@ -164,11 +147,9 @@ export default {
         })
     },
     terminal () {
-      console.log('open a shell')
       shell()
     },
     debug () {
-      console.log('open debug window')
       ipcRenderer.send('debug', 'on')
     }
   }
