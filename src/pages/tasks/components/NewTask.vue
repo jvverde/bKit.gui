@@ -179,9 +179,9 @@ export default {
       const disks = await listLocalDisks() || []
       for (const disk of disks) {
         console.log('Local disk:', disk)
-        const [mountpoint, label, uuid, fs] = disk.split(/\|/)
-        const letter = mountpoint.replace(/\\$/, '')
-        this.disks.push({ mountpoint: letter, label, uuid, fs, disk, selected: [] })
+        const [letter, label, uuid, fs] = disk.split(/\|/)
+        const mountpoint = letter.replace(/\\$/, '')
+        this.disks.push({ mountpoint, label, uuid, fs, disk, selected: [] })
       }
     },
     cancel () {

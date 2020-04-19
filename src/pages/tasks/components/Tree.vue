@@ -123,12 +123,19 @@ export default {
         return !elem ? false : elem.op === '-' ? null : true
       },
       set (val) {
+        if (val === null && !this.isIncluded) {
+          this.checked = false
+          return
+        } else if (val === true && this.isIncluded) {
+          this.checked = null
+          return
+        }
         const { path, isdir } = this
         const selected = this.selected.filter(e => e.path !== path)
         if (val === null) {
           const result = [{ path, op: '-', isdir }, ...selected]
           this.$emit('update:selected', result)
-        } else if (val) {
+        } else if (val === true) {
           const result = [{ path, op: '+', isdir }, ...selected]
           this.$emit('update:selected', result)
         } else {
@@ -231,7 +238,7 @@ export default {
     async readdir () {
       if (!fs.existsSync(this.path) || !this.isdir) return
       // Only if directory exists
-      for await (const entry of readdir(`${this.path}/`)) {
+      for await (const entry of readdir(this.path)) {
         this.updateChildrens(entry)
       }
     }
