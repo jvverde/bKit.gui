@@ -147,7 +147,7 @@ export default {
       const reducer = (a, v) => [...a, [a.pop(), v].join(path.sep)]
       const parents = includes.flatMap(file => {
         const steps = file.path.split(path.sep)
-        steps.splice(-1) // Remove basename. I just want parents
+        // steps.splice(-1) // Remove basename. I just want parents
         const root = steps.shift()
         return steps.reduce(reducer, [root])
       })
