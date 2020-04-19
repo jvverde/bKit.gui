@@ -216,9 +216,6 @@ export default {
 }
 </script>
 <style type="text/scss">
-  .b-stepper > :last-child {
-    max-width: 80%;
-  }
   .b-stepper > :first-child {
     flex-grow: 1
   }

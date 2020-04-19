@@ -123,6 +123,9 @@ export default {
         return !elem ? false : elem.op === '-' ? null : true
       },
       set (val) {
+        console.log('this.isIncluded', this.isIncluded)
+        console.log('this.isExcluded', this.isExcluded)
+        console.log('Val', val)
         if (val === null && !this.isIncluded) { // Don't allow an exclude if is is not Included by an ancestor
           this.checked = false
         } else if (val === true && this.isIncluded) { // Don't need to be redundant
@@ -152,15 +155,15 @@ export default {
     },
     ancestors () {
       const steps = this.path.split(SEP)
+      steps.splice(-1) // This order is very importante. Don't change it
       const root = steps.shift()
-      steps.splice(-1)
-      return steps.reduce(reducer, [root]).reverse()
+      return root ? steps.reduce(reducer, [root]).reverse() : []
     },
     included () {
       const set = new Set(this.ancestors)
       return this.selected.filter(e => set.has(e.path)) // get marked ancestores
         .sort(compareAncestors) // sort them by more specific one
-        .map(e => e.op + e.path) // return in the got +path or -path
+        .map(e => e.op + e.path) // return in the form +path or -path
     },
     isIncluded () {
       return (this.included[0] || '').startsWith('+')
