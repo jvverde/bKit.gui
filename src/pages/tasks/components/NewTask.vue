@@ -153,18 +153,17 @@ export default {
       })
       const ancestores = [...new Set(parents)].map(path => '+/ ' + path).sort(compare)
 
-      const plus = includes.sort(bypath)
+      const filters = [...includes, ...excludes].sort(bypath)
         .map(e => {
-          if (e.isdir) return '+/ ' + [e.path, ''].join(path.sep)
-          else return '+/ ' + e.path
+          if (e.op === '+') {
+            if (e.isdir) return '+/ ' + [e.path, '**'].join(path.sep)
+            else return '+/ ' + e.path
+          } else {
+            if (e.isdir) return '-/ ' + [e.path, '**'].join(path.sep)
+            else return '-/ ' + e.path
+          }
         })
-
-      const minus = excludes.sort(bypath)
-        .map(e => {
-          if (e.isdir) return '-/ ' + [e.path, '**'].join(path.sep)
-          else return '-/ ' + e.path
-        })
-      return [...ancestores, ...plus, ...minus]
+      return [...ancestores, ...filters]
     }
   },
   components: {
