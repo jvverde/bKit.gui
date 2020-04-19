@@ -25,7 +25,7 @@
             v-model="checked"
             keep-color
             size="xs"
-            color="bkitchekcolor"
+            :color="markcolor"
           />
         </q-item-section>
 
@@ -123,23 +123,22 @@ export default {
         return !elem ? false : elem.op === '-' ? null : true
       },
       set (val) {
-        if (val === null && !this.isIncluded) {
+        if (val === null && !this.isIncluded) { // Don't allow an exclude if is is not Included by an ancestor
           this.checked = false
-          return
-        } else if (val === true && this.isIncluded) {
+        } else if (val === true && this.isIncluded) { // Don't need to be redundant
           this.checked = null
-          return
-        }
-        const { path, isdir } = this
-        const selected = this.selected.filter(e => e.path !== path)
-        if (val === null) {
-          const result = [{ path, op: '-', isdir }, ...selected]
-          this.$emit('update:selected', result)
-        } else if (val === true) {
-          const result = [{ path, op: '+', isdir }, ...selected]
-          this.$emit('update:selected', result)
         } else {
-          this.$emit('update:selected', selected)
+          const { path, isdir } = this
+          const selected = this.selected.filter(e => e.path !== path)
+          if (val === null) {
+            const result = [{ path, op: '-', isdir }, ...selected]
+            this.$emit('update:selected', result)
+          } else if (val === true) {
+            const result = [{ path, op: '+', isdir }, ...selected]
+            this.$emit('update:selected', result)
+          } else {
+            this.$emit('update:selected', selected)
+          }
         }
       }
     },
@@ -201,6 +200,16 @@ export default {
       if (val && !this.loaded) {
         // Don't waste resources reloading. We have a chockidar mounted to watch for changes
         this.opendir()
+      }
+    },
+    isIncluded (val) {
+      if (val && this.checked === true) { // Reset a redundant mark
+        this.checked = false
+      }
+    },
+    isExcluded (val) {
+      if (val && this.checked === null) { // Reset a redundant mark
+        this.checked = false
       }
     }
   },
