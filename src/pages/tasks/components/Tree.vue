@@ -157,19 +157,21 @@ export default {
       const steps = this.path.split(SEP)
       steps.splice(-1) // This order is very importante. Don't change it
       const root = steps.shift()
-      return root ? steps.reduce(reducer, [root]).reverse() : []
+      return root ? steps.reduce(reducer, [root]).reverse() : [] // [] occurs when this.path is the root (ex. C:)
     },
     included () {
       const set = new Set(this.ancestors)
-      return this.selected.filter(e => set.has(e.path)) // get marked ancestores
-        .sort(compareAncestors) // sort them by more specific one
-        .map(e => e.op + e.path) // return in the form +path or -path
+      return this.selected.filter(e => set.has(e.path)) // get marked ancestors
+        .sort(compareAncestors) // sort them by the nearest one (ex: [a/b/c, a/b])
+        // .map(e => e.op + e.path) // return in the form +path or -path
     },
     isIncluded () {
-      return (this.included[0] || '').startsWith('+')
+      return this.included[0] && this.included[0].op === '+'
+      // return (this.included[0] || '').startsWith('+')
     },
     isExcluded () {
-      return (this.included[0] || '').startsWith('-')
+      return this.included[0] && this.included[0].op === '-'
+      // return (this.included[0] || '').startsWith('-')
     },
     markcolor () {
       const isIncluded = this.checked || (this.isIncluded && this.checked !== null)
@@ -207,6 +209,8 @@ export default {
     },
     isIncluded (val) {
       if (val && this.checked === true) { // Reset a redundant mark
+        this.checked = false
+      } else if (!val && this.checked === null) { // Don't leave a excluded at top level
         this.checked = false
       }
     },
