@@ -4,7 +4,9 @@
       class="row no-wrap justify-between b-stepper"
       v-model="step"
       vertical
-      color="secondary"
+      done-icon="done"
+      done-color="green"
+      active-color="secondary"
       header-nav
       keep-alive
       ref="stepper"
@@ -14,7 +16,7 @@
         title="Select"
         caption="Folders or Files"
         icon="receipt"
-        :done="step > 1"
+        :done="hasBackups"
       >
         <tree
           :entry="{ isdir: true, isroot: true, path: disk.mountpoint }"
@@ -26,7 +28,7 @@
         title="Define"
         caption="When task should run"
         icon="schedule"
-        :done="step > 2"
+        :done="when"
       >
         <div class="column no-wrap items-center">
           <div class="q-gutter-sm row items-center no-wrap">
@@ -54,7 +56,7 @@
         title="Name"
         caption="Identify the task"
         icon="how_to_reg"
-        :done="step > 3"
+        :done="hasName"
       >
         <div class="column no-wrap items-center">
           <q-input
@@ -72,7 +74,7 @@
         title="Do It"
         caption="Create task"
         icon="paly_for_work"
-        :done="step > 3"
+        :done="isDone"
       >
         <div class="column content-stretch">
           <q-btn icon-right="subdirectory_arrow_left" rounded push outline
@@ -83,9 +85,12 @@
       </q-step>
       <template v-slot:navigation>
         <q-stepper-navigation class="column no-wrap">
-          <q-btn v-if="showNext" @click="next" no-caps outline color="positive" label="Next" />
-          <q-btn v-else-if="showLast" @click="finish" no-caps outline color="positive" label="Finish" />
-          <q-btn v-if="showBack" flat color="positive" no-caps @click="back" label="Back" class="q-ma-sm" />
+          <q-btn v-if="showNext" @click="next" icon-right="keyboard_arrow_down"
+            no-caps outline color="positive" label="Next"/>
+          <q-btn v-else-if="showLast" @click="finish"
+            no-caps outline color="positive" label="Finish"/>
+          <q-btn :disable="!showBack" flat color="positive" icon="keyboard_arrow_up"
+            no-caps @click="back" label="Back" class="q-ma-sm"/>
           <div class="q-ma-md">
             <q-bar dense v-if="hasBackups">Backup</q-bar>
             <q-chip dense color="green" outline :label="b"
@@ -134,7 +139,8 @@ export default {
       freq: 1,
       every: '-d',
       start: undefined,
-      taskname: undefined
+      taskname: undefined,
+      isDone: false
     }
   },
   computed: {
@@ -149,6 +155,12 @@ export default {
     },
     canIgo () {
       return true
+    },
+    when () {
+      return this.freq > 0 && !!this.every && !!this.start
+    },
+    hasName () {
+      return !!this.taskname
     },
     backups () {
       const paths = this.includes.map(e => e.path).sort(compare)
