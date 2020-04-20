@@ -5,8 +5,8 @@
       v-model="step"
       vertical
       done-icon="done"
-      done-color="green"
-      active-color="secondary"
+      done-color="positive"
+      active-color="lime"
       header-nav
       keep-alive
       ref="stepper"
@@ -16,8 +16,7 @@
         title="Select"
         caption="Folders or Files"
         icon="receipt"
-        :done="hasBackups"
-      >
+        :done="hasBackups">
         <tree
           :entry="{ isdir: true, isroot: true, path: disk.mountpoint }"
           v-for="disk in disks" :key="disk.id"
@@ -28,58 +27,48 @@
         title="Define"
         caption="When task should run"
         icon="schedule"
-        :done="when"
-      >
-        <div class="column no-wrap items-center">
-          <div class="q-gutter-sm row items-center no-wrap">
-            <q-input
-              v-model.number="freq"
-              maxlength="2"
-              outlined
-              dense
-              label="Every"
-              style="max-width:7em;min-width:5em"
-              type="number"/>
-            <q-radio v-model="every" val="-m" label="Minute(s)" />
-            <q-radio v-model="every" val="-h" label="Hour(s)" />
-            <q-radio v-model="every" val="-d" label="Day(s)" />
-            <q-radio v-model="every" val="-w" label="Week(s)" />
-          </div>
-          <div class="q-gutter-sm row items-center no-wrap">
-            <span>Start at</span>
-            <q-input v-model="start" dense outlined type="time"/>
-          </div>
-        </div>
+        :done="when">
+        <schedule v-bind.sync="scheduler"/>
+        <span>Run every {{freq}} {{periodName}}</span>
       </q-step>
       <q-step
         :name="3"
         title="Name"
         caption="Identify the task"
         icon="how_to_reg"
-        :done="hasName"
-      >
-        <div class="column no-wrap items-center">
-          <q-input
-            v-model="taskname"
-            prefix="BKIT-"
-            outlined
-            dense
-            label="Taskname"
-            hint="Choose a name not yet listed"
-            type="text"/>
-        </div>
+        :done="hasName">
+        <taskname :name.sync="taskname"/>
       </q-step>
       <q-step
         :name="4"
         title="Do It"
         caption="Create task"
         icon="paly_for_work"
-        :done="isDone"
-      >
+        :done="isDone">
         <div class="column content-stretch">
-          <q-btn icon-right="subdirectory_arrow_left" rounded push outline
+          <div v-if="isReady">
+            <span>Ready to create a task BKIT-{{taskname}} to run every xxx for backup</span>
+            <div class="q-ml-lg">
+              <div v-for="(b, i) in backups" :key="'B' + i">
+                {{b}}
+              </div>
+              <div v-if="hasExcludes" class="q-ml-sm">
+                <span>But excluding</span>
+                <div v-for="e in excludes" :key="'E' + e.path">
+                  {{e.path}}
+                </div>
+                <div v-if="hasNeeds2include" class="q-ml-sm">
+                  <span>Except these ones</span>
+                  <div v-for="n in needs2include" :key="'N' + n.path">
+                    {{n.path}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <q-btn v-if="isReady" icon-right="subdirectory_arrow_left" rounded push outline
             size="md" color="positive"
-            class="q-ma-sm"
+            class="q-ma-sm q-mt-lg"
             label="Enter"/>
         </div>
       </q-step>
@@ -91,17 +80,17 @@
             no-caps outline color="positive" label="Finish"/>
           <q-btn :disable="!showBack" flat color="positive" icon="keyboard_arrow_up"
             no-caps @click="back" label="Back" class="q-ma-sm"/>
-          <div class="q-ma-md">
+          <div class="q-ma-md bg-lime-1">
             <q-bar dense v-if="hasBackups">Backup</q-bar>
-            <q-chip dense color="green" outline :label="b"
+            <q-chip dense color="positive" outline :label="b"
               size="sm"
               v-for="(b, i) in backups" :key="'b' + i"/>
             <q-bar dense v-if="hasExcludes">Excluding</q-bar>
-            <q-chip dense color="red" outline :label="e.path"
+            <q-chip dense color="negative" outline :label="e.path"
               size="sm"
               v-for="e in excludes" :key="'e' + e.path"/>
             <q-bar dense v-if="hasNeeds2include">Including</q-bar>
-            <q-chip dense color="green" outline :label="n.path"
+            <q-chip dense color="positive" outline :label="n.path"
               size="sm"
               v-for="n in needs2include" :key="'n' + n.path"/>
           </div>
@@ -118,8 +107,11 @@
 <script>
 
 import tree from './Tree'
+import taskname from './Taskname'
+import schedule from './Schedule'
 import { listLocalDisks } from 'src/helpers/bkit'
 const { sep: _SEP } = require('path')
+const task = require('windows-scheduler')
 
 const compare = (a, b) => {
   if (a.toLowerCase() < b.toLowerCase()) return -1
@@ -129,6 +121,25 @@ const compare = (a, b) => {
 const compareReverse = (a, b) => compare(b, a)
 const bypath = (a, b) => compareReverse(a.path, b.path)
 
+const periods = [
+  {
+    value: '-d',
+    label: 'Day(s)'
+  },
+  {
+    value: '-m',
+    label: 'Minute(s)'
+  },
+  {
+    value: '-w',
+    label: 'week(s)'
+  },
+  {
+    value: '-h',
+    label: 'Hour(s)'
+  }
+]
+
 export default {
   name: 'newtask',
   data () {
@@ -136,9 +147,12 @@ export default {
       disks: [],
       selected: [],
       step: 1,
-      freq: 1,
-      every: '-d',
-      start: undefined,
+      scheduler: {
+        freq: 1,
+        period: '-d',
+        periods,
+        start: undefined
+      },
       taskname: undefined,
       isDone: false
     }
@@ -156,8 +170,17 @@ export default {
     canIgo () {
       return true
     },
+    freq () {
+      return this.scheduler.freq
+    },
+    period () {
+      return this.scheduler.period
+    },
+    periodName () {
+      return periods.find(e => e.value === this.period).label
+    },
     when () {
-      return this.freq > 0 && !!this.every && !!this.start
+      return this.freq > 0 && !!this.period && !!this.start
     },
     hasName () {
       return !!this.taskname
@@ -172,6 +195,9 @@ export default {
     },
     hasBackups () {
       return this.backups.length > 0
+    },
+    isReady () {
+      return this.hasBackups && this.hasName && this.when
     },
     includes () {
       return this.selected.filter(e => e.op === '+')
@@ -221,7 +247,9 @@ export default {
     }
   },
   components: {
-    tree
+    tree,
+    taskname,
+    schedule
   },
   watch: {
     selected (val) {
@@ -236,6 +264,17 @@ export default {
         const mountpoint = letter.replace(/\\$/, '')
         this.disks.push({ mountpoint, label, uuid, fs, disk, selected: [] })
       }
+    },
+    checkName () {
+      console.log(this.taskname)
+      task.get('BKIT-' + this.taskname, 'LIST')
+        .then(list => {
+          console.log('list', list)
+          this.tasknameInvalid = true
+        }).catch(e => {
+          this.tasknameInvalid = false
+          this.tasknameValid = true
+        })
     },
     cancel () {
       this.$emit('cancel')
@@ -260,6 +299,7 @@ export default {
     flex-grow: 1
   }
   .b-stepper > :last-child {
-    max-width: 40%;
+    max-width: min(40%, 20em);
+    max-width: 25em;
   }
 </style>

@@ -94,7 +94,7 @@ export default {
   data () {
     return {
       loading: false,
-      tasks: {},
+      tasknames: [],
       gridmode: false,
       selected: [],
       pagination: {
@@ -158,10 +158,10 @@ export default {
       let cnt = 0
       try {
         this.loading = true
-        const list = await task.get(undefined, 'LIST')
-        const matchArray = list.match(/(?<=TaskName:\s*.*?)BKIT.+?[\r\n]/igm)
-        const uniqueNames = [...new Set(matchArray)]
-        uniqueNames.forEach(async taskname => {
+        const list = await task.get(undefined, 'LIST') // get a list of all schedule tasks
+        const matchArray = list.match(/(?<=TaskName:\s*.*?)BKIT.+?[\r\n]/igm) // Filter out only BKIT-*
+        this.tasknames = [...new Set(matchArray)]
+        this.tasknames.forEach(async taskname => {
           const csv = await task.get(taskname, 'CSV', true)
           const lines = (csv.split(/[\n\r]+/) || []).filter(e => e)
           const headers = lines.shift().replace(/^"|"$/g, '').split(/","/)
