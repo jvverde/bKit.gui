@@ -7,7 +7,7 @@
         outlined
         dense
         label="Every"
-        style="max-width:7em;min-width:5em"
+        style="max-width:8em;min-width:5em"
         type="number"/>
       <q-option-group
         v-model="_period"

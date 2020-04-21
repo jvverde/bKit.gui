@@ -25,7 +25,7 @@
       <q-step
         :name="2"
         title="Define"
-        caption="hasScheduler task should run"
+        caption="When should run"
         icon="schedule"
         :done="hasScheduler">
         <schedule v-bind.sync="scheduler"/>
@@ -47,7 +47,7 @@
         :done="isDone">
         <div class="column content-stretch">
           <div v-if="isReady">
-            <span>Ready to create a task BKIT-{{taskname}} to run every xxx for backup</span>
+            <span>Ready to create a task BKIT-{{taskname}} to run every {{freq}} {{periodName}} for backup following</span>
             <div class="q-ml-lg">
               <div v-for="(b, i) in backups" :key="'B' + i">
                 {{b}}
@@ -66,6 +66,10 @@
               </div>
             </div>
           </div>
+          <div v-else class="column items-center">
+            <div class="q-mt-lg">Not ready yet. Please very if all steps are done</div>
+            <div class="q-ma-xs">{{whyNotReady}}</div>
+          </div>
           <q-btn v-if="isReady" icon-right="subdirectory_arrow_left" rounded push outline
             size="md" color="positive" class="q-ma-sm q-mt-lg" label="Enter"/>
         </div>
@@ -74,7 +78,7 @@
         <q-stepper-navigation class="column no-wrap">
           <q-btn v-if="showNext" @click="next" icon-right="keyboard_arrow_down"
             no-caps outline color="positive" label="Next"/>
-          <q-btn v-else-if="showLast" @click="finish"
+          <q-btn v-else-if="showLast" :disable="!isReady" @click="finish"
             no-caps outline color="positive" label="Finish"/>
           <q-btn :disable="!showBack" flat color="positive" icon="keyboard_arrow_up"
             no-caps @click="back" label="Back" class="q-ma-sm"/>
@@ -108,8 +112,7 @@ import tree from './Tree'
 import taskname from './Taskname'
 import schedule from './Schedule'
 import { listLocalDisks } from 'src/helpers/bkit'
-const { sep: _SEP } = require('path')
-const task = require('windows-scheduler')
+const { sep: SEP } = require('path')
 
 const compare = (a, b) => {
   if (a.toLowerCase() < b.toLowerCase()) return -1
@@ -122,13 +125,16 @@ const bypath = (a, b) => compareReverse(a.path, b.path)
 const periods = [
   {
     value: '-d',
-    label: 'Day(s)' },
+    label: 'Day(s)'
+  },
   {
     value: '-m',
-    label: 'Minute(s)' },
+    label: 'Minute(s)'
+  },
   {
     value: '-w',
-    label: 'week(s)' },
+    label: 'week(s)'
+  },
   {
     value: '-h',
     label: 'Hour(s)'
@@ -137,79 +143,129 @@ const periods = [
 
 export default {
   name: 'newtask',
-  data () { return {
+  data () {
+    return {
       disks: [],
       selected: [],
       step: 1,
       scheduler: {
-        freq: 1,
+        freq: 0 | 1,
         period: '-d',
         periods,
-        start: undefined },
+        start: undefined
+      },
       taskname: undefined,
       isDone: false
-    } },
+    }
+  },
   computed: {
-    showBack () { return this.step > 1 },
-    showNext () { return this.step < 4 },
-    showLast () { return this.step === 4 },
-    canIgo () { return true },
-    freq () { return this.scheduler.freq },
-    period () { return this.scheduler.period },
-    periodName () { return periods.find(e => e.value === this.period).label },
-    hasScheduler () { return this.freq > 0 && !!this.period && !!this.start },
-    hasName () { return !!this.taskname },
+    showBack () {
+      return this.step > 1
+    },
+    showNext () {
+      return this.step < 4
+    },
+    showLast () {
+      return this.step === 4
+    },
+    canIgo () {
+      return true
+    },
+    freq () {
+      return this.scheduler.freq
+    },
+    period () {
+      return this.scheduler.period
+    },
+    periodName () {
+      return periods.find(e => e.value === this.period).label
+    },
+    start () {
+      return this.scheduler.start
+    },
+    hasScheduler () {
+      return this.freq > 0 && !!this.period && !!this.start
+    },
+    hasName () {
+      return !!this.taskname
+    },
     backups () {
       const paths = this.includes.map(e => e.path).sort(compare)
       const reducer = (acc, v) => {
-        if (acc.some(e => v.startsWith(`${e}${_SEP}`))) return acc
+        if (acc.some(e => v.startsWith(`${e}${SEP}`))) return acc
         else return [...acc, v]
       }
-      return paths.reduce(reducer, []) },
-    hasBackups () { return this.backups.length > 0 },
-    isReady () { return this.hasBackups && this.hasName && this.hasScheduler },
-    includes () { return this.selected.filter(e => e.op === '+') },
-    hasIncludes () { return this.includes.length > 0 },
-    excludes () { return this.selected.filter(e => e.op === '-') },
-    hasExcludes () { return this.excludes.length > 0 },
+      return paths.reduce(reducer, [])
+    },
+    hasBackups () {
+      return this.backups.length > 0
+    },
+    isReady () {
+      return this.hasBackups && this.hasScheduler && this.hasName
+    },
+    whyNotReady () {
+      if (this.isReady) return ''
+      else if (!this.hasBackups) return 'You need to select what to backup in step 1'
+      else if (!this.hasScheduler) return 'You need to create a scheduler in step 2'
+      else if (!this.hasName) return 'You need to define a name in step 3'
+      else return 'You shoudn\'t be here'
+    },
+    includes () {
+      return this.selected.filter(e => e.op === '+')
+    },
+    hasIncludes () {
+      return this.includes.length > 0
+    },
+    excludes () {
+      return this.selected.filter(e => e.op === '-')
+    },
+    hasExcludes () {
+      return this.excludes.length > 0
+    },
     needs2include () { // Needs2include = Includes - Backups
       return this.includes.filter(e => !this.backups.includes(e.path))
     },
-    hasNeeds2include () { return this.needs2include.length > 0 },
+    hasNeeds2include () {
+      return this.needs2include.length > 0
+    },
     ancestors () {
-      const reducer = (a, v) => [...a, [a.pop(), v].join(_SEP)]
+      const reducer = (a, v) => [...a, [a.pop(), v].join(SEP)]
 
       const parents = this.includes.flatMap(file => {
-        const steps = file.path.split(_SEP)
+        const steps = file.path.split(SEP)
         const root = steps.shift()
         return steps.reduce(reducer, [root]) // parents-or-self
       })
 
-      return [...new Set(parents)].map(path => `+/ ${path}`).sort(compareReverse) },
+      return [...new Set(parents)].map(path => `+/ ${path}`).sort(compareReverse)
+    },
     filters () {
       const { includes, excludes, ancestors } = this
 
       const filters = [...includes, ...excludes].sort(bypath)
         .map(e => {
           if (e.op === '+') {
-            if (e.isdir) return '+/ ' + [e.path, '**'].join(_SEP)
+            if (e.isdir) return '+/ ' + [e.path, '**'].join(SEP)
             // else return '+/ ' + e.path #there is no need to include file itsel
           } else {
-            if (e.isdir) return '-/ ' + [e.path, '**'].join(_SEP)
+            if (e.isdir) return '-/ ' + [e.path, '**'].join(SEP)
             else return '-/ ' + e.path
           }
           return undefined
         }).filter(e => e)
 
       return [...ancestors, ...filters]
-    } },
+    }
+  },
   components: {
     tree,
     taskname,
-    schedule },
+    schedule
+  },
   watch: {
     selected (val) {
-    } },
+    }
+  },
   methods: {
     async getLocalDisks () {
       const disks = await listLocalDisks() || []
@@ -218,16 +274,21 @@ export default {
         const [letter, label, uuid, fs] = disk.split(/\|/)
         const mountpoint = letter.replace(/\\$/, '')
         this.disks.push({ mountpoint, label, uuid, fs, disk, selected: [] })
-      } },
+      }
+    },
     cancel () {
-      this.$emit('cancel') },
+      this.$emit('cancel')
+    },
     finish () {
-      this.$emit('finish') },
+      this.$emit('finish')
+    },
     next () {
-      this.$refs.stepper.next() },
+      this.$refs.stepper.next()
+    },
     back () {
       this.$refs.stepper.previous()
-    } },
+    }
+  },
   mounted () {
     this.getLocalDisks()
   }
