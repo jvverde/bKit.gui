@@ -25,9 +25,9 @@
       <q-step
         :name="2"
         title="Define"
-        caption="When task should run"
+        caption="hasScheduler task should run"
         icon="schedule"
-        :done="when">
+        :done="hasScheduler">
         <schedule v-bind.sync="scheduler"/>
         <span>Run every {{freq}} {{periodName}}</span>
       </q-step>
@@ -67,9 +67,7 @@
             </div>
           </div>
           <q-btn v-if="isReady" icon-right="subdirectory_arrow_left" rounded push outline
-            size="md" color="positive"
-            class="q-ma-sm q-mt-lg"
-            label="Enter"/>
+            size="md" color="positive" class="q-ma-sm q-mt-lg" label="Enter"/>
         </div>
       </q-step>
       <template v-slot:navigation>
@@ -124,16 +122,13 @@ const bypath = (a, b) => compareReverse(a.path, b.path)
 const periods = [
   {
     value: '-d',
-    label: 'Day(s)'
-  },
+    label: 'Day(s)' },
   {
     value: '-m',
-    label: 'Minute(s)'
-  },
+    label: 'Minute(s)' },
   {
     value: '-w',
-    label: 'week(s)'
-  },
+    label: 'week(s)' },
   {
     value: '-h',
     label: 'Hour(s)'
@@ -142,8 +137,7 @@ const periods = [
 
 export default {
   name: 'newtask',
-  data () {
-    return {
+  data () { return {
       disks: [],
       selected: [],
       step: 1,
@@ -151,72 +145,37 @@ export default {
         freq: 1,
         period: '-d',
         periods,
-        start: undefined
-      },
+        start: undefined },
       taskname: undefined,
       isDone: false
-    }
-  },
+    } },
   computed: {
-    showBack () {
-      return this.step > 1
-    },
-    showNext () {
-      return this.step < 4
-    },
-    showLast () {
-      return this.step === 4
-    },
-    canIgo () {
-      return true
-    },
-    freq () {
-      return this.scheduler.freq
-    },
-    period () {
-      return this.scheduler.period
-    },
-    periodName () {
-      return periods.find(e => e.value === this.period).label
-    },
-    when () {
-      return this.freq > 0 && !!this.period && !!this.start
-    },
-    hasName () {
-      return !!this.taskname
-    },
+    showBack () { return this.step > 1 },
+    showNext () { return this.step < 4 },
+    showLast () { return this.step === 4 },
+    canIgo () { return true },
+    freq () { return this.scheduler.freq },
+    period () { return this.scheduler.period },
+    periodName () { return periods.find(e => e.value === this.period).label },
+    hasScheduler () { return this.freq > 0 && !!this.period && !!this.start },
+    hasName () { return !!this.taskname },
     backups () {
       const paths = this.includes.map(e => e.path).sort(compare)
       const reducer = (acc, v) => {
         if (acc.some(e => v.startsWith(`${e}${_SEP}`))) return acc
         else return [...acc, v]
       }
-      return paths.reduce(reducer, [])
-    },
-    hasBackups () {
-      return this.backups.length > 0
-    },
-    isReady () {
-      return this.hasBackups && this.hasName && this.when
-    },
-    includes () {
-      return this.selected.filter(e => e.op === '+')
-    },
-    hasIncludes () {
-      return this.includes.length > 0
-    },
-    excludes () {
-      return this.selected.filter(e => e.op === '-')
-    },
-    hasExcludes () {
-      return this.excludes.length > 0
-    },
+      return paths.reduce(reducer, []) },
+    hasBackups () { return this.backups.length > 0 },
+    isReady () { return this.hasBackups && this.hasName && this.hasScheduler },
+    includes () { return this.selected.filter(e => e.op === '+') },
+    hasIncludes () { return this.includes.length > 0 },
+    excludes () { return this.selected.filter(e => e.op === '-') },
+    hasExcludes () { return this.excludes.length > 0 },
     needs2include () { // Needs2include = Includes - Backups
       return this.includes.filter(e => !this.backups.includes(e.path))
     },
-    hasNeeds2include () {
-      return this.needs2include.length > 0
-    },
+    hasNeeds2include () { return this.needs2include.length > 0 },
     ancestors () {
       const reducer = (a, v) => [...a, [a.pop(), v].join(_SEP)]
 
@@ -226,8 +185,7 @@ export default {
         return steps.reduce(reducer, [root]) // parents-or-self
       })
 
-      return [...new Set(parents)].map(path => `+/ ${path}`).sort(compareReverse)
-    },
+      return [...new Set(parents)].map(path => `+/ ${path}`).sort(compareReverse) },
     filters () {
       const { includes, excludes, ancestors } = this
 
@@ -244,17 +202,14 @@ export default {
         }).filter(e => e)
 
       return [...ancestors, ...filters]
-    }
-  },
+    } },
   components: {
     tree,
     taskname,
-    schedule
-  },
+    schedule },
   watch: {
     selected (val) {
-    }
-  },
+    } },
   methods: {
     async getLocalDisks () {
       const disks = await listLocalDisks() || []
@@ -263,32 +218,16 @@ export default {
         const [letter, label, uuid, fs] = disk.split(/\|/)
         const mountpoint = letter.replace(/\\$/, '')
         this.disks.push({ mountpoint, label, uuid, fs, disk, selected: [] })
-      }
-    },
-    checkName () {
-      console.log(this.taskname)
-      task.get('BKIT-' + this.taskname, 'LIST')
-        .then(list => {
-          console.log('list', list)
-          this.tasknameInvalid = true
-        }).catch(e => {
-          this.tasknameInvalid = false
-          this.tasknameValid = true
-        })
-    },
+      } },
     cancel () {
-      this.$emit('cancel')
-    },
+      this.$emit('cancel') },
     finish () {
-      this.$emit('finish')
-    },
+      this.$emit('finish') },
     next () {
-      this.$refs.stepper.next()
-    },
+      this.$refs.stepper.next() },
     back () {
       this.$refs.stepper.previous()
-    }
-  },
+    } },
   mounted () {
     this.getLocalDisks()
   }
