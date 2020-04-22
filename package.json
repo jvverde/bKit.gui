@@ -17,7 +17,7 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.6.0",
+    "@quasar/extras": "^1.6.4",
     "chokidar": "^3.3.1",
     "electron-log": "^4.0.6",
     "electron-store": "^5.1.0",
@@ -26,7 +26,7 @@
     "fs-extra": "^8.1.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "quasar": "^1.9.12",
+    "quasar": "^1.9.15",
     "slash": "^3.0.0",
     "terminate": "^2.1.2",
     "tree-kill": "^1.2.2",
@@ -34,7 +34,7 @@
     "windows-scheduler": "^1.0.1"
   },
   "devDependencies": {
-    "@quasar/app": "^1.6.0",
+    "@quasar/app": "^1.7.1",
     "@quasar/quasar-app-extension-icon-genie": "^1.1.3",
     "@vue/eslint-config-standard": "^4.0.0",
     "babel-eslint": "^10.0.1",

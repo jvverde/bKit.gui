@@ -69,6 +69,10 @@ export async function countFiles (path, ...args) {
   return enqueue2bash('bash.sh', ['find', path, ...args], { onreadline }, queue4Local).then(() => cnt)
 }
 
+export async function createTask (...args) {
+  return enqueue2bash('./ctask.sh', args, queue4Local)
+}
+
 /* *************************** rKit/bKit *************************** */
 const restoreQueue = new Queue() // Dedicated queue for restore requests
 const backupQueue = new Queue() // Dedicated queue for restore requests

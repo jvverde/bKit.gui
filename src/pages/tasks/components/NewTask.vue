@@ -47,7 +47,7 @@
         :done="isDone">
         <div class="column content-stretch">
           <div v-if="isReady">
-            <span>Ready to create a task BKIT-{{taskname}} to run every {{freq}} {{periodName}} for backup following</span>
+            <span>Ready to create a task BKIT-{{taskname}} to run every {{freq}} {{periodName}} for backup:</span>
             <div class="q-ml-lg">
               <div v-for="(b, i) in backups" :key="'B' + i">
                 {{b}}
@@ -70,18 +70,18 @@
             <div class="q-mt-lg">Not ready yet. Please very if all steps are done</div>
             <div class="q-ma-xs">{{whyNotReady}}</div>
           </div>
-          <q-btn v-if="isReady" icon-right="subdirectory_arrow_left" rounded push outline
+          <q-btn v-if="isReady" @click="create" icon-right="subdirectory_arrow_left" rounded push outline
             size="md" color="positive" class="q-ma-sm q-mt-lg" label="Enter"/>
         </div>
       </q-step>
       <template v-slot:navigation>
         <q-stepper-navigation class="column no-wrap">
+          <q-btn :disable="!showBack" :flat="!showBack" :outline="showBack" color="positive" icon="keyboard_arrow_up"
+            no-caps @click="back" label="Back" class="q-mx-sm"/>
           <q-btn v-if="showNext" @click="next" icon-right="keyboard_arrow_down"
-            no-caps outline color="positive" label="Next"/>
-          <q-btn v-else-if="showLast" :disable="!isReady" @click="finish"
-            no-caps outline color="positive" label="Finish"/>
-          <q-btn :disable="!showBack" flat color="positive" icon="keyboard_arrow_up"
-            no-caps @click="back" label="Back" class="q-ma-sm"/>
+            no-caps outline color="positive" label="Next" class="q-mx-sm q-my-xs"/>
+          <q-btn v-else-if="showLast" :disable="!isDone" @click="finish"
+            no-caps outline color="positive" label="Finish" class="q-mx-sm q-my-xs"/>
           <div class="q-ma-md bg-lime-1">
             <q-bar dense v-if="hasBackups">Backup</q-bar>
             <q-chip dense color="positive" outline :label="b"
@@ -111,7 +111,7 @@
 import tree from './Tree'
 import taskname from './Taskname'
 import schedule from './Schedule'
-import { listLocalDisks } from 'src/helpers/bkit'
+import { listLocalDisks, createTask } from 'src/helpers/bkit'
 const { sep: SEP } = require('path')
 
 const compare = (a, b) => {
@@ -262,10 +262,6 @@ export default {
     taskname,
     schedule
   },
-  watch: {
-    selected (val) {
-    }
-  },
   methods: {
     async getLocalDisks () {
       const disks = await listLocalDisks() || []
@@ -275,6 +271,13 @@ export default {
         const mountpoint = letter.replace(/\\$/, '')
         this.disks.push({ mountpoint, label, uuid, fs, disk, selected: [] })
       }
+    },
+    create () {
+      const { backups, filters, taskname, period, freq, start } = this
+      const fargs = filters.map(f => `--filter=${f}`)
+      console.log('backup', backups)
+      console.log('filters', filters)
+      createTask(`--name=${taskname}`, `${period}`, freq, `--start=${start}`, ...fargs, '--force', ...backups)
     },
     cancel () {
       this.$emit('cancel')
