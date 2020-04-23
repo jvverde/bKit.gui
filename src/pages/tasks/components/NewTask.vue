@@ -70,7 +70,7 @@
             <div class="q-mt-lg">Not ready yet. Please very if all steps are done</div>
             <div class="q-ma-xs">{{whyNotReady}}</div>
           </div>
-          <q-btn v-if="isReady" @click="create" icon-right="subdirectory_arrow_left" rounded push outline
+          <q-btn v-if="isReady" @click="submit" icon-right="subdirectory_arrow_left" rounded push outline
             size="md" color="positive" class="q-ma-sm q-mt-lg" label="Enter"/>
         </div>
       </q-step>
@@ -103,6 +103,21 @@
         </q-stepper-navigation>
       </template>
     </q-stepper>
+    <q-dialog
+      v-model="askuser" transition-show="rotate" transition-hide="rotate">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">File already exist</div>
+        </q-card-section>
+        <q-card-section style="max-height: 50vh" class="scroll">
+          If continue it will override the existing file
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" color="info" v-close-popup />
+          <q-btn flat label="Continue" color="amber" @click="force" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </main>
 </template>
 
@@ -145,6 +160,7 @@ export default {
   name: 'newtask',
   data () {
     return {
+      askuser: false,
       disks: [],
       selected: [],
       step: 1,
@@ -272,12 +288,28 @@ export default {
         this.disks.push({ mountpoint, label, uuid, fs, disk, selected: [] })
       }
     },
-    create () {
+    create (...args) {
       const { backups, filters, taskname, period, freq, start } = this
-      const fargs = filters.map(f => `--filter=${f}`)
+      const fswitches = filters.map(f => `--filter=${f}`)
       console.log('backup', backups)
       console.log('filters', filters)
-      createTask(`--name=${taskname}`, `${period}`, freq, `--start=${start}`, ...fargs, '--force', ...backups)
+      createTask(...args, `--name=${taskname}`, `${period}`, freq, `--start=${start}`, ...fswitches, ...backups)
+        .then(ret => {
+          console.log('Return:', ret)
+          this.isDone = true
+        })
+        .catch(err => {
+          if (err.errors instanceof Array && err.errors.some(line => line.match(/already exists/))) {
+            console.log('FORCE??????')
+            this.askuser = true
+          } else console.warn('Error', err)
+        })
+    },
+    submit () { // We need this extra member to discard the mouseevent on first argument
+      this.create()
+    },
+    force () {
+      this.create('--force')
     },
     cancel () {
       this.$emit('cancel')

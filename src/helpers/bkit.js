@@ -70,7 +70,13 @@ export async function countFiles (path, ...args) {
 }
 
 export async function createTask (...args) {
-  return enqueue2bash('./ctask.sh', args, queue4Local)
+  return new Promise((resolve, reject) => {
+    const errors = []
+    const stderr = err => errors.push(err)
+    enqueue2bash('./ctask.sh', args, { stderr }, queue4Local)
+      .then(result => resolve({ result, errors }))
+      .catch(error => reject({ error, errors }))
+  })
 }
 
 /* *************************** rKit/bKit *************************** */

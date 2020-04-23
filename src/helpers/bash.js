@@ -51,6 +51,7 @@ function invokeBash (name, args, events = {}, done = nill) {
 
   fd.on('close', (code) => {
     console.log(`Done spawn ${name} with args`, args)
+    if (code) console.log(`Return code ${code} is NOT ok`)
     done(code)
   })
 
@@ -60,7 +61,7 @@ function invokeBash (name, args, events = {}, done = nill) {
     err = 0 | err
     if (err !== 0) {
       const params = args.join(' ')
-      onerror(`'${name} ${params}' exit with code ${err}`)
+      onerror(`Call to '${name} ${params}' exit with code ${err}`)
       rl.close()
     }
   })
