@@ -104,7 +104,7 @@
       </template>
     </q-stepper>
     <q-dialog
-      v-model="askuser" transition-show="rotate" transition-hide="rotate">
+      v-model="askuser" transition-show="scale" transition-hide="scale">
       <q-card>
         <q-card-section>
           <div class="text-h6">File already exist</div>

@@ -1,7 +1,7 @@
 <template>
   <main class="relative">
     <q-dialog
-      v-model="selectcols" transition-show="rotate" transition-hide="rotate">
+      v-model="selectcols" transition-show="scale" transition-hide="scale">
       <q-card>
         <q-bar>
           <div>Select Columns</div>
