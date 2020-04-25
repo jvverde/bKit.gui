@@ -64,21 +64,21 @@ export default {
   import Vue from 'vue'
 
   import Taskname from '../Taskname'
-  import lang from 'quasar/lang/en-us' // change to any language you wish! => this breaks wallaby :(
+  // import lang from 'quasar/lang/en-us' // change to any language you wish! => this breaks wallaby :(
 
   Vue.use(Quasar)
+  const localVue = createLocalVue()
+  localVue.use(Quasar, {
+    components: {
+       QInput,
+       QBtn,
+       QIcon
+    } // ,lang
+  })
 
   describe('TaskName.vue', () => {
-    const localVue = createLocalVue()
-    localVue.use(Quasar, {
-      components: {
-         QInput,
-         QBtn,
-         QIcon
-      },
-      lang
-    })
     it('renders a taskname', () => {
+      const localVue = createLocalVue()
       const wrapper = mount(Taskname, {
         localVue
       })
