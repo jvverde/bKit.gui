@@ -165,8 +165,8 @@ export default {
   }
 </style>
 
-<test lang="jest">
-  import { mount } from '@vue/test-utils'
+<!-- <test lang="jest">
+  import { shallowMount } from '@vue/test-utils'
   import MainLayout from '../MainLayout'
 
   describe('MainLayout.vue', () => {
@@ -174,4 +174,4 @@ export default {
 
     })
   })
-</test>
+</test> -->
