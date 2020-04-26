@@ -1,5 +1,5 @@
 import { mount, createLocalVue } from '@vue/test-utils'
-import Quasar, { QInput, QBtn, QIcon } from 'quasar'
+import { Quasar, components } from 'src/tests/quasar'
 import Vue from 'vue'
 import sinon from 'sinon'
 
@@ -12,13 +12,7 @@ import Taskname from '../Taskname'
 Vue.use(Quasar)
 const localVue = createLocalVue()
 
-localVue.use(Quasar, {
-  components: {
-     QInput,
-     QBtn,
-     QIcon
-  } // ,lang
-})
+localVue.use(Quasar, components)
 
 let wrapper = null
 
