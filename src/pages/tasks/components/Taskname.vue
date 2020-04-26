@@ -43,6 +43,7 @@ export default {
   props: ['name'],
   methods: {
     check () {
+      if (!this.value) return
       task.get('BKIT-' + this.value, 'LIST')
         .then(list => {
           console.log('Tasks exists', list)

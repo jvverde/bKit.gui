@@ -1,6 +1,7 @@
 import { mount, createLocalVue } from '@vue/test-utils'
 import Quasar, { QInput, QBtn, QIcon } from 'quasar'
 import Vue from 'vue'
+import sinon from 'sinon'
 
 import Taskname from '../Taskname'
 // import lang from 'quasar/lang/en-us' // change to any language you wish! => this breaks wallaby :(
@@ -31,9 +32,13 @@ describe('TaskName.vue', () => {
     expect(wrapper.find(QInput).exists()).toBe(true)
   })
 
-  const qinput = wrapper.find(QInput) 
+  const qinput = wrapper.find(QInput)
+
+  const check = sinon.stub()
+  wrapper.setMethods({ check })
+
   it('QInput emit blur', () => {
     qinput.vm.$emit('blur')
-    expect(wrapper.vm.valid).toBe(true)
+    expect(check.called).toBe(true)
   })
 })

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1587860793690" clover="3.2.0">
-  <project timestamp="1587860793690" name="All files">
-    <metrics statements="1374" coveredstatements="4" conditionals="788" coveredconditionals="0" methods="553" coveredmethods="2" elements="2715" coveredelements="6" complexity="0" loc="1374" ncloc="1374" packages="16" files="43" classes="43"/>
+<coverage generated="1587862387841" clover="3.2.0">
+  <project timestamp="1587862387841" name="All files">
+    <metrics statements="1375" coveredstatements="2" conditionals="790" coveredconditionals="0" methods="553" coveredmethods="1" elements="2718" coveredelements="3" complexity="0" loc="1375" ncloc="1375" packages="16" files="43" classes="43"/>
     <package name="src-electron.main-process">
       <metrics statements="84" coveredstatements="0" conditionals="23" coveredconditionals="0" methods="22" coveredmethods="0"/>
       <file name="electron-main.dev.js" path="C:\bkit\gui\src-electron\main-process\electron-main.dev.js">
@@ -1259,7 +1259,7 @@
       </file>
     </package>
     <package name="src.pages.tasks.components">
-      <metrics statements="213" coveredstatements="4" conditionals="148" coveredconditionals="0" methods="121" coveredmethods="2"/>
+      <metrics statements="214" coveredstatements="2" conditionals="150" coveredconditionals="0" methods="121" coveredmethods="1"/>
       <file name="NewTask.vue" path="C:\bkit\gui\src\pages\tasks\components\NewTask.vue">
         <metrics statements="75" coveredstatements="0" conditionals="31" coveredconditionals="0" methods="51" coveredmethods="0"/>
         <line num="126" count="0" type="stmt"/>
@@ -1393,16 +1393,17 @@
         <line num="190" count="0" type="stmt"/>
       </file>
       <file name="Taskname.vue" path="C:\bkit\gui\src\pages\tasks\components\Taskname.vue">
-        <metrics statements="9" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="2"/>
+        <metrics statements="10" coveredstatements="2" conditionals="2" coveredconditionals="0" methods="4" coveredmethods="1"/>
         <line num="32" count="1" type="stmt"/>
         <line num="37" count="1" type="stmt"/>
-        <line num="45" count="1" type="stmt"/>
-        <line num="46" count="1" type="stmt"/>
-        <line num="48" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="47" count="0" type="stmt"/>
         <line num="49" count="0" type="stmt"/>
-        <line num="51" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
         <line num="52" count="0" type="stmt"/>
         <line num="53" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
       </file>
       <file name="Tree.vue" path="C:\bkit\gui\src\pages\tasks\components\Tree.vue">
         <metrics statements="81" coveredstatements="0" conditionals="88" coveredconditionals="0" methods="41" coveredmethods="0"/>
