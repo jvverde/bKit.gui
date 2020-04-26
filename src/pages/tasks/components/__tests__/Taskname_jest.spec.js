@@ -5,6 +5,7 @@ import Vue from 'vue'
 import sinon from 'sinon'
 
 jest.mock('windows-scheduler')
+
 import { get } from 'windows-scheduler'
 
 import Taskname from '../Taskname'

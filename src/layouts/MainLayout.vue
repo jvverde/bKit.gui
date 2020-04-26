@@ -136,7 +136,6 @@ export default {
         return this.storedserver
       },
       set (server) {
-        // this.$store.commit('global/setServer', server)
         this.setServer(server)
       }
     }
@@ -170,14 +169,3 @@ export default {
     width: 100vw;
   }
 </style>
-
-<!-- <test lang="jest">
-  import { shallowMount } from '@vue/test-utils'
-  import MainLayout from '../MainLayout'
-
-  describe('MainLayout.vue', () => {
-    it('renders a greeting', () => {
-
-    })
-  })
-</test> -->
