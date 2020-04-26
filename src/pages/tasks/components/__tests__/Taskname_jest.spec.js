@@ -1,5 +1,6 @@
 import { mount, createLocalVue } from '@vue/test-utils'
-import { Quasar, components } from 'src/tests/quasar'
+import Quasar from 'quasar'
+import { components } from 'src/tests/quasar'
 import Vue from 'vue'
 import sinon from 'sinon'
 
@@ -8,6 +9,7 @@ import { get } from 'windows-scheduler'
 
 import Taskname from '../Taskname'
 
+const { QInput } = components
 
 Vue.use(Quasar)
 const localVue = createLocalVue()
@@ -36,7 +38,7 @@ describe('TaskName.vue', () => {
   })
 
   it('QInput emit blur and called check', () => {
-    const qinput = wrapper.find(QInput)
+    const qinput = wrapper.find(components.QInput)
     const check = sinon.stub()
     wrapper.setMethods({ check })
     

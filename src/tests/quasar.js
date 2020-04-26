@@ -1,5 +1,5 @@
 import * as All from 'quasar'
-export const { Quasar } = All
+export const Quasar = All.Quasar
 
 export const components = Object.keys(All).reduce((object, key) => {
   const val = All[key]
