@@ -7,6 +7,7 @@ import Taskname from '../Taskname'
 
 Vue.use(Quasar)
 const localVue = createLocalVue()
+
 localVue.use(Quasar, {
   components: {
      QInput,
@@ -15,12 +16,24 @@ localVue.use(Quasar, {
   } // ,lang
 })
 
+const wrapper = mount(Taskname, {
+  localVue
+})
+
 describe('TaskName.vue', () => {
-  it('renders a taskname', () => {
-    const localVue = createLocalVue()
-    const wrapper = mount(Taskname, {
-      localVue
-    })
-    console.log(wrapper.html())
+  it('Taskname is a view instance', () => {
+    expect(wrapper.isVueInstance).toBeTruthy()
+  })
+  it('Name is taskname', () => {
+    expect(wrapper.name()).toBe('taskname')
+  })
+  it('QInput exists', () => {
+    expect(wrapper.find(QInput).exists()).toBe(true)
+  })
+
+  const qinput = wrapper.find(QInput) 
+  it('QInput emit blur', () => {
+    qinput.vm.$emit('blur')
+    expect(wrapper.vm.valid).toBe(true)
   })
 })

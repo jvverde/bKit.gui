@@ -31,8 +31,8 @@ module.exports = {
     }
   },
   testMatch: [
-    '<rootDir>/test/jest/__tests__/**/*.spec.js',
-    '<rootDir>/test/jest/__tests__/**/*.test.js',
+    // '<rootDir>/test/jest/__tests__/**/*.spec.js', //Isi: Don't use
+    // '<rootDir>/test/jest/__tests__/**/*.test.js', //Isi: Don't use
     '<rootDir>/src/**/__tests__/*_jest.spec.js'
   ],
   moduleFileExtensions: [

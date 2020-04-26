@@ -20,8 +20,8 @@
           size="xs" color="positive"/>
       </template>
       <template v-slot:after>
-        <q-icon  v-if="invalid" name="warning" flat color="negative"/>
-        <q-icon  v-else-if="valid" name="done" flat color="positive"/>
+        <q-icon v-if="invalid" name="warning" flat color="negative"/>
+        <q-icon v-else-if="valid" name="done" flat color="positive"/>
       </template>
     </q-input>
   </div>
@@ -56,33 +56,3 @@ export default {
   }
 }
 </script>
-
-<test lang="jest">
-
-  import { mount, createLocalVue } from '@vue/test-utils'
-  import Quasar, { QInput, QBtn, QIcon } from 'quasar'
-  import Vue from 'vue'
-
-  import Taskname from '../Taskname'
-  // import lang from 'quasar/lang/en-us' // change to any language you wish! => this breaks wallaby :(
-
-  Vue.use(Quasar)
-  const localVue = createLocalVue()
-  localVue.use(Quasar, {
-    components: {
-       QInput,
-       QBtn,
-       QIcon
-    } // ,lang
-  })
-
-  describe('TaskName.vue', () => {
-    it('renders a taskname', () => {
-      const localVue = createLocalVue()
-      const wrapper = mount(Taskname, {
-        localVue
-      })
-      console.log(wrapper.html())
-    })
-  })
-</test>
