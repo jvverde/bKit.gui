@@ -3,8 +3,11 @@ import Quasar, { QInput, QBtn, QIcon } from 'quasar'
 import Vue from 'vue'
 import sinon from 'sinon'
 
+jest.mock('windows-scheduler')
+import { get } from 'windows-scheduler'
+
 import Taskname from '../Taskname'
-// import lang from 'quasar/lang/en-us' // change to any language you wish! => this breaks wallaby :(
+
 
 Vue.use(Quasar)
 const localVue = createLocalVue()
@@ -17,8 +20,14 @@ localVue.use(Quasar, {
   } // ,lang
 })
 
-const wrapper = mount(Taskname, {
-  localVue
+let wrapper = null
+
+beforeEach(() => {
+    wrapper = mount(Taskname, { localVue })
+})
+
+afterEach(() => {
+    wrapper.destroy()
 })
 
 describe('TaskName.vue', () => {
@@ -32,13 +41,32 @@ describe('TaskName.vue', () => {
     expect(wrapper.find(QInput).exists()).toBe(true)
   })
 
-  const qinput = wrapper.find(QInput)
-
-  const check = sinon.stub()
-  wrapper.setMethods({ check })
-
-  it('QInput emit blur', () => {
+  it('QInput emit blur and called check', () => {
+    const qinput = wrapper.find(QInput)
+    const check = sinon.stub()
+    wrapper.setMethods({ check })
+    
     qinput.vm.$emit('blur')
     expect(check.called).toBe(true)
+  })
+  it('Call check method and get resolve', done => {
+    get.mockReturnValue(Promise.resolve())
+    wrapper.vm.value = 'aaa'
+    wrapper.vm.check()
+    wrapper.vm.$nextTick(() => {
+      expect(wrapper.vm.valid).toBe(false)
+      expect(wrapper.vm.invalid).toBe(true)
+      done()
+    })
+  })
+  it('Call check method and get reject', done => {
+    get.mockReturnValue(Promise.reject())
+    wrapper.vm.value = 'aaa'
+    wrapper.vm.check()
+    wrapper.vm.$nextTick(() => {
+      expect(wrapper.vm.valid).toBe(true)
+      expect(wrapper.vm.invalid).toBe(false)
+      done()
+    })
   })
 })

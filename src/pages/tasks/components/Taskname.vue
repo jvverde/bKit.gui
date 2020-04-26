@@ -46,9 +46,10 @@ export default {
       if (!this.value) return
       task.get('BKIT-' + this.value, 'LIST')
         .then(list => {
-          console.log('Tasks exists', list)
+          console.log('Not good. Tasks exists', list)
           this.invalid = true
         }).catch(e => {
+          console.log('Its ok! Tasks not exists')
           this.invalid = false
           this.valid = true
           this.$emit('update:name', this.value)
