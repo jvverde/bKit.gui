@@ -109,6 +109,7 @@ const os = require('os')
 const { ipcRenderer, remote: { app } } = require('electron')
 import { getServer } from 'src/helpers/bkit'
 import { user, shell } from 'src/helpers/bash'
+import { mapState, mapMutations } from 'vuex'
 
 ipcRenderer.on('message', (event, text) => {
   console.log('Event:', event)
@@ -127,12 +128,16 @@ export default {
     }
   },
   computed: {
+    ...mapState('global', {
+      storedserver: state => state.server
+    }),
     server: {
       get () {
-        return this.$store.state.global.server
+        return this.storedserver
       },
       set (server) {
-        this.$store.commit('global/setServer', server)
+        // this.$store.commit('global/setServer', server)
+        this.setServer(server)
       }
     }
   },
@@ -140,6 +145,7 @@ export default {
     this.getServer()
   },
   methods: {
+    ...mapMutations('global', ['setServer']),
     getServer () {
       getServer()
         .then(server => {
