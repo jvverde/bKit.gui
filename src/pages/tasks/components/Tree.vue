@@ -87,6 +87,7 @@ const compareReverse = (a, b) => {
 
 const compareAncestors = (a, b) => compareReverse(a.path, b.path)
 
+const sepRE = new RegExp(`\\${path.sep}\$`)
 // const isChecked = node => node.selected
 // const isNotChecked = node => node.selected === false
 
@@ -185,7 +186,7 @@ export default {
       return this.entry.isroot
     },
     path () {
-      return this.entry.path || ''
+      return (this.entry.path || '').replace(sepRE)
     },
     name () {
       return this.isroot ? this.path : basename(this.path)
