@@ -1,3 +1,4 @@
+// This test is/was important to pratice to deal with several kind mocks and vuex
 import { mount, createLocalVue } from '@vue/test-utils'
 import Quasar from 'quasar'
 import { components } from 'src/tests/quasar'

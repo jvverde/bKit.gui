@@ -8,7 +8,7 @@ module.exports = {
   // noStackTrace: true,
   // bail: true,
   // cache: false,
-  // verbose: true,
+  verbose: true,
   // watch: true,
   collectCoverage: false,
   coverageDirectory: '<rootDir>/test/jest/coverage',

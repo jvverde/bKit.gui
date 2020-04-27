@@ -154,7 +154,7 @@ export default {
       const steps = this.path.split(SEP)
       steps.splice(-1) // This order is very importante. Don't change it
       const root = steps.shift()
-      return root ? steps.reduce(reducer, [root]).reverse() : [] // [] occurs when this.path is the root (ex. C:)
+      return steps.reduce(reducer, [root]).filter(e => e).reverse() // [] occurs when this.path is the root (ex. C:)
     },
     included () {
       const set = new Set(this.ancestors)
@@ -185,7 +185,7 @@ export default {
       return this.entry.isroot
     },
     path () {
-      return this.entry.path
+      return this.entry.path || ''
     },
     name () {
       return this.isroot ? this.path : basename(this.path)
