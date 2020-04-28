@@ -32,7 +32,7 @@
 
         <q-item-section no-wrap :class="{ isSelected: isSelected }">
           <q-item-label class="ellipsis">
-            <q-spinner-ios color="amber" v-if="isloading"/>
+            <q-spinner-ios color="loader"/>
             <span :class="{ wasDeleted: wasdeleted }" @click.stop="see">
               {{name}}
             </span>

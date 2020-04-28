@@ -51,7 +51,7 @@
           </q-tab-panel>
         </q-tab-panels>
         <q-inner-loading :showing="loading">
-          <q-spinner-ios size="100px" color="amber"/>
+          <q-spinner-ios size="100px" color="loader"/>
         </q-inner-loading>
       </template>
       <template v-slot:after>

@@ -2,7 +2,7 @@
   <q-item dense v-if="!deleted">
     <q-item-section>
       <q-item-label>
-        <q-spinner-ios color="amber" v-if="isRunning"/>
+        <q-spinner-ios color="loader"/>
         <q-icon name="check" color="green" v-if="isDone"/>
         <q-icon name="warning" color="warning" v-if="error">
           <tooltip :label="error"/>

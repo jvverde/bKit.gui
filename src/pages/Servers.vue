@@ -44,7 +44,7 @@
       </q-item>
     </q-list>
     <q-inner-loading :showing="loading">
-      <q-spinner-ios size="6em" color="amber"/>
+      <q-spinner-ios size="6em" color="loader"/>
     </q-inner-loading>
   </q-page>
 </template>
