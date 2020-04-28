@@ -16,7 +16,7 @@
         </article>
       </section>
     </transition-group>
-    <q-btn round flat icon="sync" color="positive" size="xs"
+    <q-btn round flat icon="sync" color="bkit" size="xs"
       v-if="currentSnap"
       style="margin:auto 0"
       @click.stop="reload()"
@@ -255,7 +255,8 @@ export default {
           }
         }
         &:not(.selected) {
-          border: solid crimson 1px;
+          border: solid $bkit-bg-color 1px
+          /* border: solid crimson 1px; */
         }
       }
     }

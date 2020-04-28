@@ -17,8 +17,10 @@ $bkit-check-color : #a2aa33;
 }
 
 /*** bkit ***/
-$bkit-text-color: #78F000;
-$bkit-bg-color: #67a9fb;
+$bkit-color: #67a9fb;
+$bkit-positive-color: #78F000;
+$bkit-text-color: $bkit-color;
+$bkit-bg-color: $bkit-color;
 
 .text-bkit {
   color: $bkit-text-color;
