@@ -28,6 +28,11 @@ const routes = [
         path: 'tasks',
         component: () => import('pages/tasks/TasksPage.vue'),
         name: 'tasks'
+      },
+      {
+        path: 'customize',
+        component: () => import('pages/Customize.vue'),
+        name: 'customize'
       }
       /*,
       {

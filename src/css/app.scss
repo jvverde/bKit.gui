@@ -19,11 +19,17 @@ $bkit-check-color : #a2aa33;
 /*** bkit ***/
 $bkit-color: #67a9fb;
 
+:root {
+  --q-color-bkit: $bkit-color;
+}
+
 .text-bkit {
-  color: $bkit-color;
+  color: $bkit-color !important;
+  color: var(--q-color-bkit) !important;
 }
 .bg-bkit {
-  background: $bkit-color;
+  background: $bkit-color !important;
+  background: var(--q-color-bkit) !important;
 }
 
 $bkit-positive-color: #78F000;

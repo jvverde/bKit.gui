@@ -47,6 +47,11 @@ import { user } from 'src/helpers/bash'
 import { mapState, mapMutations } from 'vuex'
 import bkitmenu from './components/Menu'
 
+import { colors } from 'quasar'
+
+colors.setBrand('light', '#DDD')
+colors.setBrand('bkit', '#F30')
+
 ipcRenderer.on('message', (event, text) => {
   console.log('Event:', event)
   console.log('Message:', text)
