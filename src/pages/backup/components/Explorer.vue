@@ -72,8 +72,8 @@
 import { listLastDir, diffLastDir } from 'src/helpers/bkit'
 import { Resource } from 'src/helpers/types'
 
-import tree from './tree'
-import item from './item'
+import tree from './Tree'
+import item from './Item'
 import snaps from './Snaps'
 // import fs from 'fs-extra'
 const { relative, join, sep, dirname, posix } = require('path')
