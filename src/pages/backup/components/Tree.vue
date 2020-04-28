@@ -19,17 +19,6 @@
           <q-icon :name="open ? 'folder_open' : 'folder'" color="bkiticoncolor"/>
         </q-item-section>
 
-        <q-item-section side>
-          <q-checkbox
-            :indeterminate-value="null"
-            toggle-indeterminate
-            v-model="checked"
-            keep-color
-            size="xs"
-            color="bkitchekcolor"
-          />
-        </q-item-section>
-
         <q-item-section no-wrap :class="{ isSelected: isSelected }">
           <q-item-label class="ellipsis">
             <q-spinner-ios color="loader" v-if="isloading"/>
@@ -62,7 +51,6 @@
           :snap="snap"
           :displayNode.sync="selectedNode"
           :selected.sync="folder.selected"
-          @update:selected="childSelect"
           @show="path => $emit('show', path)"
           @restore="resource => $emit('restore', resource)"
           @backup="resource => $emit('backup', resource)"
@@ -76,7 +64,6 @@
           :snap="snap"
           :displayNode.sync="selectedNode"
           :selected.sync="file.selected"
-          @update:selected="childSelect"
           @show="path => $emit('show', path)"
           @restore="resource => $emit('restore', resource)"
           @backup="resource => $emit('backup', resource)"
@@ -107,9 +94,6 @@ function compare (a, b) {
   else return 0
 }
 
-const isChecked = node => node.selected === true
-const isNotChecked = node => node.selected === false
-
 const { chokidar, chokidarOptions } = require('src/helpers/chockidar')
 
 export default {
@@ -128,10 +112,6 @@ export default {
     entry: {
       type: Object,
       required: true
-    },
-    selected: {
-      type: Boolean,
-      default: false
     },
     displayNode: { // path of current displayed node
       type: String,
@@ -156,14 +136,6 @@ export default {
     },
     files () {
       return this.childrens.filter(e => !e.isdir)
-    },
-    checked: {
-      get () {
-        return this.selected
-      },
-      set (val) {
-        this.$emit('update:selected', val)
-      }
     },
     isSelected () {
       return this.path === this.displayNode
@@ -254,15 +226,6 @@ export default {
     },
     showChildrens () {
       this.open = true
-    },
-    childSelect () {
-      if (this.childrens.every(isChecked)) {
-        this.checked = true
-      } else if (this.childrens.every(isNotChecked)) {
-        this.checked = false
-      } else {
-        this.checked = null
-      }
     },
     see () {
       if (!this.isdir) return
