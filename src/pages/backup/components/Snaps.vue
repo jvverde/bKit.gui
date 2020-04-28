@@ -25,7 +25,7 @@
       No snapshots yet
     </span>
     <q-inner-loading :showing="loading">
-      <q-spinner-facebook color="loader"/>
+      <q-spinner-facebook color="loader" size="40px"/>
     </q-inner-loading>
   </header>
 </template>

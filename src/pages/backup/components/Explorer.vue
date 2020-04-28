@@ -45,7 +45,7 @@
         <div>
           <transition name="loading">
             <div v-show="loading" class="bkit-loading row justify-center relative-position">
-              <q-spinner-ios color="loader"/>
+              <q-spinner-ios color="loader" class="q-my-md"/>
               <div class="q-my-md q-ml-xs">{{loading}}...</div>
             </div>
           </transition>

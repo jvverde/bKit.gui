@@ -31,7 +31,7 @@
 
         <q-item-section no-wrap>
           <q-item-label class="ellipsis">
-            <q-spinner-ios color="loader"/>
+            <q-spinner-ios color="loader" v-if="isloading"/>
             <span :style="{ color: markcolor }">
               {{name}}
             </span>
