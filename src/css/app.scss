@@ -18,15 +18,20 @@ $bkit-check-color : #a2aa33;
 
 /*** bkit ***/
 $bkit-color: #67a9fb;
-$bkit-positive-color: #78F000;
-$bkit-text-color: $bkit-color;
-$bkit-bg-color: $bkit-color;
 
 .text-bkit {
-  color: $bkit-text-color;
+  color: $bkit-color;
 }
 .bg-bkit {
-  background: $bkit-bg-color;
+  background: $bkit-color;
+}
+
+$bkit-positive-color: #78F000;
+.text-bkit-positive {
+  color: $bkit-positive-color;
+}
+.bg-bkit-positive {
+  background: $bkit-positive-color;
 }
 
 /*** toolbar ***/
@@ -51,8 +56,8 @@ $bkit-bg-menu-color: #F6F6F6;
 }
 
 /*** loader ***/
-$bkit-text-loader-color: $bkit-bg-color;
-$bkit-bg-loader-color: $bkit-bg-color;
+$bkit-text-loader-color: $bkit-color;
+$bkit-bg-loader-color: $bkit-color;
 
 .text-loader {
   color: $bkit-text-loader-color;

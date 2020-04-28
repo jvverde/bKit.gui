@@ -200,7 +200,7 @@ export default {
               left:0;
               padding: 0.2em 0;
               color: #fff;
-              background-color: $bkit-bg-color;
+              background-color: $bkit-color;
               border-bottom: 1px dashed #f37302;
               box-shadow: 0 2px 0 #67a9fb;
             }
@@ -255,7 +255,7 @@ export default {
           }
         }
         &:not(.selected) {
-          border: solid $bkit-bg-color 1px
+          border: solid $bkit-color 1px
           /* border: solid crimson 1px; */
         }
       }

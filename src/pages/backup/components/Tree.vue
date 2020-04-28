@@ -12,11 +12,11 @@
       <template v-slot:header> <!-- this is the header line template -->
 
         <q-item-section side v-if="leaf">
-          <q-icon name="description" color="bkiticoncolor"/>
+          <q-icon name="description" color="bkit"/>
         </q-item-section>
 
         <q-item-section side v-else @click.stop="see">
-          <q-icon :name="open ? 'folder_open' : 'folder'" color="bkiticoncolor"/>
+          <q-icon :name="open ? 'folder_open' : 'folder'" color="bkit"/>
         </q-item-section>
 
         <q-item-section no-wrap :class="{ isSelected: isSelected }">
