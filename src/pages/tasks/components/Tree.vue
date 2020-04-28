@@ -87,7 +87,7 @@ const compareReverse = (a, b) => {
 
 const compareAncestors = (a, b) => compareReverse(a.path, b.path)
 
-const sepRE = new RegExp(`\\${SEP}+\$`)
+const sepRE = new RegExp(`\\${SEP}+$`)
 // const isChecked = node => node.selected
 // const isNotChecked = node => node.selected === false
 
@@ -156,7 +156,7 @@ export default {
       steps.splice(-1) // This order is very importante. Don't change it
       const root = steps.shift()
       const ancestors = steps.reduce(reducer, [root]).filter(e => e).reverse() // [] occurs when this.path is the root (ex. C:)
-      if (ancestors.length === 0 && this.path.startsWith(SEP)) ancestors.push(SEP) // just for the case \dirname or \filename 
+      if (ancestors.length === 0 && this.path.startsWith(SEP)) ancestors.push(SEP) // just for the case \dirname or \filename
       return ancestors
     },
     included () {

@@ -9,7 +9,7 @@
 
 <script>
 
-import jobs from './components/Schtasks'
+import jobs from './components/Tasks'
 import job from './components/NewTask'
 
 export default {
