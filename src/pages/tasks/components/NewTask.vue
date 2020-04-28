@@ -1,5 +1,5 @@
 <template>
-  <main class="relative scroll">
+  <main class="relative fit">
     <q-stepper
       class="row no-wrap justify-between b-stepper"
       v-model="step"
@@ -17,10 +17,12 @@
         caption="Folders or Files"
         icon="receipt"
         :done="hasBackups">
-        <tree
-          :entry="{ isdir: true, isroot: true, path: disk.mountpoint }"
-          v-for="disk in disks" :key="disk.id"
-          :selected.sync="selected"/>
+        <div style="max-height:50vh;width:100%" class="scroll">
+          <tree
+            :entry="{ isdir: true, isroot: true, path: disk.mountpoint }"
+            v-for="disk in disks" :key="disk.id"
+            :selected.sync="selected"/>
+        </div>
       </q-step>
       <q-step
         :name="2"

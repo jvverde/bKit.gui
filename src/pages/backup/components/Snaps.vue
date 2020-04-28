@@ -25,7 +25,7 @@
       No snapshots yet
     </span>
     <q-inner-loading :showing="loading">
-      <q-spinner-facebook color="primary" size="40px"/>
+      <q-spinner-facebook color="loader" size="40px"/>
     </q-inner-loading>
   </header>
 </template>
@@ -116,6 +116,8 @@ export default {
 </style>
 
 <style scoped lang="scss">
+  @import "src/css/app.scss";
+
   $width: 10em;
   $bgcolor:lightgray;
   $hvcolor: rgba(230, 230, 230, 0.9);
@@ -198,7 +200,7 @@ export default {
               left:0;
               padding: 0.2em 0;
               color: #fff;
-              background-color: #67a9fb;
+              background-color: $bkit-bg-color;
               border-bottom: 1px dashed #f37302;
               box-shadow: 0 2px 0 #67a9fb;
             }

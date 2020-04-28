@@ -1,11 +1,10 @@
 <template>
-  <q-layout view="hHh Lpr fFf">
-    <q-header elevated>
+  <q-layout view="hHh lpr fFf">
+    <q-header elevated class="bg-toolbar">
       <q-toolbar>
         <q-btn
           flat
           dense
-          round
           @click="leftDrawerOpen = !leftDrawerOpen"
           icon="menu"
           aria-label="Menu"
@@ -20,73 +19,9 @@
         <div>{{user}}@{{hostname}} | v{{version}}</div>
       </q-toolbar>
     </q-header>
-
-    <q-drawer
-      v-model="leftDrawerOpen"
-      overlay
-      bordered
-      content-class="bg-grey-2"
-    >
-      <q-list>
-        <q-item-label header>Menu</q-item-label>
-        <q-item clickable @click="$router.push('/')">
-          <q-item-section avatar>
-            <q-icon color="primary" name="home" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>
-              Home
-            </q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item clickable @click="$router.push('/backup')">
-          <q-item-section avatar>
-            <q-icon color="primary" name="backup" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Backup</q-item-label>
-            <q-item-label caption>Browse local files</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item clickable @click="$router.push('/servers')">
-          <q-item-section avatar>
-            <q-icon color="primary" name="storage" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Servers</q-item-label>
-            <q-item-label caption>Manage Servers</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item clickable @click="$router.push('/tasks')">
-          <q-item-section avatar>
-            <q-icon color="primary" name="assignment" />
-          </q-item-section>
-          <q-item-section>
-              <q-item-label>Tasks</q-item-label>
-              <q-item-label caption>Manage Schedule Tasks</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item clickable @click="terminal">
-          <q-item-section avatar>
-            <q-icon color="primary" name="fas fa-terminal" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>Console</q-item-label>
-            <q-item-label caption>Open a terminal</q-item-label>
-          </q-item-section>
-        </q-item>
-        <q-item clickable @click="debug">
-          <q-item-section avatar>
-            <q-icon color="primary" name="build" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>DevTools</q-item-label>
-            <q-item-label caption>Open Developer Tools</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
+    <q-drawer v-model="leftDrawerOpen" bordered content-class="bg-menu">
+      <bkitmenu/>
     </q-drawer>
-
     <q-page-container class="bkit-container">
       <keep-alive v-if="server || $route.name === 'Servers'">
         <router-view/>
@@ -108,8 +43,9 @@
 const os = require('os')
 const { ipcRenderer, remote: { app } } = require('electron')
 import { getServer } from 'src/helpers/bkit'
-import { user, shell } from 'src/helpers/bash'
+import { user } from 'src/helpers/bash'
 import { mapState, mapMutations } from 'vuex'
+import bkitmenu from './components/Menu'
 
 ipcRenderer.on('message', (event, text) => {
   console.log('Event:', event)
@@ -126,6 +62,9 @@ export default {
       version: app.getVersion(),
       hostname: os.hostname()
     }
+  },
+  components: {
+    bkitmenu
   },
   computed: {
     ...mapState('global', {
@@ -150,12 +89,6 @@ export default {
         .then(server => {
           this.server = server
         })
-    },
-    terminal () {
-      shell()
-    },
-    debug () {
-      ipcRenderer.send('debug', 'on')
     }
   }
 }

@@ -16,7 +16,86 @@ $bkit-check-color : #a2aa33;
   background: $bkit-check-color;
 }
 
+/*** bkit ***/
+$bkit-text-color: #78F000;
+$bkit-bg-color: #67a9fb;
+
+.text-bkit {
+  color: $bkit-text-color;
+}
+.bg-bkit {
+  background: $bkit-bg-color;
+}
+
+/*** toolbar ***/
+$bkit-text-toolbar-color: #CCC;
+$bkit-bg-toolbar-color: #AAA;
+.text-toobar {
+  color: $bkit-text-toolbar-color;
+}
+.bg-toolbar {
+  background: $bkit-bg-toolbar-color;
+}
+
+/*** Menu ***/
+$bkit-text-menu-color: #333;
+$bkit-bg-menu-color: #F6F6F6;
+
+.text-menu {
+  color: $bkit-text-menu-color;
+}
+.bg-menu {
+  background: $bkit-bg-menu-color;
+}
+
+/*** loader ***/
+$bkit-text-loader-color: $bkit-bg-color;
+$bkit-bg-loader-color: $bkit-bg-color;
+
+.text-loader {
+  color: $bkit-text-loader-color;
+}
+.bg-loader {
+  background: $bkit-bg-loader-color;
+}
+
+/*** font ***/
+
 @font-face {
   font-family: Courier, Arial, Helvetica, Courier New;
 }
 
+/*
+::-webkit-scrollbar {
+    width: 12px;
+    background: #555;
+}
+
+::-webkit-scrollbar-button {
+    background: #AAA; 
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333; 
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #666; 
+}
+
+::-webkit-scrollbar-track {
+    background: #CCC; 
+}
+
+::-webkit-scrollbar-track-piece {
+    background: #080; 
+}
+
+::-webkit-scrollbar-corner {
+    background: #999; 
+}
+
+::-webkit-resizer {
+    background: #111; 
+}
+*/
