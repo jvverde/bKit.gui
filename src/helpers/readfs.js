@@ -39,9 +39,9 @@ export async function* readdir (dir) {
     warn(err, false)
   }
 }
-export async function readfile (path) {
+export async function readfile (path, ...args) {
   return new Promise((resolve, reject) => {
     if (!fs.existsSync(path)) reject(`Not found '${path}'`)
-    fs.readFile(path).then(resolve).catch(reject)
+    fs.readFile(path, ...args).then(resolve).catch(reject)
   })
 }
