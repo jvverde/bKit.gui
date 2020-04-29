@@ -1,8 +1,16 @@
 <template>
   <q-page padding class="relative">
     Customize from: {{palletsdir}}
-    <div v-for="p in palettes" :key="p.path">
-      {{p.path}}
+    <div v-for="p in palettes" :key="p.name">
+      Palette: {{p.name}}
+      <div class="row no-wrap justify-center full-witdh">
+        <div v-for="(entry, index) in p.palette" :key="index"
+          class="q-my-sm q-pa-md column justify-between"
+          :style="{height: '20vh', background: entry.value}">
+          <div>{{entry.color}}</div>
+          <div>{{entry.value}}</div>
+        </div>
+      </div>
     </div>
   </q-page>
 </template>
@@ -12,6 +20,8 @@
 // import fs from 'fs'
 import path from 'path'
 import { readdir, readfile } from 'src/helpers/readfs'
+// $color1: #5bc0ebff;
+const RE = /\$(?<color>.+?)\s*:\s*(?<value>#[\da-f]{6,8});/i
 
 export default {
   name: 'Customize',
@@ -24,11 +34,23 @@ export default {
   methods: {
     async readdir () {
       for await (const entry of readdir(this.palletsdir)) {
-        this.palettes.push(entry)
         const result = await readfile(entry.path, 'utf8').catch(e => (this.error = e))
-        const lines = result.split(/\n+/)
+        const lines = result.split(/\r*\n+/)
+        const rgb = lines.reduce((r, v) => {
+          const ismatch = v.match(RE)
+          console.log(ismatch)
+          if (ismatch) {
+            const { color, value } = ismatch.groups || {}
+            r.push({ color, value })
+          }
+          return r
+        }, [])
         console.log(lines)
-        console.log(result)
+        console.log(rgb)
+        this.palettes.push({
+          name: entry.name,
+          palette: rgb
+        })
       }
     }
   },
