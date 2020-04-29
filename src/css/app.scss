@@ -16,11 +16,11 @@ $bkit-check-color : #a2aa33;
   background: $bkit-check-color;
 }
 
-/*** bkit ***/
-$bkit-color: #67a9fb;
+/************************** bkit **************************/
+$bkit-color : #67a9fb;
 
 :root {
-  --q-color-bkit: $bkit-color;
+  --q-color-bkit: #{$bkit-color};
 }
 
 .text-bkit {
@@ -32,7 +32,47 @@ $bkit-color: #67a9fb;
   background: var(--q-color-bkit) !important;
 }
 
-$bkit-positive-color: #78F000;
+/************************** bkit-ok **************************/
+/************************** bkit-danger **************************/
+/************************** bkit-warning **************************/
+/************************** bkit-deleted **************************/
+/************************** bkit-updated **************************/
+/************************** bkit-notinbackup **************************/
+/************************** bkit-filtered **************************/
+/************************** bkit-unknown **************************/
+/************************** bkit-included **************************/
+$included : #3e885bff;
+
+:root {
+  --q-color-included: #{$included};
+}
+
+.text-included {
+  color: $included !important;
+  color: var(--q-color-included) !important;
+}
+.bg-included {
+  background: $included !important;
+  background: var(--q-color-included) !important;
+}
+/************************** bkit-excluded **************************/
+$excluded : #e15554ff;
+
+:root {
+  --q-color-excluded: #{$excluded};
+}
+
+.text-excluded {
+  color: $excluded !important;
+  color: var(--q-color-excluded) !important;
+}
+.bg-excluded {
+  background: $excluded !important;
+  background: var(--q-color-excluded) !important;
+}
+
+/************************** XXXXXXXXX **************************/
+$bkit-positive-color: #3e885bff;
 .text-bkit-positive {
   color: $bkit-positive-color;
 }

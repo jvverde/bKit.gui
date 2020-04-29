@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hHh lpr fFf">
+  <q-layout view="hHh Lpr fFf">
     <q-header elevated class="bg-toolbar">
       <q-toolbar>
         <q-btn
@@ -50,7 +50,8 @@ import bkitmenu from './components/Menu'
 import { colors } from 'quasar'
 
 colors.setBrand('light', '#DDD')
-colors.setBrand('bkit', '#F30')
+// colors.setBrand('bkit', '#F30')
+// console.log(colors)
 
 ipcRenderer.on('message', (event, text) => {
   console.log('Event:', event)

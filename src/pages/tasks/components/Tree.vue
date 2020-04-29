@@ -25,14 +25,14 @@
             v-model="checked"
             keep-color
             size="xs"
-            :color="markcolor"
+            :color="color"
           />
         </q-item-section>
 
         <q-item-section no-wrap>
           <q-item-label class="ellipsis">
             <q-spinner-ios color="loader" v-if="isloading"/>
-            <span :style="{ color: markcolor }">
+            <span :class="'text-' + color">
               {{name}}
             </span>
             <q-icon color="transparent" size="xs" name="help" @click.stop="debug()"/>
@@ -173,10 +173,10 @@ export default {
       return this.included[0] && this.included[0].op === '-'
       // return (this.included[0] || '').startsWith('-')
     },
-    markcolor () {
+    color () {
       const isIncluded = this.checked || (this.isIncluded && this.checked !== null)
       const isExcluded = this.checked === null || this.isExcluded
-      return isIncluded ? 'green' : isExcluded ? 'red' : 'initial'
+      return isIncluded ? 'included' : isExcluded ? 'excluded' : 'initial'
     },
     isloading () {
       return this.loading
