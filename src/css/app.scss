@@ -109,6 +109,22 @@ $error : #e15554ff;
   background: var(--q-color-error) !important;
 }
 
+/************************** bkit-alarm **************************/
+$alarm : #e15554ff;
+
+:root {
+  --q-color-alarm: #{$alarm};
+}
+
+.text-alarm {
+  color: $alarm !important;
+  color: var(--q-color-alarm) !important;
+}
+.bg-alarm {
+  background: $alarm !important;
+  background: var(--q-color-alarm) !important;
+}
+
 /************************** bkit-fg **************************/
 $fg : #000;
 
@@ -340,6 +356,20 @@ $danger : #e15554ff;
   background: var(--q-color-danger) !important;
 }
 /************************** bkit-warning **************************/
+$warning : #fca148ff;
+
+:root {
+  --q-color-warning: #{$warning};
+}
+
+.text-warning {
+  color: $warning !important;
+  color: var(--q-color-warning) !important;
+}
+.bg-warning {
+  background: $warning !important;
+  background: var(--q-color-warning) !important;
+}
 /************************** bkit-deleted **************************/
 /************************** bkit-updated **************************/
 /************************** bkit-notinbackup **************************/
