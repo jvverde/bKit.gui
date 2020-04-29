@@ -32,6 +32,37 @@ $bkit-color : #67a9fb;
   background: var(--q-color-bkit) !important;
 }
 
+/************************** bkit-folder **************************/
+$folder : #eee3abff;
+
+:root {
+  --q-color-folder: #{$folder};
+}
+
+.text-folder {
+  color: $folder !important;
+  color: var(--q-color-folder) !important;
+}
+.bg-folder {
+  background: $folder !important;
+  background: var(--q-color-folder) !important;
+}
+/************************** bkit-file **************************/
+$file : #eee3abff;
+
+:root {
+  --q-color-file: #{$file};
+}
+
+.text-file {
+  color: $file !important;
+  color: var(--q-color-file) !important;
+}
+.bg-file {
+  background: $file !important;
+  background: var(--q-color-file) !important;
+}
+
 /************************** bkit-ok **************************/
 /************************** bkit-danger **************************/
 /************************** bkit-warning **************************/

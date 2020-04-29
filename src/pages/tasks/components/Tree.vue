@@ -11,11 +11,11 @@
       <template v-slot:header> <!-- this is the header line template -->
 
         <q-item-section side v-if="leaf">
-          <q-icon name="description" color="bkiticoncolor"/>
+          <q-icon name="description" color="file"/>
         </q-item-section>
 
         <q-item-section side v-else>
-          <q-icon :name="open ? 'folder_open' : 'folder'" color="bkiticoncolor"/>
+          <q-icon :name="open ? 'folder_open' : 'folder'" color="folder"/>
         </q-item-section>
 
         <q-item-section side>
