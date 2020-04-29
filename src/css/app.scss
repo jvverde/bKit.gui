@@ -62,9 +62,283 @@ $file : #eee3abff;
   background: $file !important;
   background: var(--q-color-file) !important;
 }
+/************************** bkit-checkbox **************************/
+$checkbox : $bkit-color;
+
+:root {
+  --q-color-checkbox: #{$checkbox};
+}
+
+.text-checkbox {
+  color: $checkbox !important;
+  color: var(--q-color-checkbox) !important;
+}
+.bg-checkbox {
+  background: $checkbox !important;
+  background: var(--q-color-checkbox) !important;
+}
+/************************** bkit-button **************************/
+$button : $bkit-color;
+
+:root {
+  --q-color-button: #{$button};
+}
+
+.text-button {
+  color: $button !important;
+  color: var(--q-color-button) !important;
+}
+.bg-button {
+  background: $button !important;
+  background: var(--q-color-button) !important;
+}
+
+/************************** bkit-error **************************/
+$error : #e15554ff;
+
+:root {
+  --q-color-error: #{$error};
+}
+
+.text-error {
+  color: $error !important;
+  color: var(--q-color-error) !important;
+}
+.bg-error {
+  background: $error !important;
+  background: var(--q-color-error) !important;
+}
+
+/************************** bkit-fg **************************/
+$fg : #000;
+
+:root {
+  --q-color-fg: #{$fg};
+}
+
+.text-fg {
+  color: $fg !important;
+  color: var(--q-color-fg) !important;
+}
+.bg-fg {
+  background: $fg !important;
+  background: var(--q-color-fg) !important;
+}
+
+/************************** bkit-bg **************************/
+$bg : #FFF;
+
+:root {
+  --q-color-bg: #{$bg};
+}
+
+.text-bg {
+  color: $bg !important;
+  color: var(--q-color-bg) !important;
+}
+.bg-bg {
+  bg: $bg !important;
+  bg: var(--q-color-bg) !important;
+}
+
+/************************** bkit-badger **************************/
+$badger : #D4CB92ff;
+
+:root {
+  --q-color-badger: #{$badger};
+}
+
+.text-badger {
+  color: $badger !important;
+  color: var(--q-color-badger) !important;
+}
+.bg-badger {
+  background: $badger !important;
+  background: var(--q-color-badger) !important;
+}
+
+/************************** bkit-badger-1 **************************/
+$badger-1 : #E6B89Cff;
+
+:root {
+  --q-color-badger-1: #{$badger-1};
+}
+
+.text-badger-1 {
+  color: $badger-1 !important;
+  color: var(--q-color-badger-1) !important;
+}
+.bg-badger-1 {
+  background: $badger-1 !important;
+  background: var(--q-color-badger-1) !important;
+}
+/************************** bkit-badger-2 **************************/
+$badger-2 : #ED9390ff;
+
+:root {
+  --q-color-badger-2: #{$badger-2};
+}
+
+.text-badger-2 {
+  color: $badger-2 !important;
+  color: var(--q-color-badger-2) !important;
+}
+.bg-badger-2 {
+  background: $badger-2 !important;
+  background: var(--q-color-badger-2) !important;
+}
+/************************** bkit-badger-3 **************************/
+$badger-3 : #EAE0CCff;
+
+:root {
+  --q-color-badger-3: #{$badger-3};
+}
+
+.text-badger-3 {
+  color: $badger-3 !important;
+  color: var(--q-color-badger-3) !important;
+}
+.bg-badger-3 {
+  background: $badger-3 !important;
+  background: var(--q-color-badger-3) !important;
+}
+/************************** bkit-chip **************************/
+$chip : #D4CB92ff;
+
+:root {
+  --q-color-chip: #{$chip};
+}
+
+.text-chip {
+  color: $chip !important;
+  color: var(--q-color-chip) !important;
+}
+.bg-chip {
+  background: $chip !important;
+  background: var(--q-color-chip) !important;
+}
+
+/************************** bkit-chip-1 **************************/
+$chip-1 : #E6B89Cff;
+
+:root {
+  --q-color-chip-1: #{$chip-1};
+}
+
+.text-chip-1 {
+  color: $chip-1 !important;
+  color: var(--q-color-chip-1) !important;
+}
+.bg-chip-1 {
+  background: $chip-1 !important;
+  background: var(--q-color-chip-1) !important;
+}
+/************************** bkit-chip-2 **************************/
+$chip-2 : #ED9390ff;
+
+:root {
+  --q-color-chip-2: #{$chip-2};
+}
+
+.text-chip-2 {
+  color: $chip-2 !important;
+  color: var(--q-color-chip-2) !important;
+}
+.bg-chip-2 {
+  background: $chip-2 !important;
+  background: var(--q-color-chip-2) !important;
+}
+/************************** bkit-chip-3 **************************/
+$chip-3 : #EAE0CCff;
+
+:root {
+  --q-color-chip-3: #{$chip-3};
+}
+
+.text-chip-3 {
+  color: $chip-3 !important;
+  color: var(--q-color-chip-3) !important;
+}
+.bg-chip-3 {
+  background: $chip-3 !important;
+  background: var(--q-color-chip-3) !important;
+}
 
 /************************** bkit-ok **************************/
+$ok : $bkit-color;
+
+:root {
+  --q-color-ok: #{$ok};
+}
+
+.text-ok {
+  color: $ok !important;
+  color: var(--q-color-ok) !important;
+}
+.bg-ok {
+  background: $ok !important;
+  background: var(--q-color-ok) !important;
+}
+/************************** bkit-done **************************/
+$done : $bkit-color;
+
+:root {
+  --q-color-done: #{$done};
+}
+
+.text-done {
+  color: $done !important;
+  color: var(--q-color-done) !important;
+}
+.bg-done {
+  background: $done !important;
+  background: var(--q-color-done) !important;
+}
+/************************** bkit-missing **************************/
+$missing : $error;
+
+:root {
+  --q-color-missing: #{$missing};
+}
+
+.text-missing {
+  color: $missing !important;
+  color: var(--q-color-missing) !important;
+}
+.bg-missing {
+  background: $missing !important;
+  background: var(--q-color-missing) !important;
+}
+/************************** bkit-active **************************/
+$active : #43aa8bff;
+
+:root {
+  --q-color-active: #{$active};
+}
+
+.text-active {
+  color: $active !important;
+  color: var(--q-color-active) !important;
+}
+.bg-active {
+  background: $active !important;
+  background: var(--q-color-active) !important;
+}
 /************************** bkit-danger **************************/
+$danger : #e15554ff;
+
+:root {
+  --q-color-danger: #{$danger};
+}
+
+.text-danger {
+  color: $danger !important;
+  color: var(--q-color-danger) !important;
+}
+.bg-danger {
+  background: $danger !important;
+  background: var(--q-color-danger) !important;
+}
 /************************** bkit-warning **************************/
 /************************** bkit-deleted **************************/
 /************************** bkit-updated **************************/

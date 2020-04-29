@@ -9,8 +9,8 @@
 
 <script>
 
-import jobs from './components/Tasks'
-import job from './components/NewTask'
+import jobs from './components/listasks/Tasks'
+import job from './components/newtask/NewTaskWizard'
 
 export default {
   name: 'TasksPage',

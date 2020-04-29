@@ -1,30 +1,30 @@
 <template>
   <div>
     <div>
-      <q-btn flat round dense ripple size="xs" color="green"
+      <q-btn flat round dense ripple size="xs" color="button"
         :icon="visible ? 'remove' : 'add'"
         @click="show_task()"/>
       {{path}}
     </div>
-    <div style="color: red" v-if="error">
+    <div class="text-error" v-if="error">
       Batch file not found at '{{path}}' location
-      <div style="color: black">
+      <div class="text-fg">
         {{error}}
       </div>
     </div>
     <div v-else-if="visible" style="float:right">
       <span v-if="diskname && diskpath">
         Backup:
-        <q-badge class="q-ml-xs" color="amber" text-color="black">
+        <q-badge class="q-ml-xs" color="badger" text-color="black">
           {{diskname}}{{diskpath}}
         </q-badge>
       </span>
       <span v-else class="text-weight-light">
         Drive is not present
-        <q-badge class="q-ml-xs shadow-3" color="amber" text-color="black" v-if="diskuuid">
+        <q-badge class="q-ml-xs shadow-3" color="badger-1" text-color="black" v-if="diskuuid">
           uuid: {{diskuuid}}
         </q-badge>
-        <q-badge class="q-ml-xs shadow-3" color="amber" text-color="black" v-if="diskpath">
+        <q-badge class="q-ml-xs shadow-3" color="badger-2" text-color="black" v-if="diskpath">
           path: {{diskpath}}
         </q-badge>
       </span>

@@ -12,7 +12,7 @@
         </q-bar>
         <q-card-actions>
           <div style=" max-height: 60vh;" class="no-wrap column scroll">
-            <q-checkbox dense color="green" size="xs"
+            <q-checkbox dense color="checkbox" size="xs"
               v-model="visible"
               :val="col.name"
               :label="col.label"
@@ -37,19 +37,19 @@
       <template v-slot:top>
         <div class="row full-width">
           <div>Windows Schedule Tasks</div>
-          <q-btn icon="launch" round dense flat size="xs" color="blue" @click="edit">
+          <q-btn icon="launch" round dense flat size="xs" color="button" @click="edit">
             <q-tooltip>Launch Windows Task Schedule Manager</q-tooltip>
           </q-btn>
-          <q-btn icon="settings_ethernet" round dense flat size="xs" color="green"
+          <q-btn icon="settings_ethernet" round dense flat size="xs" color="button"
             style="margin:0 auto"
             @click="toggle">
             <q-tooltip>Select columns to show</q-tooltip>
           </q-btn>
-          <q-btn icon="widgets" round dense flat size="xs" color="amber"
+          <q-btn icon="widgets" round dense flat size="xs" color="button"
             @click="gridmode = !gridmode">
             <q-tooltip>Toggle view mode</q-tooltip>
           </q-btn>
-          <q-btn icon="sync" round dense flat size="xs" color="cyan"
+          <q-btn icon="sync" round dense flat size="xs" color="button"
             :loading="loading"
             @click="load">
             <q-tooltip>Refresh</q-tooltip>
@@ -69,7 +69,7 @@
             <div>
               <span>Tasks to remove:</span>
               <span> {{selectedList}} </span>
-              <q-btn icon="delete" size="sm" dense rounded no-caps label="Remove" color="red"
+              <q-btn icon="delete" size="sm" dense rounded no-caps label="Remove" color="danger"
                 :loading="loading"
                 @click="remove">
                 <q-tooltip>Remove selected tasks</q-tooltip>
