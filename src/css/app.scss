@@ -1,39 +1,42 @@
 // app global css in SCSS form
-$bkit-icon-color   : #FFE792;
-$bkit-check-color : #a2aa33;
-
-.text-bkiticoncolor {
-  color: $bkit-icon-color;
-}
-.bg-bkiticoncolor {
-  background: $bkit-icon-color;
-}
-
-.text-bkitchekcolor {
-  color: $bkit-check-color;
-}
-.bg-bkitchekcolor {
-  background: $bkit-check-color;
-}
+$franchskyblue:       #67A9FBFF;
+$greenmunsell:        #06A77DFF;
+$seagreen:            #00FFC5FF;
+$bottlegreen:         #226F54FF;
+$babypink:            #DFBBB1FF;
+$atomictangerine:     #F68E5FFF;
+$rosewood:            #4F000BFF;
+$tan:                 #DBBEA1FF;
+$silversand:          #BFBFBFFF;
+$planitium:           #E8E8E8FF;
+$mediumchampagne:     #EEE3ABFF;
+$indianred:           #E15554FF;
+$kobe:                #972D07FF;
+$junglegreen:         #43AA8BFF;
+$scarlet:             #F42C04FF;
+$middlered:           #E2856EFF;
+$deepsaffron:         #FCA148FF;
+$budgreen:            #6EB257FF;
+$radicalred:          #EB5160FF;
 
 /************************** bkit **************************/
-$bkit-color : #67a9fb;
+$bkit : $franchskyblue;
 
 :root {
-  --q-color-bkit: #{$bkit-color};
+  --q-color-bkit: #{$bkit};
 }
 
 .text-bkit {
-  color: $bkit-color !important;
+  color: $bkit !important;
   color: var(--q-color-bkit) !important;
 }
 .bg-bkit {
-  background: $bkit-color !important;
+  background: $bkit !important;
   background: var(--q-color-bkit) !important;
 }
 
 /************************** bkit-folder **************************/
-$folder : #eee3abff;
+$folder : $mediumchampagne;
 
 :root {
   --q-color-folder: #{$folder};
@@ -48,7 +51,7 @@ $folder : #eee3abff;
   background: var(--q-color-folder) !important;
 }
 /************************** bkit-file **************************/
-$file : #eee3abff;
+$file : $mediumchampagne;
 
 :root {
   --q-color-file: #{$file};
@@ -63,7 +66,7 @@ $file : #eee3abff;
   background: var(--q-color-file) !important;
 }
 /************************** bkit-checkbox **************************/
-$checkbox : $bkit-color;
+$checkbox : $bkit;
 
 :root {
   --q-color-checkbox: #{$checkbox};
@@ -78,7 +81,7 @@ $checkbox : $bkit-color;
   background: var(--q-color-checkbox) !important;
 }
 /************************** bkit-button **************************/
-$button : $bkit-color;
+$button : $bkit;
 
 :root {
   --q-color-button: #{$button};
@@ -94,7 +97,7 @@ $button : $bkit-color;
 }
 
 /************************** bkit-error **************************/
-$error : #e15554ff;
+$error : $indianred;
 
 :root {
   --q-color-error: #{$error};
@@ -110,7 +113,7 @@ $error : #e15554ff;
 }
 
 /************************** bkit-alarm **************************/
-$alarm : #e15554ff;
+$alarm : $kobe;
 
 :root {
   --q-color-alarm: #{$alarm};
@@ -281,7 +284,7 @@ $chip-3 : #EAE0CCff;
 }
 
 /************************** bkit-ok **************************/
-$ok : $bkit-color;
+$ok : $greenmunsell;
 
 :root {
   --q-color-ok: #{$ok};
@@ -296,7 +299,7 @@ $ok : $bkit-color;
   background: var(--q-color-ok) !important;
 }
 /************************** bkit-done **************************/
-$done : $bkit-color;
+$done : $seagreen;
 
 :root {
   --q-color-done: #{$done};
@@ -311,7 +314,7 @@ $done : $bkit-color;
   background: var(--q-color-done) !important;
 }
 /************************** bkit-missing **************************/
-$missing : $error;
+$missing : $middlered;
 
 :root {
   --q-color-missing: #{$missing};
@@ -326,7 +329,7 @@ $missing : $error;
   background: var(--q-color-missing) !important;
 }
 /************************** bkit-active **************************/
-$active : #43aa8bff;
+$active : $junglegreen;
 
 :root {
   --q-color-active: #{$active};
@@ -341,7 +344,7 @@ $active : #43aa8bff;
   background: var(--q-color-active) !important;
 }
 /************************** bkit-danger **************************/
-$danger : #e15554ff;
+$danger : $scarlet;
 
 :root {
   --q-color-danger: #{$danger};
@@ -356,7 +359,7 @@ $danger : #e15554ff;
   background: var(--q-color-danger) !important;
 }
 /************************** bkit-warning **************************/
-$warning : #fca148ff;
+$warning : $deepsaffron;
 
 :root {
   --q-color-warning: #{$warning};
@@ -371,12 +374,83 @@ $warning : #fca148ff;
   background: var(--q-color-warning) !important;
 }
 /************************** bkit-deleted **************************/
+$deleted : $rosewood;
+
+:root {
+  --q-color-deleted: #{$deleted};
+}
+
+.text-deleted {
+  color: $deleted !important;
+  color: var(--q-color-deleted) !important;
+}
+.bg-deleted {
+  background: $deleted !important;
+  background: var(--q-color-deleted) !important;
+}
 /************************** bkit-updated **************************/
-/************************** bkit-notinbackup **************************/
+$updated : $bottlegreen;
+
+:root {
+  --q-color-updated: #{$updated};
+}
+
+.text-updated {
+  color: $updated !important;
+  color: var(--q-color-updated) !important;
+}
+.bg-updated {
+  background: $updated !important;
+  background: var(--q-color-updated) !important;
+}
+/************************** bkit-modified **************************/
+$modified : $atomictangerine;
+
+:root {
+  --q-color-modified: #{$modified};
+}
+
+.text-modified {
+  color: $modified !important;
+  color: var(--q-color-modified) !important;
+}
+.bg-modified {
+  background: $modified !important;
+  background: var(--q-color-modified) !important;
+}
+/************************** bkit-nobackup **************************/
+$nobackup : $tan;
+
+:root {
+  --q-color-nobackup: #{$nobackup};
+}
+
+.text-nobackup {
+  color: $nobackup !important;
+  color: var(--q-color-nobackup) !important;
+}
+.bg-nobackup {
+  background: $nobackup !important;
+  background: var(--q-color-nobackup) !important;
+}
 /************************** bkit-filtered **************************/
+$filtered : $silversand;
+
+:root {
+  --q-color-filtered: #{$filtered};
+}
+
+.text-filtered {
+  color: $filtered !important;
+  color: var(--q-color-filtered) !important;
+}
+.bg-filtered {
+  background: $filtered !important;
+  background: var(--q-color-filtered) !important;
+}
 /************************** bkit-unknown **************************/
 /************************** bkit-included **************************/
-$included : #3e885bff;
+$included : $budgreen;
 
 :root {
   --q-color-included: #{$included};
@@ -391,7 +465,7 @@ $included : #3e885bff;
   background: var(--q-color-included) !important;
 }
 /************************** bkit-excluded **************************/
-$excluded : #e15554ff;
+$excluded : $radicalred;
 
 :root {
   --q-color-excluded: #{$excluded};
@@ -406,13 +480,20 @@ $excluded : #e15554ff;
   background: var(--q-color-excluded) !important;
 }
 
-/************************** XXXXXXXXX **************************/
-$bkit-positive-color: #3e885bff;
-.text-bkit-positive {
-  color: $bkit-positive-color;
+/************************** bkit-loader **************************/
+$loader : $bkit;
+
+:root {
+  --q-color-loader: #{$loader};
 }
-.bg-bkit-positive {
-  background: $bkit-positive-color;
+
+.text-loader {
+  color: $loader !important;
+  color: var(--q-color-loader) !important;
+}
+.bg-loader {
+  background: $loader !important;
+  background: var(--q-color-loader) !important;
 }
 
 /*** toolbar ***/
@@ -436,16 +517,6 @@ $bkit-bg-menu-color: #F6F6F6;
   background: $bkit-bg-menu-color;
 }
 
-/*** loader ***/
-$bkit-text-loader-color: $bkit-color;
-$bkit-bg-loader-color: $bkit-color;
-
-.text-loader {
-  color: $bkit-text-loader-color;
-}
-.bg-loader {
-  background: $bkit-bg-loader-color;
-}
 
 /*** font ***/
 

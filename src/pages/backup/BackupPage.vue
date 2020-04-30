@@ -10,9 +10,9 @@
         no-caps
         switch-indicator
         style="color:aqua; background-color: ghostwhite"
-        indicator-color="amber"
-        active-bg-color="amber-3"
-        active-color="amber">
+        indicator-color="active"
+        active-bg-color="badger-2"
+        active-color="active">
         <q-tab
           v-for="disk in disks"
           :key="disk.id"
@@ -20,15 +20,15 @@
           :disable="loading"
           :ripple="{ early: true, color: 'indigo'}"
           icon="far fa-hdd"
-          :style="{ color: color(disk) }"
+          :class="'text-' + color(disk)"
         >
           <div class="row no-wrap" style="color:initial">
             <span>{{diskname(disk)}}</span>
             <span v-if="disk.present === true">
-              <q-icon name="done" color="green"/>
+              <q-icon name="done" color="ok"/>
             </span>
             <span v-else-if="disk.present === false">
-              <q-icon name="priority_high" color="red"/>
+              <q-icon name="priority_high" color="missing"/>
             </span>
           </div>
         </q-tab>
@@ -128,9 +128,9 @@ export default {
   methods: {
     color (disk) {
       if (disk.present === true) {
-        return 'green'
+        return 'ok'
       } else if (disk.present === false) {
-        return 'red'
+        return 'missing'
       } else return 'initial'
     },
     badge (disk) {

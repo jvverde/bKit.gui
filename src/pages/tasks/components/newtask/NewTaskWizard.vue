@@ -84,7 +84,7 @@
             no-caps outline color="button" label="Next" class="q-mx-sm q-my-xs"/>
           <q-btn v-else-if="showLast" :disable="!isDone" @click="finish"
             no-caps outline color="button" label="Finish" class="q-mx-sm q-my-xs"/>
-          <div class="q-ma-md bg-lime-1">
+          <div class="q-ma-md bg-lime-1" style="margin: auto 0">
             <q-bar dense v-if="hasBackups">Backup</q-bar>
             <q-chip dense color="included" outline :label="b"
               size="sm"
@@ -108,9 +108,13 @@
     <q-dialog
       v-model="askuser" transition-show="scale" transition-hide="scale">
       <q-card>
-        <q-card-section>
-          <div class="bg-warning">File already exist</div>
-        </q-card-section>
+        <q-bar>
+          <div class="text-warning">File already exist</div>
+          <q-space />
+          <q-btn dense flat icon="close" v-close-popup>
+            <q-tooltip>Close</q-tooltip>
+          </q-btn>
+        </q-bar>
         <q-card-section>
           If continue it will override the existing file
         </q-card-section>

@@ -12,11 +12,11 @@
       <template v-slot:header> <!-- this is the header line template -->
 
         <q-item-section side v-if="leaf">
-          <q-icon name="description" color="bkit"/>
+          <q-icon name="description" color="file"/>
         </q-item-section>
 
         <q-item-section side v-else @click.stop="see">
-          <q-icon :name="open ? 'folder_open' : 'folder'" color="bkit"/>
+          <q-icon :name="open ? 'folder_open' : 'folder'" color="folder"/>
         </q-item-section>
 
         <q-item-section no-wrap :class="{ isSelected: isSelected }">
@@ -26,17 +26,17 @@
               {{name}}
             </span>
             <q-icon color="transparent" size="xs" name="help" @click.stop="debug(entry)"/>
-            <q-icon name="done" color="green" v-if="isUpdate"/>
-            <q-icon name="call_merge" color="teal-3" v-else-if="wasmodified"/>
-            <q-icon name="arrow_upward" color="amber" v-else-if="isnew"/>
-            <q-icon name="arrow_downward" color="red" v-else-if="wasdeleted"/>
-            <q-icon name="block " color="grey-6" v-else-if="isfiltered"/>
+            <q-icon name="done" color="updated" v-if="isUpdate"/>
+            <q-icon name="call_merge" color="modified" v-else-if="wasmodified"/>
+            <q-icon name="arrow_upward" color="nobackup" v-else-if="isnew"/>
+            <q-icon name="arrow_downward" color="deleted" v-else-if="wasdeleted"/>
+            <q-icon name="block " color="filtered" v-else-if="isfiltered"/>
           </q-item-label>
         </q-item-section>
 
         <q-item-section side no-wrap>
            <q-btn-group flat rounded>
-            <q-btn round color="positive" flat size="sm" icon="restore"/>
+            <q-btn round color="button" flat size="sm" icon="restore"/>
           </q-btn-group>
         </q-item-section>
 
@@ -379,7 +379,7 @@ export default {
     margin: 0px;
     padding: 0px;
     padding-right: 5px;
-    color: $bkit-check-color;
+    color: $bkit;
   }
   .noexpandicon {
     visibility: hidden;
