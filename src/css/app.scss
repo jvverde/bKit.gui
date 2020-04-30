@@ -473,7 +473,36 @@ $openclose : $green-10;
   background: $openclose !important;
   background: var(--q-color-openclose) !important;
 }
+/************************** bkit-path **************************/
+$path : $bkit;
 
+:root {
+  --q-color-path: #{$path};
+}
+
+.text-path {
+  color: $path !important;
+  color: var(--q-color-path) !important;
+}
+.bg-path {
+  background: $path !important;
+  background: var(--q-color-path) !important;
+}
+/************************** bkit-path-sep **************************/
+$path-sep : $amber;
+
+:root {
+  --q-color-path-sep: #{$path-sep};
+}
+
+.text-path-sep {
+  color: $path-sep !important;
+  color: var(--q-color-path-sep) !important;
+}
+.bg-path-sep {
+  background: $path-sep !important;
+  background: var(--q-color-path-sep) !important;
+}
 /************************** bkit-selected **************************/
 $selected : $grey-1;
 

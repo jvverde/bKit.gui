@@ -57,13 +57,13 @@
         <q-list separator class="q-pa-xd">
           <restore
             v-for="(resource, index) in restores"
-            :key="index"
+            :key="'R-' + index"
             :resource="resource"
             @destroy="destroy_restore(index)"
           />
           <backup
             v-for="(backup, index) in backups"
-            :key="index"
+            :key="'P-? + index"
             :path="backup.path"
             :done="backup.done"
             @destroy="destroy_backup(index)"

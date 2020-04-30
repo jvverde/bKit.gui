@@ -6,7 +6,7 @@
       </keep-alive>
     </q-toolbar>
     <q-toolbar inset v-if="isReady2Show">
-      <q-breadcrumbs gutter="xs" active-color="active" separator-color="amber" :separator="sep">
+      <q-breadcrumbs gutter="xs" active-color="path" separator-color="path-sep" :separator="sep">
         <q-breadcrumbs-el
           v-if="steps.length > 0"
           style="cursor:pointer"
