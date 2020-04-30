@@ -6,7 +6,7 @@
       v-model="open"
       class="b-tree"
       :ref="path"
-      :header-style="isSelected ? 'background-color:#eef' : ''"
+      :header-style="isSelected ? 'background-color:var(--q-color-selected)' : ''"
       expand-icon="keyboard_arrow_down"
       :expand-icon-class="isdir ? 'expandicon' : 'noexpandicon'">
       <template v-slot:header> <!-- this is the header line template -->
@@ -364,8 +364,9 @@ export default {
 </script>
 
 <style scoped lang="scss">
+  @import 'src/css/app.scss';
   .isSelected {
-    color:$primary;
+    color:$bkit;
   }
   .wasDeleted {
     text-decoration: line-through;
@@ -379,7 +380,7 @@ export default {
     margin: 0px;
     padding: 0px;
     padding-right: 5px;
-    color: $green-10;
+    color: $openclose;
   }
   .noexpandicon {
     visibility: hidden;

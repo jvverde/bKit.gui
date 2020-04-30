@@ -373,6 +373,38 @@ $loader : $bkit;
   background: var(--q-color-loader) !important;
 }
 
+/************************** bkit-openclose **************************/
+$openclose : $green-10;
+
+:root {
+  --q-color-openclose: #{$openclose};
+}
+
+.text-openclose {
+  color: $openclose !important;
+  color: var(--q-color-openclose) !important;
+}
+.bg-openclose {
+  background: $openclose !important;
+  background: var(--q-color-openclose) !important;
+}
+
+/************************** bkit-selected **************************/
+$selected : $grey-1;
+
+:root {
+  --q-color-selected: #{$selected};
+}
+
+.text-selected {
+  color: $selected !important;
+  color: var(--q-color-selected) !important;
+}
+.bg-selected {
+  background: $selected !important;
+  background: var(--q-color-selected) !important;
+}
+
 /************************** bkit-badger **************************/
 $badger : #D4CB92ff;
 
