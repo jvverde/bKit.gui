@@ -379,7 +379,7 @@ export default {
     margin: 0px;
     padding: 0px;
     padding-right: 5px;
-    color: $bkit;
+    color: $green-10;
   }
   .noexpandicon {
     visibility: hidden;
