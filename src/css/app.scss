@@ -1,26 +1,7 @@
 // app global css in SCSS form
-$franchskyblue:       #67A9FBFF;
-$greenmunsell:        #06A77DFF;
-$seagreen:            #00FFC5FF;
-$bottlegreen:         #226F54FF;
-$babypink:            #DFBBB1FF;
-$atomictangerine:     #F68E5FFF;
-$rosewood:            #4F000BFF;
-$tan:                 #DBBEA1FF;
-$silversand:          #BFBFBFFF;
-$planitium:           #E8E8E8FF;
-$mediumchampagne:     #EEE3ABFF;
-$indianred:           #E15554FF;
-$kobe:                #972D07FF;
-$junglegreen:         #43AA8BFF;
-$scarlet:             #F42C04FF;
-$middlered:           #E2856EFF;
-$deepsaffron:         #FCA148FF;
-$budgreen:            #6EB257FF;
-$radicalred:          #EB5160FF;
 
 /************************** bkit **************************/
-$bkit : $franchskyblue;
+$bkit : #67A9FB;
 
 :root {
   --q-color-bkit: #{$bkit};
@@ -33,6 +14,311 @@ $bkit : $franchskyblue;
 .bg-bkit {
   background: $bkit !important;
   background: var(--q-color-bkit) !important;
+}
+
+/************************** bkit-fg **************************/
+$fg : #000;
+
+:root {
+  --q-color-fg: #{$fg};
+}
+
+.text-fg {
+  color: $fg !important;
+  color: var(--q-color-fg) !important;
+}
+.bg-fg {
+  background: $fg !important;
+  background: var(--q-color-fg) !important;
+}
+/************************** bkit-bg **************************/
+$bg : #FFF;
+
+:root {
+  --q-color-bg: #{$bg};
+}
+
+.text-bg {
+  color: $bg !important;
+  color: var(--q-color-bg) !important;
+}
+.bg-bg {
+  bg: $bg !important;
+  bg: var(--q-color-bg) !important;
+}
+
+/************************** bkit-ok **************************/
+$ok : $green;
+
+:root {
+  --q-color-ok: #{$ok};
+}
+
+.text-ok {
+  color: $ok !important;
+  color: var(--q-color-ok) !important;
+}
+.bg-ok {
+  background: $ok !important;
+  background: var(--q-color-ok) !important;
+}
+/************************** bkit-error **************************/
+$error : crimson;
+
+:root {
+  --q-color-error: #{$error};
+}
+
+.text-error {
+  color: $error !important;
+  color: var(--q-color-error) !important;
+}
+.bg-error {
+  background: $error !important;
+  background: var(--q-color-error) !important;
+}
+
+/************************** bkit-alarm **************************/
+$alarm : $deep-orange;
+
+:root {
+  --q-color-alarm: #{$alarm};
+}
+
+.text-alarm {
+  color: $alarm !important;
+  color: var(--q-color-alarm) !important;
+}
+.bg-alarm {
+  background: $alarm !important;
+  background: var(--q-color-alarm) !important;
+}
+/************************** bkit-danger **************************/
+$danger : $red;
+
+:root {
+  --q-color-danger: #{$danger};
+}
+
+.text-danger {
+  color: $danger !important;
+  color: var(--q-color-danger) !important;
+}
+.bg-danger {
+  background: $danger !important;
+  background: var(--q-color-danger) !important;
+}
+/************************** bkit-warning **************************/
+$warning : $orange;
+
+:root {
+  --q-color-warning: #{$warning};
+}
+
+.text-warning {
+  color: $warning !important;
+  color: var(--q-color-warning) !important;
+}
+.bg-warning {
+  background: $warning !important;
+  background: var(--q-color-warning) !important;
+}
+
+/************************** bkit-done **************************/
+$done : $light-blue;
+
+:root {
+  --q-color-done: #{$done};
+}
+
+.text-done {
+  color: $done !important;
+  color: var(--q-color-done) !important;
+}
+.bg-done {
+  background: $done !important;
+  background: var(--q-color-done) !important;
+}
+/************************** bkit-missing **************************/
+$missing : $red;
+
+:root {
+  --q-color-missing: #{$missing};
+}
+
+.text-missing {
+  color: $missing !important;
+  color: var(--q-color-missing) !important;
+}
+.bg-missing {
+  background: $missing !important;
+  background: var(--q-color-missing) !important;
+}
+/************************** bkit-active **************************/
+$active : $blue;
+
+:root {
+  --q-color-active: #{$active};
+}
+
+.text-active {
+  color: $active !important;
+  color: var(--q-color-active) !important;
+}
+.bg-active {
+  background: $active !important;
+  background: var(--q-color-active) !important;
+}
+/************************** bkit-updated **************************/
+$updated : $green;
+
+:root {
+  --q-color-updated: #{$updated};
+}
+
+.text-updated {
+  color: $updated !important;
+  color: var(--q-color-updated) !important;
+}
+.bg-updated {
+  background: $updated !important;
+  background: var(--q-color-updated) !important;
+}
+/************************** bkit-updatedir **************************/
+$updatedir : $secondary;
+
+:root {
+  --q-color-updatedir: #{$updatedir};
+}
+
+.text-updatedir {
+  color: $updatedir !important;
+  color: var(--q-color-updatedir) !important;
+}
+.bg-updatedir {
+  background: $updatedir !important;
+  background: var(--q-color-updatedir) !important;
+}
+/************************** bkit-modified **************************/
+$modified : $teal-3;
+
+:root {
+  --q-color-modified: #{$modified};
+}
+
+.text-modified {
+  color: $modified !important;
+  color: var(--q-color-modified) !important;
+}
+.bg-modified {
+  background: $modified !important;
+  background: var(--q-color-modified) !important;
+}
+/************************** bkit-new **************************/
+$new : $orange;
+
+:root {
+  --q-color-new: #{$new};
+}
+
+.text-new {
+  color: $new !important;
+  color: var(--q-color-new) !important;
+}
+.bg-new {
+  background: $new !important;
+  background: var(--q-color-new) !important;
+}
+/************************** bkit-nobackup **************************/
+$nobackup : $amber;
+
+:root {
+  --q-color-nobackup: #{$nobackup};
+}
+
+.text-nobackup {
+  color: $nobackup !important;
+  color: var(--q-color-nobackup) !important;
+}
+.bg-nobackup {
+  background: $nobackup !important;
+  background: var(--q-color-nobackup) !important;
+}
+/************************** bkit-deleted **************************/
+$deleted : $red;
+
+:root {
+  --q-color-deleted: #{$deleted};
+}
+
+.text-deleted {
+  color: $deleted !important;
+  color: var(--q-color-deleted) !important;
+}
+.bg-deleted {
+  background: $deleted !important;
+  background: var(--q-color-deleted) !important;
+}
+/************************** bkit-filtered **************************/
+$filtered : $grey-6;
+
+:root {
+  --q-color-filtered: #{$filtered};
+}
+
+.text-filtered {
+  color: $filtered !important;
+  color: var(--q-color-filtered) !important;
+}
+.bg-filtered {
+  background: $filtered !important;
+  background: var(--q-color-filtered) !important;
+}
+/************************** bkit-unchecked **************************/
+$unchecked : $grey-4;
+
+:root {
+  --q-color-unchecked: #{$unchecked};
+}
+
+.text-unchecked {
+  color: $unchecked !important;
+  color: var(--q-color-unchecked) !important;
+}
+.bg-unchecked {
+  background: $unchecked !important;
+  background: var(--q-color-unchecked) !important;
+}
+
+/************************** bkit-included **************************/
+$included : darkgreen;
+
+:root {
+  --q-color-included: #{$included};
+}
+
+.text-included {
+  color: $included !important;
+  color: var(--q-color-included) !important;
+}
+.bg-included {
+  background: $included !important;
+  background: var(--q-color-included) !important;
+}
+/************************** bkit-excluded **************************/
+$excluded : darkred;
+
+:root {
+  --q-color-excluded: #{$excluded};
+}
+
+.text-excluded {
+  color: $excluded !important;
+  color: var(--q-color-excluded) !important;
+}
+.bg-excluded {
+  background: $excluded !important;
+  background: var(--q-color-excluded) !important;
 }
 
 /************************** bkit-folder **************************/
@@ -95,266 +381,65 @@ $button : $green;
   background: $button !important;
   background: var(--q-color-button) !important;
 }
-
-/************************** bkit-error **************************/
-$error : crimson;
-
-:root {
-  --q-color-error: #{$error};
-}
-
-.text-error {
-  color: $error !important;
-  color: var(--q-color-error) !important;
-}
-.bg-error {
-  background: $error !important;
-  background: var(--q-color-error) !important;
-}
-
-/************************** bkit-alarm **************************/
-$alarm : $deep-orange;
+/************************** bkit-backup **************************/
+$backup : $green;
 
 :root {
-  --q-color-alarm: #{$alarm};
+  --q-color-backup: #{$backup};
 }
 
-.text-alarm {
-  color: $alarm !important;
-  color: var(--q-color-alarm) !important;
+.text-backup {
+  color: $backup !important;
+  color: var(--q-color-backup) !important;
 }
-.bg-alarm {
-  background: $alarm !important;
-  background: var(--q-color-alarm) !important;
+.bg-backup {
+  background: $backup !important;
+  background: var(--q-color-backup) !important;
 }
-
-/************************** bkit-fg **************************/
-$fg : #000;
-
-:root {
-  --q-color-fg: #{$fg};
-}
-
-.text-fg {
-  color: $fg !important;
-  color: var(--q-color-fg) !important;
-}
-.bg-fg {
-  background: $fg !important;
-  background: var(--q-color-fg) !important;
-}
-
-/************************** bkit-bg **************************/
-$bg : #FFF;
+/************************** bkit-reset **************************/
+$reset : $orange;
 
 :root {
-  --q-color-bg: #{$bg};
+  --q-color-reset: #{$reset};
 }
 
-.text-bg {
-  color: $bg !important;
-  color: var(--q-color-bg) !important;
+.text-reset {
+  color: $reset !important;
+  color: var(--q-color-reset) !important;
 }
-.bg-bg {
-  bg: $bg !important;
-  bg: var(--q-color-bg) !important;
+.bg-reset {
+  background: $reset !important;
+  background: var(--q-color-reset) !important;
 }
-
-/************************** bkit-ok **************************/
-$ok : $green;
-
-:root {
-  --q-color-ok: #{$ok};
-}
-
-.text-ok {
-  color: $ok !important;
-  color: var(--q-color-ok) !important;
-}
-.bg-ok {
-  background: $ok !important;
-  background: var(--q-color-ok) !important;
-}
-/************************** bkit-done **************************/
-$done : $light-blue;
+/************************** bkit-restore **************************/
+$restore : $green;
 
 :root {
-  --q-color-done: #{$done};
+  --q-color-restore: #{$restore};
 }
 
-.text-done {
-  color: $done !important;
-  color: var(--q-color-done) !important;
+.text-restore {
+  color: $restore !important;
+  color: var(--q-color-restore) !important;
 }
-.bg-done {
-  background: $done !important;
-  background: var(--q-color-done) !important;
+.bg-restore {
+  background: $restore !important;
+  background: var(--q-color-restore) !important;
 }
-/************************** bkit-missing **************************/
-$missing : $red;
-
-:root {
-  --q-color-missing: #{$missing};
-}
-
-.text-missing {
-  color: $missing !important;
-  color: var(--q-color-missing) !important;
-}
-.bg-missing {
-  background: $missing !important;
-  background: var(--q-color-missing) !important;
-}
-/************************** bkit-active **************************/
-$active : $blue;
+/************************** bkit-recover **************************/
+$recover : $green;
 
 :root {
-  --q-color-active: #{$active};
+  --q-color-recover: #{$recover};
 }
 
-.text-active {
-  color: $active !important;
-  color: var(--q-color-active) !important;
+.text-recover {
+  color: $recover !important;
+  color: var(--q-color-recover) !important;
 }
-.bg-active {
-  background: $active !important;
-  background: var(--q-color-active) !important;
-}
-/************************** bkit-danger **************************/
-$danger : $red;
-
-:root {
-  --q-color-danger: #{$danger};
-}
-
-.text-danger {
-  color: $danger !important;
-  color: var(--q-color-danger) !important;
-}
-.bg-danger {
-  background: $danger !important;
-  background: var(--q-color-danger) !important;
-}
-/************************** bkit-warning **************************/
-$warning : $orange;
-
-:root {
-  --q-color-warning: #{$warning};
-}
-
-.text-warning {
-  color: $warning !important;
-  color: var(--q-color-warning) !important;
-}
-.bg-warning {
-  background: $warning !important;
-  background: var(--q-color-warning) !important;
-}
-/************************** bkit-deleted **************************/
-$deleted : $red;
-
-:root {
-  --q-color-deleted: #{$deleted};
-}
-
-.text-deleted {
-  color: $deleted !important;
-  color: var(--q-color-deleted) !important;
-}
-.bg-deleted {
-  background: $deleted !important;
-  background: var(--q-color-deleted) !important;
-}
-/************************** bkit-updated **************************/
-$updated : $green;
-
-:root {
-  --q-color-updated: #{$updated};
-}
-
-.text-updated {
-  color: $updated !important;
-  color: var(--q-color-updated) !important;
-}
-.bg-updated {
-  background: $updated !important;
-  background: var(--q-color-updated) !important;
-}
-/************************** bkit-modified **************************/
-$modified : $teal-3;
-
-:root {
-  --q-color-modified: #{$modified};
-}
-
-.text-modified {
-  color: $modified !important;
-  color: var(--q-color-modified) !important;
-}
-.bg-modified {
-  background: $modified !important;
-  background: var(--q-color-modified) !important;
-}
-/************************** bkit-nobackup **************************/
-$nobackup : $orange;
-
-:root {
-  --q-color-nobackup: #{$nobackup};
-}
-
-.text-nobackup {
-  color: $nobackup !important;
-  color: var(--q-color-nobackup) !important;
-}
-.bg-nobackup {
-  background: $nobackup !important;
-  background: var(--q-color-nobackup) !important;
-}
-/************************** bkit-filtered **************************/
-$filtered : $grey-6;
-
-:root {
-  --q-color-filtered: #{$filtered};
-}
-
-.text-filtered {
-  color: $filtered !important;
-  color: var(--q-color-filtered) !important;
-}
-.bg-filtered {
-  background: $filtered !important;
-  background: var(--q-color-filtered) !important;
-}
-/************************** bkit-unknown **************************/
-/************************** bkit-included **************************/
-$included : darkgreen;
-
-:root {
-  --q-color-included: #{$included};
-}
-
-.text-included {
-  color: $included !important;
-  color: var(--q-color-included) !important;
-}
-.bg-included {
-  background: $included !important;
-  background: var(--q-color-included) !important;
-}
-/************************** bkit-excluded **************************/
-$excluded : darkred;
-
-:root {
-  --q-color-excluded: #{$excluded};
-}
-
-.text-excluded {
-  color: $excluded !important;
-  color: var(--q-color-excluded) !important;
-}
-.bg-excluded {
-  background: $excluded !important;
-  background: var(--q-color-excluded) !important;
+.bg-recover {
+  background: $recover !important;
+  background: var(--q-color-recover) !important;
 }
 
 /************************** bkit-loader **************************/
@@ -403,6 +488,36 @@ $selected : $grey-1;
 .bg-selected {
   background: $selected !important;
   background: var(--q-color-selected) !important;
+}
+/************************** bkit-versions **************************/
+$versions : $blue-grey-6;
+
+:root {
+  --q-color-versions: #{$versions};
+}
+
+.text-versions {
+  color: $versions !important;
+  color: var(--q-color-versions) !important;
+}
+.bg-versions {
+  background: $versions !important;
+  background: var(--q-color-versions) !important;
+}
+/************************** bkit-noversions **************************/
+$noversions : $blue-grey-4;
+
+:root {
+  --q-color-noversions: #{$noversions};
+}
+
+.text-noversions {
+  color: $noversions !important;
+  color: var(--q-color-noversions) !important;
+}
+.bg-noversions {
+  background: $noversions !important;
+  background: var(--q-color-noversions) !important;
 }
 
 /************************** bkit-badger **************************/

@@ -1,17 +1,15 @@
 <template>
   <div class="q-pa-xs row no-wrap justify-between rounded-borders shadow-2 bkit-item">
     <div class="column no-wrap items-center">
-      <q-icon
-        v-if="isdir"
+      <q-icon v-if="isdir"
         class="bkit-icon self-start"
         style="cursor:pointer"
         name="folder"
         @click="open"
-        :color="isdir && isUpdate ? 'secondary' : color">
+        :color="color">
         <tooltip :label="description"/>
       </q-icon>
-      <q-icon
-        v-else
+      <q-icon v-else
         class="bkit-icon self-start"
         name="description"
         :color="color">
@@ -25,7 +23,7 @@
         class="row text-weight-light no-wrap">
         <q-btn-dropdown no-caps flat no-wrap
           icon="assignment"
-          :color="hasversions ? 'blue-grey-6' : 'blue-grey-4'"
+          :color="hasversions ? 'versions' : 'noversions'"
           label="Versions"
           class="text-weight-light"
           :loading="loading"
@@ -45,7 +43,7 @@
                 {{version.date}}
               </q-item-section>
               <q-item-section side>
-                <q-icon color="positive" name="restore" />
+                <q-icon color="button" name="restore" />
               </q-item-section>
             </q-item>
           </q-list>
@@ -54,34 +52,34 @@
     </div>
     <div class="column justify-start">
       <q-btn flat no-caps stack
-        color="positive"
+        color="backup"
         icon="backup"
         size="sm"
         dense
         ripple
         @click="backup"
-        v-show="isBackupable">
+        :class="{inactive: !isBackupable}">
         <span class="text-weight-light">Backup</span>
       </q-btn>
       <q-btn flat no-caps stack
-        :color="wasmodified ? 'orange' : 'positive'"
+        :color="wasmodified ? 'reset' : 'restore'"
         icon="restore"
         size="sm"
         dense
         ripple
         @click="restore"
-        v-show="isRestorable">
+        :class="{inactive: !isRestorable}">
         <span class="text-weight-light">Restore</span>
         <tooltip label="Restore lo original location"/>
       </q-btn>
       <q-btn flat no-caps stack
-        color="positive"
+        color="recover"
         icon="save_alt"
         size="sm"
         dense
         ripple
         @click="recover"
-        v-show="isRestorable">
+        :class="{inactive: !isRecoverable}">
         <span class="text-weight-light">Recover</span>
         <tooltip label="Recover to a different location"/>
       </q-btn>
@@ -102,13 +100,13 @@ const obooleans = {
   require: false
 }
 const colorOf = {
-  deleted: 'red',
-  update: 'green',
+  deleted: 'deleted',
+  update: 'updated',
   new: 'orange',
-  modified: 'teal-3',
-  filtered: 'grey-6',
-  unchecked: 'grey-4',
-  nobackup: 'amber'
+  modified: 'modified',
+  filtered: 'filtered',
+  unchecked: 'unchecked',
+  nobackup: 'nobackup'
 }
 const nameOf = {
   deleted: 'Was deleted',
@@ -131,7 +129,7 @@ export default {
     tooltip
   },
   computed: {
-    color () { return colorOf[this.status] },
+    color () { return this.isdir && this.isUpdate ? 'updatedir' : colorOf[this.status] },
     description () { return nameOf[this.status] },
     hasbackup () { return this.checked && this.onbackup },
     wasdeleted () { return this.checked && this.onbackup && !this.onlocal },
@@ -157,7 +155,8 @@ export default {
       return null
     },
     isBackupable () { return this.onlocal && (!this.isUpdate || this.isdir) },
-    isRestorable () { return this.wasmodified || this.wasdeleted || (this.isdir && this.hasbackup) }
+    isRestorable () { return this.wasmodified || this.wasdeleted || (this.isdir && this.hasbackup) },
+    isRecoverable () { return this.hasbackup }
   },
   props: {
     isdir: obooleans,
@@ -237,5 +236,9 @@ export default {
     .bkit-icon{
       font-size: $biconsize;
     }
+  }
+  .inactive {
+    color: transparent !important;
+    pointer-events: none;
   }
 </style>
