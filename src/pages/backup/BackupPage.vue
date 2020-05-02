@@ -63,7 +63,7 @@
           />
           <backup
             v-for="(backup, index) in backups"
-            :key="'P-? + index"
+            :key="'P-' + index"
             :path="backup.path"
             :done="backup.done"
             @destroy="destroy_backup(index)"

@@ -101,7 +101,7 @@
           <div v-for="(filter, index) in filters" :key="index">
             <!-- {{index}}: {{filter}} -->
           </div>
-          <q-btn flat color="warning" @click="cancel" no-caps label="Cancel" class="q-ma-sm" style="margin-top: auto"/>
+          <q-btn flat color="cancel" @click="cancel" no-caps label="Cancel" class="q-ma-sm" style="margin-top: auto"/>
         </q-stepper-navigation>
       </template>
     </q-stepper>
@@ -119,7 +119,7 @@
           If continue it will override the existing file
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Cancel" color="button" v-close-popup />
+          <q-btn flat label="Cancel" color="ok" v-close-popup />
           <q-btn flat label="Continue" color="danger" @click="force" v-close-popup />
         </q-card-actions>
       </q-card>

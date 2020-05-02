@@ -8,16 +8,16 @@
           <tooltip :label="error"/>
         </q-icon>
         <span>{{status}} backup of {{path}}</span>
-        <q-badge class="q-ml-xs shadow-1" color="grey-6" v-show="files.files">
+        <q-badge class="q-ml-xs shadow-1" color="badger" v-show="files.files">
           {{files.files}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
           <tooltip label="Files uploaded/updated"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="green" v-show="files.size">
+        <q-badge class="q-ml-sm shadow-1" color="badger-1" v-show="files.size">
           {{formatBytes(files.size)}}
           <tooltip label="Size of files uploaded/updated"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="blue" v-show="total.bytes">
+        <q-badge class="q-ml-sm shadow-1" color="badger-2" v-show="total.bytes">
           {{formatBytes(total.bytes)}}
           <tooltip label="Bytes transferred"/>
         </q-badge>
@@ -35,10 +35,10 @@
     </q-item-section>
     <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
     <q-item-section side v-if="isDismissible">
-      <q-btn flat round icon="close" color="red" size="xs" @click.stop="deleted = true"/>
+      <q-btn flat round icon="close" color="dismiss" size="xs" @click.stop="deleted = true"/>
     </q-item-section>
     <q-item-section side v-if="isCancelable">
-      <q-btn flat round icon="stop" color="red" size="xs" @click.stop="cancel"/>
+      <q-btn flat round icon="stop" color="cancel" size="xs" @click.stop="cancel"/>
     </q-item-section>
   </q-item>
 </template>

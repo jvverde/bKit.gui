@@ -3,30 +3,30 @@
     <q-item-section>
       <q-item-label>
         <q-spinner-ios color="loader" v-if="isRunning"/>
-        <q-icon name="check" color="green" v-if="isDone"/>
+        <q-icon name="check" color="done" v-if="isDone"/>
         <q-icon name="warning" color="warning" v-if="error">
           <tooltip :label="error"/>
         </q-icon>
         <span>{{status}} restore of {{path}}</span>
-        <q-badge class="q-ml-xs shadow-1" color="indigo" v-if="totalfiles">
+        <q-badge class="q-ml-xs shadow-1" color="badger" v-if="totalfiles">
           {{totalfiles}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
           <tooltip label="Number of files"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="green" v-if="isRunning && cntfiles">
+        <q-badge class="q-ml-sm shadow-1" color="badger-1" v-if="isRunning && cntfiles">
           {{cntfiles}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
           <tooltip label="Number of files so far"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="cyan" v-if="totalsize">
+        <q-badge class="q-ml-sm shadow-1" color="badger-2" v-if="totalsize">
           {{totalsize}}
           <tooltip label="Size of transferred files"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="teal" v-if="isRunning && currentsize">
+        <q-badge class="q-ml-sm shadow-1" color="badger-3" v-if="isRunning && currentsize">
           {{currentsize}}
           <tooltip label="Total size so far"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="blue" v-if="isRunning && currentrate">
+        <q-badge class="q-ml-sm shadow-1" color="badger-4" v-if="isRunning && currentrate">
           {{currentrate}}
           <tooltip label="Actual download rate"/>
         </q-badge>
@@ -42,7 +42,7 @@
         :value="sizepercent"
         size="55px"
         :thickness="0.22"
-        color="green"
+        color="bkit"
         track-color="grey-3"
         class="q-ma-md">
         {{ sizepercent }}% size
@@ -55,7 +55,7 @@
         :value="filespercent"
         size="55px"
         :thickness="0.22"
-        color="green"
+        color="bkit"
         track-color="grey-3"
         class="q-ma-md">
         {{ filespercent }}% files
@@ -63,10 +63,10 @@
     </q-item-section>
     <q-item-section side v-if="isDryRun">[DRY-RUN]</q-item-section>
     <q-item-section side v-if="isDismissible">
-      <q-btn flat round icon="close" color="red" size="xs" @click.stop="deleted = true"/>
+      <q-btn flat round icon="close" color="dismmiss" size="xs" @click.stop="deleted = true"/>
     </q-item-section>
     <q-item-section side v-if="isCancelable">
-      <q-btn flat round icon="stop" color="red" size="xs" @click.stop="cancel"/>
+      <q-btn flat round icon="stop" color="cancel" size="xs" @click.stop="cancel"/>
     </q-item-section>
   </q-item>
 </template>

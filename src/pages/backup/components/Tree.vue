@@ -363,19 +363,17 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
   @import 'src/css/app.scss';
   .isSelected {
     color:$bkit;
+    .wasDeleted {
+      color: $bkit;
+    }
   }
   .wasDeleted {
-    text-decoration: line-through;
+    color: $deleted;
   }
-</style>
-
-<style lang="scss">
-  @import 'src/css/app.scss';
-
   .expandicon, .noexpandicon {
     margin: 0px;
     padding: 0px;
