@@ -92,11 +92,14 @@ export default {
     }
   },
   computed: {
+    isFinished () {
+      return this.finished === true
+    },
     isRunning () {
-      return this.status === 'Running'
+      return this.status === 'Running' && !this.isFinished
     },
     isDone () {
-      return this.status === 'Done'
+      return this.status === 'Done' && this.isFinished
     },
     isCanceled () {
       return this.status === 'Canceled'
