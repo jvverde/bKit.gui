@@ -102,20 +102,11 @@ export default {
     showLast () {
       return this.step === 4
     },
-    canIgo () {
-      return true
-    },
     freq () {
       return this.scheduler.freq
     },
-    period () {
-      return this.scheduler.value()
-    },
     periodName () {
       return this.scheduler.label()
-    },
-    start () {
-      return this.scheduler.start
     },
     hasScheduler () {
       return this.scheduler.isComplete()

@@ -106,12 +106,6 @@ export default {
     start () {
       return this.scheduler.start
     },
-    hasScheduler () {
-      return this.freq > 0 && !!this.period && !!this.start
-    },
-    hasName () {
-      return !!this.taskname
-    },
     hasExcludes () {
       return this.excludes.length > 0
     },
