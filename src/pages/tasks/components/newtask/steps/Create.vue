@@ -23,10 +23,17 @@
     </div>
 
     <q-btn rounded push outline
+      v-if="!result"
       size="md" color="button"
       class="q-ma-sm q-mt-lg" icon-right="subdirectory_arrow_left"
-      label="Enter" @click="submit" />
+      label="Create Task" @click="submit" :loading="loading"/>
 
+    <div v-else class="row justify-center">
+      <q-badge color="bkit" class="q-px-sm">
+        {{result}}
+        <q-icon name="done"/>
+      </q-badge>
+    </div>
     <q-dialog
       v-model="askuser" transition-show="scale" transition-hide="scale">
       <q-card>
@@ -68,7 +75,9 @@ export default {
   name: 'newtask',
   data () {
     return {
-      askuser: false
+      askuser: false,
+      loading: false,
+      result: null
     }
   },
   props: {
@@ -148,19 +157,23 @@ export default {
   },
   methods: {
     create (...args) {
+      this.loading = true
       const { backups, filters, taskname, period, freq, start } = this
       const fswitches = filters.map(f => `--filter=${f}`)
       console.log('backup', backups)
       console.log('filters', filters)
       createTask(...args, `--name=${taskname}`, `${period}`, freq, `--start=${start}`, ...fswitches, ...backups)
         .then(ret => {
-          console.log('Return:', ret)
+          this.result = (ret.result || []).join(', ')
+          this.$emit('done', this.result)
         })
         .catch(err => {
           if (err.errors instanceof Array && err.errors.some(line => line.match(/already exists/))) {
-            console.log('FORCE??????')
             this.askuser = true
           } else console.warn('Error', err)
+        })
+        .finally(() => {
+          this.loading = false
         })
     },
     submit () { // We need this extra member to discard the mouseevent on first argument
@@ -169,10 +182,6 @@ export default {
     force () {
       this.create('--force')
     }
-  },
-  mounted () {
   }
 }
 </script>
-<style type="text/scss">
-</style>

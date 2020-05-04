@@ -29,8 +29,7 @@ export default {
   },
   methods: {
     refresh () {
-      this.$refs.jobs.load()
-      this.add = true
+      this.add = false
     },
     cancel () {
       this.add = false

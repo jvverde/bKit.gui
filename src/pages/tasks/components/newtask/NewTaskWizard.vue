@@ -6,7 +6,7 @@
       class="row no-wrap justify-between b-stepper">
 
        <q-step :name="1" title="Select" caption="Folders or Files" icon="receipt" :done="hasBackups">
-        <div style="max-height:50vh;width:100%" class="scroll">
+        <div style="max-height:60vh;width:100%" class="scroll">
           <tree
             :entry="{ isdir: true, isroot: true, path: disk.mountpoint }"
             v-for="disk in disks" :key="disk.id"
@@ -16,7 +16,7 @@
 
       <q-step :name="2" title="Define" caption="When should run" icon="schedule" :done="hasScheduler">
         <schedule :scheduler.sync="scheduler"/>
-        <span>Run every {{freq}} {{periodName}}</span>
+        <span>Run every {{freq}} {{periodName}} at {{start}}</span>
       </q-step>
 
       <q-step :name="3" title="Name" caption="Identify the task" icon="how_to_reg" :done="hasName">
@@ -25,8 +25,9 @@
 
       <q-step :name="4" title="Do It" caption="Create task" icon="paly_for_work" :done="isDone">
         <div class="column content-stretch">
-          <create v-if="isReady" :backups="backups" :includes="includes"
-            :excludes="excludes" :scheduler="scheduler"/>
+          <create v-if="isReady" :taskname="taskname" :backups="backups" :includes="includes"
+            :excludes="excludes" :scheduler="scheduler"
+            @done="done"/>
           <div v-else class="column items-center">
             <div class="q-mt-lg">Not ready yet. Please very if all steps are done</div>
             <div class="q-ma-xs">{{whyNotReady}}</div>
@@ -36,27 +37,19 @@
 
       <template v-slot:navigation>
         <q-stepper-navigation class="column no-wrap">
-          <q-btn :disable="!showBack" :flat="!showBack" :outline="showBack" color="button" icon="keyboard_arrow_up"
-            no-caps @click="back" label="Back" class="q-mx-sm"/>
+
+          <q-btn v-show="showBack" outline color="button" icon="keyboard_arrow_up"
+            no-caps @click="back" label="Back" class="q-mx-sm q-mb-md"/>
+
+          <resume :backups="backups" :includes="includes" :excludes="excludes" class="q-ma-md bg-lime-1"/>
+
+          <q-btn v-if="!showFinish" flat color="cancel" @click="cancel" no-caps label="Cancel" class="q-ma-lg" style="margin-top: auto"/>
+
           <q-btn v-if="showNext" @click="next" icon-right="keyboard_arrow_down"
             no-caps outline color="button" label="Next" class="q-mx-sm q-my-xs"/>
-          <q-btn v-else-if="showLast" :disable="!isDone" @click="finish"
-            no-caps outline color="button" label="Finish" class="q-mx-sm q-my-xs"/>
-          <div class="q-ma-md bg-lime-1" style="margin: auto 0">
-            <q-bar dense v-if="hasBackups">Backup</q-bar>
-            <q-chip dense color="included" outline :label="b"
-              size="sm"
-              v-for="(b, i) in backups" :key="'b' + i"/>
-            <q-bar dense v-if="hasExcludes">Excluding</q-bar>
-            <q-chip dense color="excluded" outline :label="e.path"
-              size="sm"
-              v-for="e in excludes" :key="'e' + e.path"/>
-            <q-bar dense v-if="hasNeeds2include">Including</q-bar>
-            <q-chip dense color="included" outline :label="n.path"
-              size="sm"
-              v-for="n in needs2include" :key="'n' + n.path"/>
-          </div>
-          <q-btn flat color="cancel" @click="cancel" no-caps label="Cancel" class="q-ma-sm" style="margin-top: auto"/>
+          <q-btn v-else-if="showFinish" @click="finish"
+            no-caps outline color="button" label="Finish" class="q-mx-sm q-my-xs" style="margin-top: auto"/>
+
         </q-stepper-navigation>
       </template>
     </q-stepper>
@@ -69,7 +62,8 @@ import tree from './steps/Tree'
 import taskname from './steps/Taskname'
 import schedule from './steps/Schedule'
 import create from './steps/Create'
-import Scheduler from 'src/helpers/scheduler'
+import Scheduler from 'src/helpers/scheduler' // This is a Class
+import resume from './Resume'
 import { listLocalDisks } from 'src/helpers/bkit'
 const { sep: SEP } = require('path')
 
@@ -89,18 +83,21 @@ export default {
       step: 1,
       scheduler: new Scheduler(),
       taskname: undefined,
-      isDone: false
+      result: null
     }
   },
   computed: {
+    isDone () {
+      return !!this.result
+    },
     showBack () {
       return this.step > 1
     },
     showNext () {
       return this.step < 4
     },
-    showLast () {
-      return this.step === 4
+    showFinish () {
+      return this.step === 4 && this.isDone
     },
     freq () {
       return this.scheduler.freq
@@ -108,11 +105,20 @@ export default {
     periodName () {
       return this.scheduler.label()
     },
+    start () {
+      return this.scheduler.start
+    },
     hasScheduler () {
       return this.scheduler.isComplete()
     },
     hasName () {
       return !!this.taskname
+    },
+    includes () {
+      return this.selected.filter(e => e.op === '+')
+    },
+    excludes () {
+      return this.selected.filter(e => e.op === '-')
     },
     backups () {
       const paths = this.includes.map(e => e.path).sort(compare)
@@ -134,31 +140,14 @@ export default {
       else if (!this.hasScheduler) return 'You need to create a scheduler in step 2'
       else if (!this.hasName) return 'You need to define a name in step 3'
       else return 'You shoudn\'t be here'
-    },
-    includes () {
-      return this.selected.filter(e => e.op === '+')
-    },
-    hasIncludes () {
-      return this.includes.length > 0
-    },
-    excludes () {
-      return this.selected.filter(e => e.op === '-')
-    },
-    hasExcludes () {
-      return this.excludes.length > 0
-    },
-    needs2include () { // Needs2include = Includes - Backups
-      return this.includes.filter(e => !this.backups.includes(e.path))
-    },
-    hasNeeds2include () {
-      return this.needs2include.length > 0
     }
   },
   components: {
     tree,
     taskname,
     schedule,
-    create
+    create,
+    resume
   },
   methods: {
     async getLocalDisks () {
@@ -181,6 +170,9 @@ export default {
     },
     back () {
       this.$refs.stepper.previous()
+    },
+    done (result) {
+      this.result = result
     }
   },
   mounted () {
