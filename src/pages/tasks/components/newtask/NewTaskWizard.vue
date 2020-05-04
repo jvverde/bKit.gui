@@ -1,9 +1,9 @@
 <template>
-  <main class="relative fit">
+  <main class="relative full-width">
     <q-stepper v-model="step" vertical animated header-nav keep-alive
       done-icon="done" done-color="done" active-color="active"
       ref="stepper"
-      class="row no-wrap justify-between b-stepper">
+      class="row no-wrap justify-between b-stepper full-width">
 
        <q-step :name="1" title="Select" caption="Folders or Files" icon="receipt" :done="hasBackups">
         <div style="max-height:60vh;width:100%" class="scroll">
@@ -182,10 +182,11 @@ export default {
 </script>
 <style type="text/scss">
   .b-stepper > :first-child {
-    flex-grow: 1
+    flex-grow: 1;
+    max-width: 75%;
   }
   .b-stepper > :last-child {
-    max-width: min(40%, 20em);
-    max-width: 25em;
+    max-width: 25%;
+    max-width: min(25%, 20em);
   }
 </style>

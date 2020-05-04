@@ -19,13 +19,9 @@ export default {
       add: false
     }
   },
-  computed: {
-  },
   components: {
     jobs,
     job
-  },
-  watch: {
   },
   methods: {
     refresh () {
@@ -34,8 +30,6 @@ export default {
     cancel () {
       this.add = false
     }
-  },
-  mounted () {
   }
 }
 </script>

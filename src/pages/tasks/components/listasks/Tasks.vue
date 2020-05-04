@@ -1,5 +1,5 @@
 <template>
-  <main class="relative">
+  <main class="relative fit">
     <q-dialog
       v-model="selectcols" transition-show="scale" transition-hide="scale">
       <q-card>
@@ -70,8 +70,7 @@
               <span>Tasks to remove:</span>
               <span> {{selectedList}} </span>
               <q-btn icon="delete" size="sm" dense rounded no-caps label="Remove" color="danger"
-                :loading="loading"
-                @click="remove">
+                :loading="removing" @click="remove">
                 <q-tooltip>Remove selected tasks</q-tooltip>
               </q-btn>
             </div>
@@ -94,6 +93,7 @@ export default {
   data () {
     return {
       loading: false,
+      removing: false,
       tasknames: [],
       gridmode: false,
       selected: [],
@@ -139,7 +139,7 @@ export default {
       this.selectcols = !this.selectcols
     },
     async remove () {
-      this.loading = true
+      this.removing = true
       try {
         for (const e of this.selected) {
           await task.delete(e.TaskName)
@@ -148,7 +148,7 @@ export default {
         console.warn('Delete task Error', e)
       } finally {
         this.load()
-        this.loading = false
+        this.removing = false
       }
     },
     async load () {

@@ -1,5 +1,5 @@
 <template>
-  <div class="column content-stretch">
+  <div class="column no-wrap full-width content-stretch">
 
     <div>
       <span>Ready to create a task BKIT-{{taskname}} to run every {{freq}} {{periodName}} for backup:</span>
@@ -28,10 +28,9 @@
       class="q-ma-sm q-mt-lg" icon-right="subdirectory_arrow_left"
       label="Create Task" @click="submit" :loading="loading"/>
 
-    <div v-else class="row justify-center">
-      <q-badge color="bkit" class="q-px-sm">
-        {{result}}
-        <q-icon name="done"/>
+    <div v-else class="column no-wrap">
+      <q-badge color="bkit" class="result ellipsis q-ml-xl q-px-sm q-py-xs" v-for="(res, index) in result" :key="index + res">
+        {{res}}
       </q-badge>
     </div>
     <q-dialog
@@ -162,9 +161,9 @@ export default {
       const fswitches = filters.map(f => `--filter=${f}`)
       console.log('backup', backups)
       console.log('filters', filters)
-      createTask(...args, `--name=${taskname}`, `${period}`, freq, `--start=${start}`, ...fswitches, ...backups)
+      createTask(...args, `--name=${taskname}`, '--install', `${period}`, freq, `--start=${start}`, ...fswitches, ...backups)
         .then(ret => {
-          this.result = (ret.result || []).join(', ')
+          this.result = ret.result || []
           this.$emit('done', this.result)
         })
         .catch(err => {
@@ -185,3 +184,16 @@ export default {
   }
 }
 </script>
+<style type="text/css">
+  .result:not(:last-child):not(:first-child) {
+    border-radius: unset
+  }
+  .result:first-child {
+    border-bottom-left-radius : unset;
+    border-bottom-right-radius : unset;
+  }
+  .result:last-child {
+    border-top-left-radius : unset;
+    border-top-right-radius : unset;
+  }
+</style>
