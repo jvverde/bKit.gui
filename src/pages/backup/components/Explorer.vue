@@ -76,9 +76,9 @@ import tree from './Tree'
 import item from './Item'
 import snaps from './Snaps'
 // import fs from 'fs-extra'
-const { relative, join, sep, dirname, posix } = require('path')
+const { relative, join, sep, dirname } = require('path')
 const fs = require('fs')
-const slash = require('slash')
+const { normalize } = require('upath')
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -99,10 +99,10 @@ const { chokidar, chokidarOptions } = require('src/helpers/chockidar')
 // const listdir = bkit.enqueueListdir('Listdir on localexplorer')
 // const dkit = bkit.enqueuedkit('dKit on localexplorer')
 
-const unixPath = (base, path) => {
+const unixPath = (base, path, isdir = true) => {
   let upath = base ? relative(base, path) : path
-  upath = slash(posix.normalize(`/${upath}/`))
-  return posix.normalize(upath)
+  upath = isdir ? `/${upath}/` : `/${upath}`
+  return normalize(upath)
 }
 
 const { dialog, app } = require('electron').remote
@@ -315,14 +315,14 @@ export default {
         }
       })
     },
-    restore (path) {
+    restore (path, isdir = true) {
       const { snap, rvid, mountpoint } = this
-      if (!mountpoint) path = unixPath('', path)
+      if (!mountpoint) path = unixPath('', path, isdir)
       this.$emit('restore', new Resource({ path, snap, rvid }))
     },
-    recover (path) {
+    recover (path, isdir = true) {
       const { snap, rvid, mountpoint } = this
-      path = unixPath(mountpoint, path)
+      path = unixPath(mountpoint, path, isdir)
       dialog.showOpenDialog({
         title: 'Where do you want to recover your data',
         defaultPath: download,

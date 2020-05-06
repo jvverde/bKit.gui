@@ -204,10 +204,10 @@ export default {
       }
     },
     restore () {
-      this.$emit('restore', this.path)
+      this.$emit('restore', this.path, this.isdir)
     },
     recover () {
-      this.$emit('recover', this.path)
+      this.$emit('recover', this.path, this.isdir)
     },
     backup () {
       this.$emit('backup', this.path)

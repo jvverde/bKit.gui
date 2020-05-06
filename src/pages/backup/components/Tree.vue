@@ -75,8 +75,9 @@
 </template>
 <script>
 
-const { relative, join, basename, posix, dirname } = require('path')
-const slash = require('slash')
+const { relative, join, basename, dirname } = require('path')
+const { normalize } = require('upath')
+
 const fs = require('fs')
 import { readdir } from 'src/helpers/readfs'
 import { diffList4Snap, listDir4Snap } from 'src/helpers/bkit'
@@ -266,8 +267,8 @@ export default {
       // console.log('readDirOnBackup', path)
 
       let mountRelative = mountpoint ? relative(mountpoint, path) : path
-      mountRelative = slash(posix.normalize(`/${mountRelative}/`))
-      mountRelative = posix.normalize(mountRelative)
+      mountRelative = normalize(`/${mountRelative}/`)
+      // mountRelative = posix.normalize(mountRelative)
 
       return listDir4Snap(mountRelative, snap, rvid)
         .then(entries => {

@@ -178,14 +178,14 @@ module.exports = function (ctx) {
           }
         ],
         productName: 'bKit',
-        artifactName: '${productName}-${os}-${X-arch}-${version}.${ext}',
+        artifactName: '${productName}-${os}-${arch}-${version}.${ext}',
         nsis: {
           // oneClick: false,
           // allowToChangeInstallationDirectory: true,
           perMachine: true
         },
         nsisWeb : {
-          appPackageUrl: 'Setup-${productName}-${os}-${X-arch}-${version}.${ext}',
+          appPackageUrl: 'Setup-${productName}-${os}--${version}.${ext}',
           artifactName: '${productName}-${os}-${arch}-${version}.${ext}'
         }
       },
