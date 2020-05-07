@@ -36,6 +36,18 @@ export function shell () {
   fd.unref()
 }
 
+export function interactive () {
+  const fd = spawn(
+    TERM,
+    [],
+    { cwd: bKitPath, windowsHide: true }
+  )
+  fd.stdin.write('ls -als\n\n')
+  fd.stdout.on('data', data => console.log('DATA:', data.toString()))
+  console.log('START...')
+  return fd
+}
+
 // This is a adapter to invoke bash
 function invokeBash (name, args, events = {}, done = nill) {
   const warn = (err) => console.warn(`Errors from bash script ${name}: ${err}`)
@@ -46,7 +58,7 @@ function invokeBash (name, args, events = {}, done = nill) {
   const fd = spawn(
     BASH,
     [name, ...args],
-    { cwd: bKitPath, windowsHide: true }
+    { cwd: bKitPath, windowsHide: true, windowsVerbatimArguments : true }
   )
 
   fd.on('close', (code) => {
