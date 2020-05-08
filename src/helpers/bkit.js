@@ -1,13 +1,11 @@
 // let wsList = {}
 'use strict'
-import { bash, asyncInvokeBash } from './bash'
+import { bash, asyncBash } from './bash'
 import { Store } from 'src/store'
 
 const path = require('path')
 const nill = () => null
 const server = () => Store.getters['global/server']
-// asyncInvokeBash('./listdisks.sh', [])
-//  .then(disk => console.log('RVID:', disk))
 
 /* ------------------ define queues and proxis/caches --------------- */
 import Queue, { QueueLast, QueueByKey } from './queue'
@@ -24,7 +22,7 @@ function enqueue2bash (name, args = [], events = {}, queue = defaultQueue) {
   }
   const key = [name, ...args, server()].join('|')
   // console.log('Key for enqueue2bash', key)
-  return queue.enqueue(() => asyncInvokeBash(name, args, events), key)
+  return queue.enqueue(() => asyncBash(name, args, events), key)
 }
 
 // Proxy (via to Queue) to Bash
@@ -83,7 +81,7 @@ function _Queue (name, args, events = {}, queue = restoreQueue) {
     dismiss: () => queue.dismiss(key),
     position: () => queue.position(key)
   })
-  const promise = queue.enqueue(() => asyncInvokeBash(name, args, events), key)
+  const promise = queue.enqueue(() => asyncBash(name, args, events), key)
   return promise
 }
 

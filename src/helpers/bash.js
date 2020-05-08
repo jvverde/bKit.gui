@@ -88,7 +88,7 @@ export function bash (scriptname, args = [], events = {}) {
 }
 
 // Provide a promise to invoke bash
-export function asyncInvokeBash (name, args = [], events = {}) {
+export function asyncBash (name, args = [], events = {}) {
   const lines = []
   const { onreadline = line => lines.push(line) } = events
   return new Promise((resolve, reject) => {
