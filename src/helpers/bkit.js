@@ -17,7 +17,7 @@ const defaultQueue = new QueueByKey() // To be used for everything else
 import { exclusiveProxy, invalidateCacheObj } from './proxy' // Get an exclusive proxy as well a invalidate cache object
 
 // Enqueue bash scripts
-export function enqueue2bash (name, args = [], events = {}, queue = defaultQueue) {
+function enqueue2bash (name, args = [], events = {}, queue = defaultQueue) {
   if (events instanceof Queue) {
     queue = events
     events = {}
@@ -61,21 +61,7 @@ export async function listServers () {
   return enqueue2bash('./listservers.sh')
 }
 
-export async function getSize (path) {
-  const r = await enqueue2bash('bash.sh', ['du', '-s', path], queue4Local) || []
-  return r.join('').replace(/(\d+)\s+.+$/, '$1')
-}
-
-export async function findFiles (path, ...args) {
-  return enqueue2bash('bash.sh', ['find', path, ...args], queue4Local)
-}
-
-export async function countFiles (path, ...args) {
-  let cnt = 0
-  const onreadline = () => cnt++
-  return enqueue2bash('bash.sh', ['find', path, ...args], { onreadline }, queue4Local).then(() => cnt)
-}
-
+/* *************************** create task related *************************** */
 export async function createTask (...args) {
   return new Promise((resolve, reject) => {
     const errors = []
@@ -406,8 +392,8 @@ export async function listSnaps (rvid, events = {}) {
 }
 
 /* *************************** A 2nd-level queue *************************** */
-// We want somethinh near to the high level caller,
-// in order to dismiss previous request for the same path and same RVID but a different snap
+// We want something near to the high level caller,
+// In order to dismiss previous request for the same path and same RVID but a different snap
 // The idea is to discard unfinished requests for previous snaps
 
 const listdirQueue = new QueueLast()
@@ -476,65 +462,7 @@ export async function diffLastDir (path, snap, {
 
 /* *************************** End o 2nd-level queue *************************** */
 
-/* ------------------Old Code, but still used by restore components ----------- */
-export function onRsyncLine ({
-  newFile = () => false,
-  newDir = () => false,
-  chgFile = () => false,
-  chgDir = () => false,
-  deleted = () => false,
-  newLink = () => false,
-  newHlink = () => false
-}, done = () => false) {
-  const match = (line, exp, dispatch) => {
-    const isaMatch = line.match(exp)
-    if (isaMatch) {
-      dispatch(isaMatch[3])
-      return true
-    }
-    return false
-  }
-  const isnewfile = (filename) => {
-    newFile({ name: path.basename(filename), path: filename, isnew, isfile })
-  }
-  const isnewdir = (filename) => {
-    newDir({ name: path.basename(filename), path: filename, isnew, isdir })
-  }
-  const filechanged = (filename) => {
-    chgFile({ name: path.basename(filename), path: filename, wasmodified, isfile, onbackup })
-  }
-  const dirchanged = (filename) => {
-    chgDir({ name: path.basename(filename), path: filename, wasmodified, isdir, onbackup })
-  }
-  const entrydeleted = (filename) => {
-    deleted({ name: path.basename(filename), path: filename, wasdeleted, onbackup })
-  }
-  const onreadline = (line) => {
-    console.log('Read Line:', line)
-    if (!match(line, regexpNewFile, isnewfile) &&
-      !match(line, regexpChgFile, filechanged) &&
-      !match(line, regexpNewDir, isnewdir) &&
-      !match(line, regexpChgDir, dirchanged) &&
-      !match(line, regexpDelete, entrydeleted)) {
-      console.log('Is something else:', line)
-    }
-  }
-  return {
-    onclose: done,
-    onreadline
-  }
-}
-
-export function dkit (args, events, done = () => console.log('dkit done')) {
-  // console.log('events', events)
-  console.log(`invokeBash dkit with args`, args)
-  const actions = onRsyncLine(events, done)
-  // const args = ['--no-recursive', '--delete', '--dirs', `${fullpath}`]
-  const fullargs = ['--no-recursive', '--dirs', ...args]
-  bash('./dkit.sh', fullargs, actions)
-}
-
-/* -------------------------------------- */
+/* *************************** get disks *************************** */
 
 export function getLocalDisks (events) {
   return bash('./lib/getdevs.sh', [], events)
@@ -544,30 +472,18 @@ export function getDisksOnBackup (events) {
   return bash('./listdisks.sh', [], events)
 }
 
-export function getDisks ({ onclose, entry }) {
-  bash('./listdisks.sh', [], {
-    onclose,
-    onreadline: (rvid) => {
-      console.log('LISTDISK:', rvid)
-      let [ letter, uuid, label, , ] = rvid.split('.')
-      let name = ''
-      if (letter !== '_') {
-        name = letter + ':'
-        if (label !== '_') name += ` [${label}]`
-      } else if (label !== '_') {
-        name = label
-      } else {
-        name = uuid
-      }
-      entry({
-        name,
-        rvid,
-        uuid,
-        label,
-        letter,
-        mountpoint: '*',
-        present: false
-      })
-    }
-  })
+/* *************************** Info about local files *************************** */
+export async function getSize (path) {
+  const r = await enqueue2bash('bash.sh', ['du', '-s', path], queue4Local) || []
+  return r.join('').replace(/(\d+)\s+.+$/, '$1')
+}
+
+export async function findFiles (path, ...args) {
+  return enqueue2bash('bash.sh', ['find', path, ...args], queue4Local)
+}
+
+export async function countFiles (path, ...args) {
+  let cnt = 0
+  const onreadline = () => cnt++
+  return enqueue2bash('bash.sh', ['find', path, ...args], { onreadline }, queue4Local).then(() => cnt)
 }
