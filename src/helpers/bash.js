@@ -27,8 +27,8 @@ export function shell () {
   fd.unref()
 }
 
-// This is a adapter to invoke bash
-function invokeBash (name, args, events = {}, done = nill) {
+// Spawn a bash script
+function _bash (name, args, events = {}, done = nill) {
   const warn = (err) => console.warn(`Errors from bash script ${name}: ${err}`)
 
   const { onreadline = nill, onerror = nill, stderr = warn, oncespawn = nill } = events
@@ -84,7 +84,7 @@ export function bash (scriptname, args = [], events = {}) {
     onreadline = () => false,
     onerror = (err) => warn(`Error calling script ${scriptname}: ${err}`, true)
   } = events
-  return invokeBash(scriptname, args, { ...events, onreadline, onerror }, onclose)
+  return _bash(scriptname, args, { ...events, onreadline, onerror }, onclose)
 }
 
 // Provide a promise to invoke bash
@@ -94,12 +94,12 @@ export function asyncBash (name, args = [], events = {}) {
   return new Promise((resolve, reject) => {
     const done = () => resolve(lines)
     const onerror = reject
-    invokeBash(name, args, { ...events, onreadline, onerror }, done)
+    _bash(name, args, { ...events, onreadline, onerror }, done)
   })
 }
 
 export function killtree (pid) {
   return new Promise((resolve, reject) => {
-    invokeBash('./killtree.sh', [pid], { onerror: reject }, resolve)
+    _bash('./killtree.sh', [pid], { onerror: reject }, resolve)
   })
 }

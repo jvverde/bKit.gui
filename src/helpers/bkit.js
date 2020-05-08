@@ -1,6 +1,6 @@
 // let wsList = {}
 'use strict'
-import { bash, asyncBash } from './bash'
+import { asyncBash } from './bash'
 import { Store } from 'src/store'
 
 const path = require('path')
@@ -459,16 +459,6 @@ export async function diffLastDir (path, snap, {
 }
 
 /* *************************** End o 2nd-level queue *************************** */
-
-/* *************************** get disks *************************** */
-
-export function getLocalDisks (events) {
-  return bash('./lib/getdevs.sh', [], events)
-}
-
-export function getDisksOnBackup (events) {
-  return bash('./listdisks.sh', [], events)
-}
 
 /* *************************** Info about local files *************************** */
 export async function getSize (path) {
