@@ -14,7 +14,7 @@ if (process.platform === 'win32') {
   try {
     execSync('NET SESSION')
     BASH = 'sbash.bat'
-    username = 'SYSTEM'
+    username = 'Administrator'
   } catch {
     BASH = 'bash.bat'
   }
@@ -42,9 +42,9 @@ export function interactive () {
     [],
     { cwd: bKitPath, windowsHide: true }
   )
-  fd.stdin.write('ls -als\n\n')
-  fd.stdout.on('data', data => console.log('DATA:', data.toString()))
-  console.log('START...')
+  // fd.stdin.write('ls -als\n\n')
+  // fd.stdout.on('data', data => console.log('DATA:', data.toString()))
+  // console.log('START...')
   return fd
 }
 
@@ -58,7 +58,7 @@ function invokeBash (name, args, events = {}, done = nill) {
   const fd = spawn(
     BASH,
     [name, ...args],
-    { cwd: bKitPath, windowsHide: true, windowsVerbatimArguments : true }
+    { cwd: bKitPath, windowsHide: true, windowsVerbatimArguments: true }
   )
 
   fd.on('close', (code) => {
