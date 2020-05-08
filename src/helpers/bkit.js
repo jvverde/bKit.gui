@@ -278,16 +278,16 @@ function* line2entry ([...lines]) {
   }
 }
 
-async function _listDirs (args, events = {}) {
+async function _listdirs (args, events = {}) {
   console.log('Enqueued bash listdir.sh with args', args)
   const lines = await enqueue2bash('./listdirs.sh', args, events, queue4Remote)
   return [...line2entry(lines)]
 }
 
 // Proxy listdir to cache the (already matched) results
-const pListdir = exclusiveProxy(_listDirs, { size: 50, name: 'listdir' })
+const pListdir = exclusiveProxy(_listdirs, { size: 50, name: 'listdir' })
 
-export async function listDirs (path, args) {
+async function listdirs (path, args) {
   const stderr = (err) => {
     // rsync: change_dir "/C.2689075C.OS.3.NTFS/.snapshots/@GMT-2020.04.02-14.07.41/data/.TESTE/z2" (in SRPT.WIN10.0586AEB1-C5C9-4790-95FE-4591160EE0FA.user.jvv) failed: No such file or directory
     console.warn(`Listdir Error: ${err}`)
@@ -420,7 +420,7 @@ export async function listDir4Snap (path, snap, rvid, {
   const key = rvid + path + args.join('') + server()
   args = [`--rvid=${rvid}`, ...args]
   if (snap) args.push(`--snap=${snap}`)
-  const promise = () => listDirs(path, args) // A future promise as required by queue.enqueue
+  const promise = () => listdirs(path, args) // A future promise as required by queue.enqueue
   return queue.enqueue(promise, key, snap)
 }
 
@@ -453,7 +453,7 @@ export async function listLastDir (path, snap, rvid, {
   const key = 'listLastDir'
   args = [`--rvid=${rvid}`, ...args]
   if (snap) args.push(`--snap=${snap}`)
-  const promise = () => listDirs(path, args) // A future promise as required by queue.enqueue
+  const promise = () => listdirs(path, args) // A future promise as required by queue.enqueue
   return queue.enqueue(promise, key, snap)
 }
 
@@ -532,26 +532,6 @@ export function dkit (args, events, done = () => console.log('dkit done')) {
   // const args = ['--no-recursive', '--delete', '--dirs', `${fullpath}`]
   const fullargs = ['--no-recursive', '--dirs', ...args]
   bash('./dkit.sh', fullargs, actions)
-}
-
-export function listdirs (args, entry, done = () => console.log('List dirs done')) {
-  const fullpath = args[args.length - 1]
-  console.log(`invokeBash listdir with args`, args)
-  bash('./listdirs.sh', args, {
-    onclose: done,
-    onreadline: (data) => {
-      console.log('Listdir:', data)
-      const match = data.match(regexpList)
-      const { groups: { list, size, sdate, time, name } } = match || { groups: {} }
-      if (match && name !== '.') { // only if not current directory
-        const fullname = path.join(fullpath, name)
-        const isdir = list.startsWith('d')
-        const isregular = list.startsWith('-')
-        const date = `${sdate} ${time}`
-        entry({ name, onbackup, path: fullname, isdir, isregular, date, size })
-      }
-    }
-  })
 }
 
 /* -------------------------------------- */
