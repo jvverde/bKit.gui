@@ -1,8 +1,7 @@
 // let wsList = {}
 'use strict'
 let [BASH, TERM] = ['bash', 'xterm']
-let username = require('os').userInfo().username
-const { spawn, execSync } = require('child_process')
+const { spawn } = require('child_process')
 const readline = require('readline')
 const { ipcRenderer } = require('electron')
 
@@ -10,22 +9,14 @@ const nill = () => null
 
 import { warn } from './notify'
 
+export const username = require('os').userInfo().username
+
 if (process.platform === 'win32') {
-  try {
-    execSync('NET SESSION')
-    BASH = 'sbash.bat'
-    username = 'Administrator'
-  } catch {
-    BASH = 'bash.bat'
-  }
+  BASH = 'bash.bat'
   TERM = BASH // for windows user bash as a terminal
 }
 
 const bKitPath = ipcRenderer.sendSync('getbKitPath')
-
-export function user () {
-  return username
-}
 
 export function shell () {
   const fd = spawn(
@@ -34,18 +25,6 @@ export function shell () {
     { cwd: bKitPath, windowsHide: false, detached: true, stdio: 'ignore' }
   )
   fd.unref()
-}
-
-export function interactive () {
-  const fd = spawn(
-    TERM,
-    [],
-    { cwd: bKitPath, windowsHide: true }
-  )
-  // fd.stdin.write('ls -als\n\n')
-  // fd.stdout.on('data', data => console.log('DATA:', data.toString()))
-  // console.log('START...')
-  return fd
 }
 
 // This is a adapter to invoke bash

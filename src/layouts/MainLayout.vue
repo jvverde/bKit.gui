@@ -16,7 +16,7 @@
           </span>
         </q-toolbar-title>
 
-        <div>{{user}}@{{hostname}} | v{{version}}</div>
+        <div><span v-html="user"/> @ {{hostname}} | v{{version}}</div>
       </q-toolbar>
     </q-header>
     <q-drawer v-model="leftDrawerOpen" bordered content-class="bg-menu">
@@ -42,8 +42,8 @@
 
 const os = require('os')
 const { ipcRenderer, remote: { app } } = require('electron')
-import { getServer } from 'src/helpers/bkit'
-import { user } from 'src/helpers/bash'
+import { getServer, getUser } from 'src/helpers/bkit'
+import { username } from 'src/helpers/bash'
 import { mapState, mapMutations } from 'vuex'
 import bkitmenu from './components/Menu'
 
@@ -64,7 +64,7 @@ export default {
   data () {
     return {
       leftDrawerOpen: false,
-      user: user(),
+      bkituser: undefined,
       version: app.getVersion(),
       hostname: os.hostname()
     }
@@ -83,19 +83,17 @@ export default {
       set (server) {
         this.setServer(server)
       }
+    },
+    user () {
+      return this.bkituser === username ? username : `${username} <i>as</i> ${this.bkituser || '...'}`
     }
   },
-  mounted () {
-    this.getServer()
+  async mounted () {
+    this.server = await getServer()
+    this.bkituser = await getUser()
   },
   methods: {
-    ...mapMutations('global', ['setServer']),
-    getServer () {
-      getServer()
-        .then(server => {
-          this.server = server
-        })
-    }
+    ...mapMutations('global', ['setServer'])
   }
 }
 </script>
