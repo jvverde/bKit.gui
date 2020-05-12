@@ -80,7 +80,7 @@ const { normalize } = require('upath')
 
 const fs = require('fs')
 import { readdir } from 'src/helpers/readfs'
-import { diffList4Snap, listDir4Snap } from 'src/helpers/bkit'
+import { diffsnap, listsnap } from 'src/helpers/bkit'
 
 function comparenames (a, b) {
   if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
@@ -240,7 +240,7 @@ export default {
       // As well it only make sense if dir exists localy on the corresponding disk
       // console.log('diffDir', path)
 
-      return diffList4Snap(path, snap, { invalidateCache })
+      return diffsnap(path, snap, { invalidateCache })
         .then(entries => {
           entries.forEach(entry => {
             if (dirname(entry.path) !== path || entry.path === mountpoint) {
@@ -253,9 +253,9 @@ export default {
         })
         .catch(err => {
           if (err.name && err.name === 'Replaced') {
-            console.log(`diffList4Snap [${err.name}] ${err.message} for ${snap}[${path}]`)
+            console.log(`diffsnap [${err.name}] ${err.message} for ${snap}[${path}]`)
           } else {
-            console.error('Catch in diffList4Snap', err.name, err.message, err)
+            console.error('Catch in diffsnap', err.name, err.message, err)
           }
         })
     },
@@ -270,7 +270,7 @@ export default {
       mountRelative = normalize(`/${mountRelative}/`)
       // mountRelative = posix.normalize(mountRelative)
 
-      return listDir4Snap(mountRelative, snap, rvid)
+      return listsnap(mountRelative, snap, rvid)
         .then(entries => {
           entries.forEach(entry => {
             entry.path = join(path, entry.name)
@@ -279,9 +279,9 @@ export default {
         })
         .catch(err => {
           if (err.name && err.name === 'Replaced') {
-            console.log(`listDir4Snap [${err.name}] ${err.message} for ${snap}[${path}]`)
+            console.log(`listsnap [${err.name}] ${err.message} for ${snap}[${path}]`)
           } else {
-            console.error('Catch in listDir4Snap', err.name, err.message, err)
+            console.error('Catch in listsnap', err.name, err.message, err)
           }
         })
     },

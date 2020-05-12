@@ -69,7 +69,7 @@
 <script>
 
 // import { warn } from 'src/helpers/notify'
-import { listLastDir, diffLastDir } from 'src/helpers/bkit'
+import { refreshlist, refreshsnap } from 'src/helpers/bkit'
 import { Resource } from 'src/helpers/types'
 
 import tree from './Tree'
@@ -254,7 +254,7 @@ export default {
       if (!fs.existsSync(fullpath) || !rvid || !snap || this.currentPath !== fullpath) return
       this.loading = 'Comparing with backup'
       const invalidateCache = this.invalidateCache
-      return diffLastDir(fullpath, snap, { invalidateCache })
+      return refreshsnap(fullpath, snap, { invalidateCache })
         .then(entries => {
           entries.forEach(entry => {
             // ignore all parents and the mountpoint
@@ -266,9 +266,9 @@ export default {
         })
         .catch(err => {
           if (err.name && err.name === 'Replaced') {
-            console.log(`diffLastDir [${err.name}] ${err.message} for ${snap}[${path}]`)
+            console.log(`refreshsnap [${err.name}] ${err.message} for ${snap}[${path}]`)
           } else {
-            console.error('Catch in diffLastDir', err.name, err.message, err)
+            console.error('Catch in refreshsnap', err.name, err.message, err)
           }
         })
         .finally(() => (this.loading = false))
@@ -288,7 +288,7 @@ export default {
 
       const upath = unixPath(mountpoint, fullpath)
 
-      return listLastDir(upath, snap, rvid)
+      return refreshlist(upath, snap, rvid)
         .then(dirs => {
           dirs.forEach(entry => {
             entry.path = join(fullpath, entry.name)
@@ -298,9 +298,9 @@ export default {
         })
         .catch(err => {
           if (err.name && err.name === 'Replaced') {
-            console.log(`listLastDir [${err.name}] ${err.message} for ${snap}[${path}]`)
+            console.log(`refreshlist [${err.name}] ${err.message} for ${snap}[${path}]`)
           } else {
-            console.error('Catch in listLastDir', err.name, err.message, err)
+            console.error('Catch in refreshlist', err.name, err.message, err)
           }
         })
         .finally(() => (this.loading = false))
