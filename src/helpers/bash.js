@@ -37,7 +37,7 @@ function _bash (name, args, events = {}, done = nill) {
   const fd = spawn(
     BASH,
     [name, ...args],
-    { cwd: bKitPath, windowsHide: true, windowsVerbatimArguments: true }
+    { cwd: bKitPath, windowsHide: true, windowsVerbatimArguments: false }
   )
 
   fd.on('close', (code) => {
