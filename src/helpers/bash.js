@@ -36,7 +36,7 @@ function _bash (name, args, events = {}, done = nill) {
   console.log(`Spawn ${name} with args`, args)
   const fd = spawn(
     BASH,
-    [name, ...args],
+    ['./run.sh', name, ...args],
     { cwd: bKitPath, windowsHide: true, windowsVerbatimArguments: false }
   )
 

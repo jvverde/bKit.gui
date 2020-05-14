@@ -245,42 +245,53 @@ function matchLine4bKit (events = {}) {
 
 /* *************************** rKit/bKit End *************************** */
 
-/* ---------------------listdir--------------------- */
-const regexpList = /(?<list>[a-z-]+)\s+(?<size>[0-9,]+)\s+(?<sdate>[0-9/]+)\s+(?<time>[0-9:]+)\s+(?<name>.+)/
+/* ---------------------getVersions--------------------- */
+const moment = require('moment')
+moment.locale('en')
+const regexVersion = /(?<snap>@GMT-(?<sdate>.+?))\s+have a last modifed version at (?<modifed>\d{4}[/]\d\d[/]\d{2}-\d\d:\d\d:\d\d)/
 
-function* line2entry ([...lines]) {
+// The bash script versions.sh can take a lot of time finish.
+// So is better to use a dedicated queue
+
+const qGetVersions = new QueueByKey()
+
+function* matchVersion (lines) {
   for (const line of lines) {
-    console.log('List Line:', line)
-    const match = line.match(regexpList)
-    const { groups: { list, size, sdate, time, name } } = match || { groups: {} }
-    if (match && name !== '.') { // only if not current directory
-      const isdir = list.startsWith('d')
-      const isregular = list.startsWith('-')
-      const date = `${sdate} ${time}`
-      yield { name, onbackup, isdir, isregular, date, size }
+    console.log('Get version:', line)
+    const match = line.match(regexVersion)
+    if (match) {
+      const { groups: { snap, sdate, modifed } } = match || { groups: {} }
+      // @GMT-2020.02.13-19.45.12
+      const date = moment.utc(sdate, 'YYYY.MM.DD-HH.mm.ss').local().format('YYYY-MM-DD HH:mm')
+      yield { snap, date, modifed }
     }
   }
 }
 
-async function _listdirs (args, events = {}) {
-  console.log('Enqueued bash listdir.sh with args', args)
-  const lines = await enqueue2bash('./listdirs.sh', args, events, queue4Remote)
-  return [...line2entry(lines)]
+async function _getVersions (path, ...args) {
+  const lines = await enqueue2bash('./versions.sh', [...args, path].flat(), qGetVersions)
+  return [...matchVersion(lines)]
 }
 
-// Proxy listdir to cache the (already matched) results
-const pListdir = exclusiveProxy(_listdirs, { size: 50, name: 'listdir' })
+// Proxy getVersions to cache the (already matched) results
+const pGetVersions = exclusiveProxy(_getVersions, { size: 50, name: 'listdir' })
 
-async function listdirs (path, args) {
-  const stderr = (err) => {
-    // rsync: change_dir "/C.2689075C.OS.3.NTFS/.snapshots/@GMT-2020.04.02-14.07.41/data/.TESTE/z2" (in SRPT.WIN10.0586AEB1-C5C9-4790-95FE-4591160EE0FA.user.jvv) failed: No such file or directory
-    console.warn(`Listdir Error: ${err}`)
+export async function getVersions (path, ...args) {
+  return pGetVersions(path, args)
+}
+
+/* ---------------------listSnaps--------------------- */
+const qListSnaps = new QueueByKey()
+export async function listSnaps (rvid, events = {}) {
+  const { stderr = (err) => {
+    // rsync: link_stat "/C.2689075C.OS.3.NTFS/.snapshots/@GMT-*" (in SRPT.WIN10.0586AEB1-C5C9-4790-95FE-4591160EE0FA.user.jvv) failed: No such file or directory (2)
+    console.warn(`listSnaps Error: ${err}`)
     const error = `${err}`
-    const match = error.match(/rsync: change_dir ".+" \(in .+\) failed: No such file or directory/)
+    const match = error.match(/rsync: link_stat ".+" \(in .+\) failed: No such file or directory/)
     if (match) return 'stop'
     else return undefined
-  }
-  return pListdir([...args, path], { stderr })
+  } } = events
+  return enqueue2bash('./listsnaps.sh', [`--rvid=${rvid}`], { ...events, stderr }, qListSnaps)
 }
 
 /* ---------------------dKit--------------------- */
@@ -340,60 +351,48 @@ export async function dKit (path, args, { invalidateCache = false } = {}) {
   }
 }
 
-/* ---------------------getVersions--------------------- */
-const moment = require('moment')
-moment.locale('en')
-const regexVersion = /(?<snap>@GMT-(?<sdate>.+?))\s+have a last modifed version at (?<modifed>\d{4}[/]\d\d[/]\d{2}-\d\d:\d\d:\d\d)/
+/* ---------------------listdir--------------------- */
+const regexpList = /(?<list>[a-z-]+)\s+(?<size>[0-9,]+)\s+(?<sdate>[0-9/]+)\s+(?<time>[0-9:]+)\s+(?<name>.+)/
 
-// The bash script versions.sh can take a lot of time finish.
-// So is better to use a dedicated queue
-
-const qGetVersions = new QueueByKey()
-
-function* matchVersion (lines) {
+function* line2entry ([...lines]) {
   for (const line of lines) {
-    console.log('Get version:', line)
-    const match = line.match(regexVersion)
-    if (match) {
-      const { groups: { snap, sdate, modifed } } = match || { groups: {} }
-      // @GMT-2020.02.13-19.45.12
-      const date = moment.utc(sdate, 'YYYY.MM.DD-HH.mm.ss').local().format('YYYY-MM-DD HH:mm')
-      yield { snap, date, modifed }
+    console.log('List Line:', line)
+    const match = line.match(regexpList)
+    const { groups: { list, size, sdate, time, name } } = match || { groups: {} }
+    if (match && name !== '.') { // only if not current directory
+      const isdir = list.startsWith('d')
+      const isregular = list.startsWith('-')
+      const date = `${sdate} ${time}`
+      yield { name, onbackup, isdir, isregular, date, size }
     }
   }
 }
 
-async function _getVersions (path, ...args) {
-  const lines = await enqueue2bash('./versions.sh', [...args, path].flat(), qGetVersions)
-  return [...matchVersion(lines)]
+async function _listdirs (args, events = {}) {
+  console.log('Enqueued bash listdir.sh with args', args)
+  const lines = await enqueue2bash('./listdirs.sh', args, events, queue4Remote)
+  return [...line2entry(lines)]
 }
 
-// Proxy getVersions to cache the (already matched) results
-const pGetVersions = exclusiveProxy(_getVersions, { size: 50, name: 'listdir' })
+// Proxy listdir to cache the (already matched) results
+const pListdir = exclusiveProxy(_listdirs, { size: 50, name: 'listdir' })
 
-export async function getVersions (path, ...args) {
-  return pGetVersions(path, args)
-}
-
-/* ---------------------listSnaps--------------------- */
-const qListSnaps = new QueueByKey()
-export async function listSnaps (rvid, events = {}) {
-  const { stderr = (err) => {
-    // rsync: link_stat "/C.2689075C.OS.3.NTFS/.snapshots/@GMT-*" (in SRPT.WIN10.0586AEB1-C5C9-4790-95FE-4591160EE0FA.user.jvv) failed: No such file or directory (2)
-    console.warn(`listSnaps Error: ${err}`)
+async function listdirs (path, args) {
+  const stderr = (err) => {
+    // rsync: change_dir "/C.2689075C.OS.3.NTFS/.snapshots/@GMT-2020.04.02-14.07.41/data/.TESTE/z2" (in SRPT.WIN10.0586AEB1-C5C9-4790-95FE-4591160EE0FA.user.jvv) failed: No such file or directory
+    console.warn(`Listdir Error: ${err}`)
     const error = `${err}`
-    const match = error.match(/rsync: link_stat ".+" \(in .+\) failed: No such file or directory/)
+    const match = error.match(/rsync: change_dir ".+" \(in .+\) failed: No such file or directory/)
     if (match) return 'stop'
     else return undefined
-  } } = events
-  return enqueue2bash('./listsnaps.sh', [`--rvid=${rvid}`], { ...events, stderr }, qListSnaps)
+  }
+  return pListdir([...args, path], { stderr })
 }
 
 /* *************************** A 2nd-level queue *************************** */
 // We want something near to the high level caller,
 // In order to dismiss previous request for the same path and same RVID but a different snap
 // The idea is to discard unfinished requests for previous snaps
-
 const listdirQueue = new QueueLast()
 const dkitQueue = new QueueLast()
 

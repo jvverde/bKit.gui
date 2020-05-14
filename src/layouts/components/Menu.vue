@@ -47,15 +47,6 @@
         <q-item-label caption>Open a terminal</q-item-label>
       </q-item-section>
     </q-item>
-    <!-- q-item clickable @click="interactive">
-      <q-item-section avatar>
-        <q-icon color="menu" name="fas fa-terminal" />
-      </q-item-section>
-      <q-item-section>
-        <q-item-label>interactive</q-item-label>
-        <q-item-label caption>Open a terminal interactive</q-item-label>
-      </q-item-section>
-    </q-item -->
     <!--
     <q-item clickable @click="$router.push('/customize')">
       <q-item-section avatar>
@@ -82,16 +73,13 @@
 <script>
 
 const { ipcRenderer } = require('electron')
-import { shell, interactive } from 'src/helpers/bash'
+import { shell } from 'src/helpers/bash'
 
 export default {
   name: 'Menu',
   methods: {
     terminal () {
       shell()
-    },
-    interactive () {
-      interactive()
     },
     debug () {
       ipcRenderer.send('debug', 'on')
