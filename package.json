@@ -24,7 +24,7 @@
     "test:unit:ui": "majestic"
   },
   "dependencies": {
-    "@quasar/extras": "^1.6.4",
+    "@quasar/extras": "^1.8.1",
     "chokidar": "^3.3.1",
     "electron-log": "^4.0.6",
     "electron-store": "^5.1.0",
@@ -33,7 +33,7 @@
     "fs-extra": "^8.1.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "quasar": "^1.9.15",
+    "quasar": "^1.11.1",
     "slash": "^3.0.0",
     "terminate": "^2.1.2",
     "tree-kill": "^1.2.2",
@@ -42,10 +42,10 @@
     "windows-scheduler": "^1.0.1"
   },
   "devDependencies": {
-    "@quasar/app": "^1.7.1",
+    "@quasar/app": "^1.8.6",
     "@quasar/quasar-app-extension-icon-genie": "^1.1.3",
     "@quasar/quasar-app-extension-testing": "^1.0.0",
-    "@quasar/quasar-app-extension-testing-unit-jest": "^1.0.0",
+    "@quasar/quasar-app-extension-testing-unit-jest": "^1.1.0-beta.0",
     "@vue/eslint-config-standard": "^4.0.0",
     "babel-eslint": "^10.0.1",
     "devtron": "^1.4.0",

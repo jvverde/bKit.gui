@@ -702,6 +702,22 @@ $chip-3 : #EAE0CCff;
   background: var(--q-color-chip-3) !important;
 }
 
+/************************** bkit-console **************************/
+$console : #333;
+
+:root {
+  --q-color-console: #{$console};
+}
+
+.text-console {
+  color: $console !important;
+  color: var(--q-color-console) !important;
+}
+.bg-console {
+  background: $console !important;
+  background: var(--q-color-console) !important;
+}
+
 /*** toolbar ***/
 $bkit-text-toolbar-color: #CCC;
 $bkit-bg-toolbar-color: #AAA;

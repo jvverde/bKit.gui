@@ -50,7 +50,7 @@ import bkitmenu from './components/Menu'
 import { colors } from 'quasar'
 
 colors.setBrand('light', '#DDD')
-// colors.setBrand('bkit', '#F30')
+// colors.setBrand('missing', '#F30')
 // console.log(colors)
 
 ipcRenderer.on('message', (event, text) => {

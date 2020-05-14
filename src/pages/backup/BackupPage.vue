@@ -54,21 +54,23 @@
         </q-inner-loading>
       </template>
       <template v-slot:after>
-        <q-list separator class="q-pa-xd">
-          <restore
-            v-for="(resource, index) in restores"
-            :key="'R-' + index"
-            :resource="resource"
-            @destroy="destroy_restore(index)"
-          />
-          <backup
-            v-for="(backup, index) in backups"
-            :key="'P-' + index"
-            :path="backup.path"
-            :done="backup.done"
-            @destroy="destroy_backup(index)"
-          />
-        </q-list>
+        <div  class="console fit rounded-borders scroll">
+          <q-list separator class="q-pa-xd" dark>
+            <restore
+              v-for="(resource, index) in restores"
+              :key="'R-' + index"
+              :resource="resource"
+              @destroy="destroy_restore(index)"
+            />
+            <backup
+              v-for="(backup, index) in backups"
+              :key="'P-' + index"
+              :path="backup.path"
+              :done="backup.done"
+              @destroy="destroy_backup(index)"
+            />
+          </q-list>
+        </div>
       </template>
     </q-splitter>
   </q-page>
@@ -98,7 +100,7 @@ export default {
   computed: {
     splitter: {
       get: function () {
-        const length = 15 * (this.restores.length + this.backups.length)
+        const length = 10 * (this.restores.length + this.backups.length)
         if (this.mark === 0) return Math.max(30, 100 - length)
         else if (length > 2 * this.mark) {
           return Math.max(30, 100 - 0.6 * length)
@@ -205,6 +207,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
+  @import 'src/css/app.scss';
   .bkit-page {
     height: 100%;
     overflow-y: hidden;
@@ -221,5 +224,8 @@ export default {
         }
       }
     }
+  }
+  .console {
+    background-color: $console;
   }
 </style>

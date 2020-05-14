@@ -27,22 +27,24 @@
       v-model="verticalSplitter">
 
       <template v-slot:before>
-        <q-list class="rounded-borders">
-          <tree
-            :entry="root"
-            :mountpoint="mountpoint"
-            :rvid="rvid"
-            :snap="snap"
-            :displayNode.sync="currentPath"
-            :selected.sync="selectedNode"
-            @restore="(...args) => $emit('restore', ...args)"
-            @backup="(...args) => $emit('backup', ...args)"
-            @show="show"/>
-        </q-list>
+        <q-scroll-area class="fit" :thumb-style="thumbStyle" :bar-style="barStyle">
+          <q-list>
+            <tree
+              :entry="root"
+              :mountpoint="mountpoint"
+              :rvid="rvid"
+              :snap="snap"
+              :displayNode.sync="currentPath"
+              :selected.sync="selectedNode"
+              @restore="(...args) => $emit('restore', ...args)"
+              @backup="(...args) => $emit('backup', ...args)"
+              @show="show"/>
+          </q-list>
+        </q-scroll-area>
       </template>
 
       <template v-slot:after>
-        <div>
+         <q-scroll-area class="fit" :thumb-style="thumbStyle" :bar-style="barStyle">
           <transition name="loading">
             <div v-show="loading" class="bkit-loading row justify-center relative-position">
               <q-spinner-ios color="loader" class="q-my-md"/>
@@ -61,7 +63,7 @@
               @backup="backup"
             />
           </div>
-        </div>
+        </q-scroll-area>
       </template>
     </q-splitter>
   </div>
@@ -108,11 +110,28 @@ const unixPath = (base, path, isdir = true) => {
 const { dialog, app } = require('electron').remote
 let download = app.getPath('downloads') || app.getPath('temp')
 
+const thumbStyle = {
+  right: '4px',
+  borderRadius: '5px',
+  backgroundColor: '#67A9FB',
+  width: '5px',
+  opacity: 0.75
+}
+
+const barStyle = {
+  right: '2px',
+  borderRadius: '9px',
+  backgroundColor: '#67A9FB',
+  width: '9px',
+  opacity: 0.2
+}
 export default {
   name: 'localexplorer',
   data () {
     return {
       verticalSplitter: 55,
+      thumbStyle,
+      barStyle,
       watcher: undefined,
       sep: sep,
       selectedNode: false,
