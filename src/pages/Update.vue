@@ -21,10 +21,10 @@ export default {
       const git = require('simple-git')()
       git.pull('bKit-client', 'https://github.com/jvverde/bKit-gui.git', (...args) => {
         console.log(...args)
-      })  
+      })
     },
     pull () {
-      const git = require('simple-git')(bkitpath)
+      const git = require('simple-git')(bKitPath)
       git.pull('public', 'master', (...args) => {
         console.log(...args)
       })
