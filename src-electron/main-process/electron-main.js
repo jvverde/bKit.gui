@@ -101,13 +101,20 @@ function getUpdates(channel = 'latest') {
   return autoUpdater.checkForUpdates()
 }
 
+function gitpull() {
+  const git = require('simple-git')(config.bkit)
+  git.pull('public', 'master', (...args) => {
+    console.log(...args)
+  })
+}
+
 // from https://www.tutorialspoint.com/electron/electron_menus.htm
 const template = [
   {
     role: 'fileMenu',
     submenu: [
       {
-        label: 'Upgrade',
+        label: 'Upgrade GUI',
         submenu: [
           {
             label: 'Beta',
@@ -121,6 +128,10 @@ const template = [
             }
           }
         ]
+      },
+      {
+        label: 'Upgrade bKit Client',
+        click: () => gitpull() 
       },
       {
         role: 'quit'

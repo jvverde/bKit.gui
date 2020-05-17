@@ -30,6 +30,11 @@ const routes = [
         name: 'tasks'
       },
       {
+        path: 'update',
+        component: () => import('pages/Update.vue'),
+        name: 'update'
+      },
+      {
         path: 'customize',
         component: () => import('pages/Customize.vue'),
         name: 'customize'

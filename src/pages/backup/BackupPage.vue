@@ -54,7 +54,7 @@
         </q-inner-loading>
       </template>
       <template v-slot:after>
-        <div  class="console fit rounded-borders scroll">
+        <div  class="console fit rounded-borders scroll" v-if="showConsole">
           <q-list separator class="q-pa-xd" dark>
             <restore
               v-for="(resource, index) in restores"
@@ -113,6 +113,9 @@ export default {
     },
     server () {
       return this.$store.state.global.server
+    },
+    showConsole () {
+      return this.backups.length > 0 || this.restores.length > 0
     }
   },
   watch: {
@@ -227,5 +230,6 @@ export default {
   }
   .console {
     background-color: $console;
+    border: 2px solid $console-border;
   }
 </style>

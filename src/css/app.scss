@@ -717,6 +717,21 @@ $console : #333;
   background: $console !important;
   background: var(--q-color-console) !important;
 }
+/************************** bkit-console-border **************************/
+$console-border : #CCC;
+
+:root {
+  --q-color-console-border: #{$console-border};
+}
+
+.text-console-border {
+  color: $console-border !important;
+  color: var(--q-color-console-border) !important;
+}
+.bg-console-border {
+  background: $console-border !important;
+  background: var(--q-color-console-border) !important;
+}
 
 /*** toolbar ***/
 $bkit-text-toolbar-color: #CCC;
