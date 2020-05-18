@@ -1,3 +1,4 @@
+// import { getServer, getUser } from 'src/helpers/bkit'
 
 const routes = [
   {
@@ -17,7 +18,12 @@ const routes = [
       {
         path: 'backup',
         component: () => import('pages/backup/BackupPage.vue'),
-        name: 'Backup'
+        name: 'Backup',
+        beforeEnter: (to, from, next) => {
+          console.log('to', to)
+          console.log('from', from)
+          next()
+        }
       },
       {
         path: 'servers',

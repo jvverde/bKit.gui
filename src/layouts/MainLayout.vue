@@ -23,6 +23,10 @@
       <bkitmenu/>
     </q-drawer>
     <q-page-container class="bkit-container">
+      <keep-alive>
+        <router-view/>
+      </keep-alive>
+    <!--
       <keep-alive v-if="server || $route.name === 'Servers'">
         <router-view/>
       </keep-alive>
@@ -34,6 +38,7 @@
           <div>Please select a server on left menu</div>
         </div>
       </q-page>
+    -->
     </q-page-container>
   </q-layout>
 </template>

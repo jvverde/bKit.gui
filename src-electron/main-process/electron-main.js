@@ -1,6 +1,9 @@
 import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu, Notification } from 'electron'
 const log = require('electron-log')
 const { autoUpdater } = require("electron-updater")
+const path = require('path')
+const fs = require('fs')
+
 
 autoUpdater.logger = log
 autoUpdater.allowDowngrade = true
@@ -15,7 +18,7 @@ log.info('Bkit starting...')
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
-    require('fs').unlinkSync(require('path').join(app.getPath('userData'), 'DevTools Extensions'))
+    require('fs').unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'))
   }
 } catch (_) { }
 
@@ -24,7 +27,7 @@ try {
  * The reason we are setting it here is that the path needs to be evaluated at runtime
  */
 if (process.env.PROD) {
-  global.__statics = require('path').join(__dirname, 'statics').replace(/\\/g, '\\\\')
+  global.__statics = path.join(__dirname, 'statics').replace(/\\/g, '\\\\')
 }
 
 let mainWindow
@@ -195,16 +198,16 @@ Menu.setApplicationMenu(menu)
 // ------------------------------
 
 app.on('ready', () => {
-  const fs = require('fs')
-
   if(!config.bkit || !fs.existsSync(config.bkit)) {
-    const bkitdir = dialog.showOpenDialogSync({
-      title: 'Where is bkit Client?',
-      multiSelections: false,
-      buttonLabel: 'This is the bKit directory',
-      properties: ['openDirectory']
-    })
-    if (bkitdir) config.bkit = bkitdir[0]
+    const dst = path.normalize(path.join(current, '../', 'bkit-client'))
+    // const bkitdir = dialog.showOpenDialogSync({
+    //   title: 'Where is bkit Client?',
+    //   multiSelections: false,
+    //   buttonLabel: 'This is the bKit directory',
+    //   properties: ['openDirectory']
+    // })
+    // if (bkitdir)  = bkitdir[0]
+    config.bkit = dst
   }
   createWindow()
   check4updates()
@@ -239,8 +242,18 @@ ipcMain.on('getbKitPath', (event) => {
   event.returnValue = config.bkit
 })
 
+ipcMain.on('setbKitPath', (event, path) => {
+  console.log('setbKitPath')
+  config.bkit = path
+  store.set('config', config)
+})
+
 ipcMain.on('app_version', (event) => {
   event.returnValue = app.getVersion()
+})
+
+ipcMain.on('getPath', (event, name) => {
+  event.returnValue = app.getPath(name)
 })
 
 // Workaround to close all processes / sub-processes after closing the app
