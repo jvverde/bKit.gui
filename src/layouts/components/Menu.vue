@@ -86,6 +86,11 @@ import { shell } from 'src/helpers/bash'
 
 export default {
   name: 'Menu',
+  data () {
+    return {
+      tools: false
+    }
+  },
   computed: {
     current () {
       return this.$route.name
@@ -98,7 +103,12 @@ export default {
       shell()
     },
     debug () {
-      ipcRenderer.send('debug', 'on')
+      this.tools = !this.tools
+      if (this.tools) {
+        ipcRenderer.send('debug', 'on')
+      } else {
+        ipcRenderer.send('debug', 'off')
+      }
     }
   }
 }

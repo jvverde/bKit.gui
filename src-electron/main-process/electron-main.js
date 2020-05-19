@@ -226,7 +226,11 @@ app.on('activate', () => {
 })
 
 ipcMain.on('debug', (event, arg) => {
-  mainWindow.webContents.openDevTools()
+  if (arg === 'on'){
+    mainWindow.webContents.openDevTools()
+  } else {
+    mainWindow.webContents.closeDevTools()
+  } 
 })
 
 const Store = require('electron-store')
