@@ -1,7 +1,7 @@
 <template>
   <q-list>
     <q-item-label header>Menu</q-item-label>
-    <q-item clickable @click="$router.push('/')">
+    <q-item :clickable="current !== 'home'" @click="$router.push({ name: 'home' })">
       <q-item-section avatar>
         <q-icon color="menu" name="home" />
       </q-item-section>
@@ -11,7 +11,7 @@
         </q-item-label>
       </q-item-section>
     </q-item>
-    <q-item clickable @click="$router.push('/backup')">
+    <q-item :clickable="current !== 'backup'" @click="$router.push({ name: 'backup' })">
       <q-item-section avatar>
         <q-icon color="menu" name="backup" />
       </q-item-section>
@@ -20,7 +20,7 @@
         <q-item-label caption>Browse local files</q-item-label>
       </q-item-section>
     </q-item>
-    <q-item clickable @click="$router.push('/servers')">
+    <q-item :clickable="current !== 'servers'" @click="$router.push({ name: 'servers' })">
       <q-item-section avatar>
         <q-icon color="menu" name="storage" />
       </q-item-section>
@@ -29,7 +29,7 @@
         <q-item-label caption>Manage Servers</q-item-label>
       </q-item-section>
     </q-item>
-    <q-item clickable @click="$router.push('/tasks')">
+    <q-item :clickable="current !== 'tasks'" @click="$router.push({ name: 'tasks' })">
       <q-item-section avatar>
         <q-icon color="menu" name="assignment" />
       </q-item-section>
@@ -38,7 +38,7 @@
           <q-item-label caption>Manage Schedule Tasks</q-item-label>
       </q-item-section>
     </q-item>
-    <q-item clickable @click="$router.push('/update')">
+    <q-item :clickable="current !== 'update'" @click="$router.push({ name: 'update' })">
       <q-item-section avatar>
         <q-icon color="menu" name="system_update_alt" />
       </q-item-section>
@@ -86,6 +86,13 @@ import { shell } from 'src/helpers/bash'
 
 export default {
   name: 'Menu',
+  computed: {
+    current () {
+      return this.$route.name
+    }
+  },
+  watch: {
+  },
   methods: {
     terminal () {
       shell()
