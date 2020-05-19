@@ -79,7 +79,8 @@ export default {
   },
   computed: {
     ...mapState('global', {
-      storedserver: state => state.server
+      storedserver: state => state.server,
+      bkitinstalled: state => state.bkitinstalled
     }),
     server: {
       get () {
@@ -93,12 +94,23 @@ export default {
       return this.bkituser === username ? username : `${username} <i>as</i> ${this.bkituser || '...'}`
     }
   },
-  async mounted () {
-    this.server = await getServer()
-    this.bkituser = await getUser()
+  watch: {
+    bkitinstalled: {
+      immediate: true,
+      handler: async function (val, old) {
+        if (val) {
+          this.server = await getServer()
+          this.bkituser = await getUser()
+        }
+        console.log('bkitinstalled', val, old)
+      }
+    }
+  },
+  mounted () {
+    this.checkbkitInstalled()
   },
   methods: {
-    ...mapMutations('global', ['setServer'])
+    ...mapMutations('global', ['setServer', 'checkbkitInstalled'])
   }
 }
 </script>

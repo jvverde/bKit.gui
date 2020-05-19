@@ -23,8 +23,6 @@ const routes = [
         component: () => import('pages/backup/BackupPage.vue'),
         name: 'backup',
         beforeEnter: (to, from, next) => {
-          console.log('to', to)
-          console.log('from', from)
           if (server()) {
             next()
           } else {

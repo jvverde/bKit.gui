@@ -3,18 +3,9 @@ import VueRouter from 'vue-router'
 
 import routes from './routes'
 
-import { ipcRenderer } from 'electron'
+import { Store } from 'src/store'
 
-import path from 'path'
-import fs from 'fs'
-
-const isBkitClintInstalled = () => {
-  const bKitPath = ipcRenderer.sendSync('getbKitPath')
-  return fs.existsSync(bKitPath) && ['run', 'bkit', 'rkit', 'skit', 'dkit'].every(e => {
-    const fullpath = path.join(bKitPath, `${e}.sh`)
-    return fs.existsSync(fullpath)
-  })
-}
+const isBkitInstalled = () => Store.getters['global/bkitinstalled']
 
 Vue.use(VueRouter)
 
@@ -40,19 +31,16 @@ export default function (/* { store, ssrContext } */) {
   })
 
   router.beforeEach((to, from, next) => {
-    if (to.name === 'update') {
-      console.log('go to update')
+    if (to.name === from.name) {
+      next(false)
+    } else if (to.name === 'update') {
       next()
-    } else if (!router.isbkitinstalled) {
-      console.log('not isbkitinstalled', router)
+    } else if (!isBkitInstalled()) {
       next({ name: 'update' })
     } else {
-      console.log('isbkitinstalled', router)
       next()
     }
   })
-
-  router.isbkitinstalled = isBkitClintInstalled()
 
   return router
 }
