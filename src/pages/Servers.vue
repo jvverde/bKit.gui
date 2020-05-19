@@ -16,6 +16,9 @@
         <q-item-section>
           <q-item-label>{{server}}</q-item-label>
         </q-item-section>
+        <q-item-section side v-show="isSelected(server)">
+          <q-btn label="Go" color="ok" outline no-caps @click.stop="go"/>
+        </q-item-section>
       </q-item>
       <q-item>
         <q-item-section>
@@ -34,7 +37,7 @@
             <template v-slot:append>
               <q-btn outline icon="add" no-caps stack
                 @click="add"
-                v-if="!error"
+                v-if="!error && !adding"
                 size="xs"
                 round
                 color="green"/>
@@ -66,13 +69,16 @@ export default {
     }
   },
   watch: {
-    current (value, oldvalue) {
-      if (oldvalue && value) this.$router.push('/backup')
-    }
   },
   methods: {
+    isSelected (server) {
+      return server === this.current
+    },
     color (server) {
-      return server === this.current ? 'green' : 'cyan'
+      return this.isSelected(server) ? 'green' : 'cyan'
+    },
+    go () {
+      this.$router.push('/backup')
     },
     change (server) {
       changeServer(server)

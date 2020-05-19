@@ -53,7 +53,7 @@
       </q-item-section>
       <q-item-section>
         <q-item-label>Console</q-item-label>
-        <q-item-label caption>Open a terminal</q-item-label>
+        <q-item-label caption>Open a BASH shell</q-item-label>
       </q-item-section>
     </q-item>
     <!--
