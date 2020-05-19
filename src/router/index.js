@@ -5,7 +5,8 @@ import routes from './routes'
 
 import { Store } from 'src/store'
 
-const isBkitInstalled = () => Store.getters['global/bkitinstalled']
+// const isBkitInstalled = () => Store.getters['global/bkitinstalled']
+const isBkitOk = () => Store.getters['global/bkitok']
 
 Vue.use(VueRouter)
 
@@ -35,7 +36,7 @@ export default function (/* { store, ssrContext } */) {
       next(false)
     } else if (to.name.match(/^update$|^home$/)) {
       next()
-    } else if (!isBkitInstalled()) {
+    } else if (!isBkitOk()) {
       next({ name: 'update' })
     } else {
       next()

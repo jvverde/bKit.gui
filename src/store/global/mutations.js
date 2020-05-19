@@ -1,24 +1,20 @@
+import { isBkitClintInstalled } from 'src/helpers/check'
 import { ipcRenderer } from 'electron'
-import path from 'path'
-import fs from 'fs'
-
-const isBkitClintInstalled = () => {
-  const bKitPath = ipcRenderer.sendSync('getbKitPath')
-  return bKitPath && fs.existsSync(bKitPath) && ['run', 'bkit', 'rkit', 'skit', 'dkit'].every(e => {
-    const fullpath = path.join(bKitPath, `${e}.sh`)
-    return fs.existsSync(fullpath)
-  })
-}
 
 export function setServer (state, server) {
   state.server = server
 }
 export function setbkitLocation (state, location) {
   state.bkitlocation = location
+  ipcRenderer.send('setbKitPath', location)
+  state.bkitinstalled = isBkitClintInstalled(location)
 }
 export function setbkitInstalled (state, val) {
   state.bkitinstalled = val
 }
 export function checkbkitInstalled (state) {
-  state.bkitinstalled = isBkitClintInstalled()
+  state.bkitinstalled = isBkitClintInstalled(state.bkitlocation)
+}
+export function setbkitok (state, val) {
+  state.bkitok = val
 }

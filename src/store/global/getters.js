@@ -7,3 +7,6 @@ export function bkitlocation (state) {
 export function bkitinstalled (state) {
   return state.bkitinstalled
 }
+export function bkitok (state) {
+  return state.bkitok
+}

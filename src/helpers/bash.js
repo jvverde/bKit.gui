@@ -1,9 +1,10 @@
 // let wsList = {}
 'use strict'
 let [BASH, TERM] = ['bash', 'xterm']
-const { spawn } = require('child_process')
+const { spawn, execSync } = require('child_process')
 const readline = require('readline')
-const { ipcRenderer } = require('electron')
+import { ipcRenderer } from 'electron'
+import { isBkitClintInstalled } from './check'
 
 const nill = () => null
 
@@ -16,9 +17,24 @@ if (process.platform === 'win32') {
   TERM = BASH // for windows user bash as a terminal
 }
 
-const bKitPath = ipcRenderer.sendSync('getbKitPath')
+// const bKitPath = ipcRenderer.sendSync('getbKitPath')
+const getbkitlocation = () => ipcRenderer.sendSync('getbKitPath')
+
+export function bkitping (ping) {
+  try {
+    const bKitPath = getbkitlocation()
+    if (!isBkitClintInstalled(bKitPath)) return undefined
+    const result = execSync(BASH, ['./bash.sh', 'echo', ping], { cwd: bKitPath, windowsHide: true })
+    console.log('result', result)
+    return result
+  } catch (err) {
+    console.warn('Bkit no ok', err)
+    return undefined
+  }
+}
 
 export function shell () {
+  const bKitPath = getbkitlocation()
   const fd = spawn(
     TERM,
     [],
@@ -34,6 +50,7 @@ function _bash (name, args, events = {}, done = nill) {
   const { onreadline = nill, onerror = nill, stderr = warn, oncespawn = nill } = events
 
   console.log(`Spawn ${name} with args`, args)
+  const bKitPath = getbkitlocation()
   const fd = spawn(
     BASH,
     ['./run.sh', name, ...args],

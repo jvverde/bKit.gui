@@ -13,11 +13,6 @@ const routes = [
         component: () => import('pages/HomePage.vue'),
         name: 'home'
       },
-      // {
-      //   path: 'restore',
-      //   component: () => import('pages/restore/RestorePage.vue'),
-      //   name: 'Restore'
-      // },
       {
         path: 'backup',
         component: () => import('pages/backup/BackupPage.vue'),
@@ -50,14 +45,6 @@ const routes = [
         component: () => import('pages/Customize.vue'),
         name: 'customize'
       }
-      /*,
-      {
-        path: 'recover/:path*',
-        name: 'recover',
-        props: true,
-        component: import('pages/Recover.vue')
-      }
-      */
     ]
   }
 ]
