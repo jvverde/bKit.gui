@@ -13,7 +13,7 @@ export default {
     }
   },
   mounted () {
-    this.go()
+    // this.go()
   }
 }
 </script>

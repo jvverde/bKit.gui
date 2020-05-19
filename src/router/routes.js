@@ -1,4 +1,7 @@
 // import { getServer, getUser } from 'src/helpers/bkit'
+import { Store } from 'src/store'
+
+const server = () => Store.getters['global/server']
 
 const routes = [
   {
@@ -18,17 +21,21 @@ const routes = [
       {
         path: 'backup',
         component: () => import('pages/backup/BackupPage.vue'),
-        name: 'Backup',
+        name: 'backup',
         beforeEnter: (to, from, next) => {
           console.log('to', to)
           console.log('from', from)
-          next()
+          if (server()) {
+            next()
+          } else {
+            next({ name: 'servers' })
+          }
         }
       },
       {
         path: 'servers',
         component: () => import('pages/Servers.vue'),
-        name: 'Servers'
+        name: 'servers'
       },
       {
         path: 'tasks',
