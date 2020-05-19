@@ -33,7 +33,7 @@ export default function (/* { store, ssrContext } */) {
   router.beforeEach((to, from, next) => {
     if (to.name === from.name) {
       next(false)
-    } else if (to.name === 'update') {
+    } else if (to.name.match(/^update$|^home$/)) {
       next()
     } else if (!isBkitInstalled()) {
       next({ name: 'update' })

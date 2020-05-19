@@ -91,7 +91,7 @@ export default {
       }
     },
     user () {
-      return this.bkituser === username ? username : `${username} <i>as</i> ${this.bkituser || '...'}`
+      return this.bkituser === username ? username : `${username}<i> as </i>${this.bkituser || '...'}`
     }
   },
   watch: {
