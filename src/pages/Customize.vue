@@ -38,15 +38,15 @@ export default {
         const lines = result.split(/\r*\n+/)
         const rgb = lines.reduce((r, v) => {
           const ismatch = v.match(RE)
-          console.log(ismatch)
+          // console.log(ismatch)
           if (ismatch) {
             const { color, value } = ismatch.groups || {}
             r.push({ color, value })
           }
           return r
         }, [])
-        console.log(lines)
-        console.log(rgb)
+        // console.log(lines)
+        // console.log(rgb)
         this.palettes.push({
           name: entry.name,
           palette: rgb

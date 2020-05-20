@@ -1,48 +1,46 @@
 <template>
   <q-page padding class="relative">
-    Update {{bKitPath}}
+    <div>bKitPath: {{bKitPath}}</div>
     <q-btn icon="system_update_alt" label="Clone" @click="clone" :loading="loading"/>
     <q-btn icon="folder" label="New bkit Location" @click="chosebkitLocation"/>
-    <span v-if="!bkitinstalled">bKit client is not installed on this location. I must clone it from repository</span>
-    <span v-else>bKit client is installed</span>
+    <div v-if="!bkitinstalled">bKit client is not installed on this location. I must clone it from repository</div>
+    <div v-else>bKit client is installed</div>
   </q-page>
 </template>
 
 <script>
 
 import { mapGetters, mapMutations } from 'vuex'
-import { bkitping } from 'src/helpers/bash'
 
 const { remote: { app, dialog } } = require('electron')
 const path = require('path')
+const isWin = process.platform === 'win32'
 
 export default {
   name: 'Update',
   data () {
     return {
+      isWin,
       loading: false
     }
   },
   computed: {
-    ...mapGetters('global', ['bkitlocation', 'bkitinstalled']),
+    ...mapGetters('global', ['bkitlocation', 'bkitinstalled', 'bkitok']),
     bKitPath: {
       get () { return this.bkitlocation },
       set (val) { this.setbkitLocation(val) }
     },
     needCheck () {
       return this.bkitinstalled ? this.bkitlocation : false
+    },
+    needInstall () {
+      return !this.bkitok
     }
   },
   watch: {
     needCheck (val) {
       if (val) {
-        console.log('Ping bkit')
-        try {
-          const pong = bkitping('aquiiiiii')
-          console.log('pong', pong)
-        } catch {
-          console.warn('Bkit is not running yet on this location')
-        }
+        console.log('bkitisok?', this.bkitok)
       }
     }
   },
@@ -87,6 +85,11 @@ export default {
       git.pull('public', 'master', (...args) => {
         console.log(...args)
       })
+    },
+    setup () {
+      if (isWin) {
+
+      }
     }
   }
 }

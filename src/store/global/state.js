@@ -1,12 +1,8 @@
-import { ipcRenderer } from 'electron'
-import { isBkitClintInstalled } from 'src/helpers/check'
-import { bkitping } from 'src/helpers/bash'
+import { getbkitlocation, isbkitok, isBkitClintInstalled } from 'src/helpers/check'
 
-const isbkitok = () => bkitping('aqui') === 'aqui'
-
-const bkitlocation = ipcRenderer.sendSync('getbKitPath')
-const bkitinstalled = bkitlocation && isBkitClintInstalled(bkitlocation)
-const bkitok = bkitinstalled && isbkitok()
+const bkitlocation = getbkitlocation()
+const bkitinstalled = isBkitClintInstalled()
+const bkitok = isbkitok()
 
 export default function () {
   return {

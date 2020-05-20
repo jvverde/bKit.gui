@@ -1,10 +1,9 @@
 // let wsList = {}
 'use strict'
 let [BASH, TERM] = ['bash', 'xterm']
-const { spawn, execSync } = require('child_process')
+const { spawn, spawnSync } = require('child_process')
 const readline = require('readline')
 import { ipcRenderer } from 'electron'
-import { isBkitClintInstalled } from './check'
 
 const nill = () => null
 
@@ -20,15 +19,15 @@ if (process.platform === 'win32') {
 // const bKitPath = ipcRenderer.sendSync('getbKitPath')
 const getbkitlocation = () => ipcRenderer.sendSync('getbKitPath')
 
-export function bkitping (ping) {
+export function bkitping (msg) {
   try {
     const bKitPath = getbkitlocation()
-    if (!isBkitClintInstalled(bKitPath)) return undefined
-    const result = execSync(BASH, ['./bash.sh', 'echo', ping], { cwd: bKitPath, windowsHide: true })
-    console.log('result', result)
-    return result
+    // if (!isBkitClintInstalled(bKitPath)) return undefined
+    console.log('bKitPath', bKitPath)
+    const result = spawnSync(BASH, ['./bash.sh', 'echo', msg], { cwd: bKitPath, windowsHide: true })
+    return result.stdout.toString().replace(/(\r|\n|\s)*$/, '')
   } catch (err) {
-    console.warn('Bkit no ok', err)
+    console.warn('bKitping fail:', err)
     return undefined
   }
 }

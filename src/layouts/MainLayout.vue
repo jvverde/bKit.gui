@@ -49,7 +49,7 @@ const os = require('os')
 const { ipcRenderer, remote: { app } } = require('electron')
 import { getServer, getUser } from 'src/helpers/bkit'
 import { username } from 'src/helpers/bash'
-import { mapState, mapMutations } from 'vuex'
+import { mapMutations, mapGetters } from 'vuex'
 import bkitmenu from './components/Menu'
 
 import { colors } from 'quasar'
@@ -74,43 +74,39 @@ export default {
       hostname: os.hostname()
     }
   },
-  components: {
-    bkitmenu
-  },
   computed: {
-    ...mapState('global', {
-      storedserver: state => state.server,
-      bkitinstalled: state => state.bkitinstalled
-    }),
-    server: {
-      get () {
-        return this.storedserver
-      },
-      set (server) {
-        this.setServer(server)
-      }
+    ...mapGetters('global', ['bkitok', 'server']),
+    currentserver: {
+      get () { return this.server },
+      set (server) { this.setServer(server) }
     },
     user () {
-      return this.bkituser === username ? username : `${username}<i> as </i>${this.bkituser || '...'}`
+      return this.bkituser
+        ? this.bkituser === username
+          ? username
+          : `${username}<i> as </i>${this.bkituser}`
+        : ''
     }
   },
   watch: {
-    bkitinstalled: {
+    bkitok: {
       immediate: true,
       handler: async function (val, old) {
         if (val) {
-          this.server = await getServer()
+          this.currentserver = await getServer()
           this.bkituser = await getUser()
+        } else {
+          this.currentserver = this.bkituser = undefined
         }
-        console.log('bkitinstalled', val, old)
+        console.log('bkitok', val, old)
       }
     }
   },
-  mounted () {
-    this.checkbkitInstalled()
+  components: {
+    bkitmenu
   },
   methods: {
-    ...mapMutations('global', ['setServer', 'checkbkitInstalled'])
+    ...mapMutations('global', ['setServer'])
   }
 }
 </script>
