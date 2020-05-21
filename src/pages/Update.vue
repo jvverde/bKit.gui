@@ -3,6 +3,7 @@
     <div>bKitPath: {{bKitPath}}</div>
     <q-btn icon="system_update_alt" label="Clone" @click="clone" :loading="loading"/>
     <q-btn icon="folder" label="New bkit Location" @click="chosebkitLocation"/>
+    <q-btn icon="folder" label="Install" @click="install"/>
     <div v-if="!bkitinstalled">bKit client is not installed on this location. I must clone it from repository</div>
     <div v-else>bKit client is installed</div>
   </q-page>
@@ -13,6 +14,7 @@
 import { mapGetters, mapMutations } from 'vuex'
 
 const { remote: { app, dialog } } = require('electron')
+const { install } = require('src/helpers/bash')
 const path = require('path')
 const isWin = process.platform === 'win32'
 
@@ -45,7 +47,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations('global', ['setbkitLocation', 'checkbkitInstalled']),
+    ...mapMutations('global', ['setbkitLocation', 'checkbkitInstalled', 'checkbkitOk']),
     chosebkitLocation () {
       const dst = this.bKitPath || path.normalize(path.join(app.getAppPath(), '../'))
       console.log('dst', dst)
@@ -86,9 +88,21 @@ export default {
         console.log(...args)
       })
     },
-    setup () {
+    install () {
       if (isWin) {
-
+        const onreaddata = (data) => console.log('data:', data.toString())
+        const onreaderror = (data) => console.warn('error:', data.toString())
+        const onclose = (code) => this.postinstall(code)
+        install({
+          onreaddata,
+          onreaderror,
+          onclose
+        })
+      }
+    },
+    postinstall (code) {
+      if (0 | code === 0) {
+        this.checkbkitOk()  
       }
     }
   }

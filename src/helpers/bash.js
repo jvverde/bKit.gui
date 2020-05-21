@@ -16,8 +16,33 @@ if (process.platform === 'win32') {
   TERM = BASH // for windows user bash as a terminal
 }
 
-// const bKitPath = ipcRenderer.sendSync('getbKitPath')
 const getbkitlocation = () => ipcRenderer.sendSync('getbKitPath')
+
+export function install (events = {}) {
+  if (process.platform !== 'win32') return
+  try {
+    const {
+      onclose = nill,
+      onerror = nill,
+      onexit = nill,
+      onreaddata = nill,
+      onreaderror = nill
+    } = events
+    const bKitPath = getbkitlocation()
+    const fd = spawn(
+      'CMD',
+      ['/C', 'setup.bat'],
+      { cwd: bKitPath, windowsHide: false }
+    )
+    fd.on('close', onclose)
+    fd.on('error', onerror)
+    fd.on('exit', onexit)
+    fd.stdout.on('data', onreaddata)
+    fd.stderr.on('data', onreaderror)
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 export function bkitping (msg) {
   try {
