@@ -102,7 +102,7 @@ export default {
     },
     postinstall (code) {
       if (0 | code === 0) {
-        this.checkbkitOk()  
+        this.checkbkitOk()
       }
     }
   }
