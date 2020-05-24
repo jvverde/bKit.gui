@@ -29,10 +29,10 @@
           <q-item-label>{{bkitinstalled}}</q-item-label>
         </q-item-section>
         <q-item-section side v-if="bkitinstalled">
-          <q-btn color="ok" flat label="Update" no-caps @click="pull"/>
+          <q-btn color="ok" flat label="Pull" no-caps @click="pull"/>
         </q-item-section>
         <q-item-section side v-else>
-          <q-btn color="ok" flat label="Download" no-caps @click="clone"/>
+          <q-btn color="ok" flat label="Clone" no-caps @click="clone"/>
         </q-item-section>
       </q-item>
       <q-item>
@@ -43,11 +43,31 @@
           <q-item-label>{{bkitok}}</q-item-label>
         </q-item-section>
         <q-item-section side>
-          <q-btn v-if="bkitok" flat color="ok" label="Reinstall" no-caps @click="install"/>
-          <q-btn v-else color="ok" flat label="Install" no-caps @click="install"/>
+          <q-btn v-if="bkitok" flat color="ok" label="Reinstall" no-caps @click="setup"/>
+          <q-btn v-else color="ok" flat label="Install" no-caps @click="setup"/>
         </q-item-section>
       </q-item>
     </q-list>
+    isrepo: {{isRepo}}
+    <q-dialog
+      v-model="askuser" transition-show="scale" transition-hide="scale">
+      <q-card>
+        <q-bar>
+          <div class="text-warning">{{statement}}</div>
+          <q-space />
+          <q-btn dense flat icon="close" v-close-popup>
+            <q-tooltip>Close</q-tooltip>
+          </q-btn>
+        </q-bar>
+        <q-card-section>
+          {{message}}
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" color="ok" v-close-popup />
+          <q-btn flat label="Continue" color="danger" @click="goahead" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -60,12 +80,24 @@ const { install } = require('src/helpers/bash')
 const path = require('path')
 const isWin = process.platform === 'win32'
 
+const pGit = require('simple-git/promise')
+const fs = require('fs')
+
+const isEmpty = (path) => { return fs.readdirSync(path).length === 0 }
+const exists = (path) => { return path && fs.existsSync(path) }
+const mkdir = (path) => { return fs.mkdirSync(path, { recursive: true }) }
+
 export default {
   name: 'Update',
   data () {
     return {
+      askuser: false,
+      statement: '',
+      message: '',
+      goahead: () => false,
       step: 1,
       isWin,
+      isRepo: undefined,
       loading: false
     }
   },
@@ -73,19 +105,50 @@ export default {
     ...mapGetters('global', ['bkitlocation', 'bkitinstalled', 'bkitok']),
     bKitPath: {
       get () { return this.bkitlocation },
-      set (val) { this.setbkitLocation(val) }
+      set (path) {
+        if (!path) return this.chosebkitLocation()
+        if (!exists(path)) mkdir(path)
+        this.setbkitLocation(path)
+      }
     },
     location () {
-      return this.bKitPath || path.normalize(path.join(app.getAppPath(), '../'))
+      return this.bKitPath || path.normalize(path.join(app.getAppPath(), '../bKit-client'))
     },
     needCheck () {
       return this.bkitinstalled ? this.bkitlocation : false
     },
     needInstall () {
       return !this.bkitok
+    },
+    git () {
+      return pGit(this.bKitPath)
     }
   },
   watch: {
+    bkitlocation: {
+      immediate: true,
+      handler (val) {
+        console.log('Check if is repo at', val)
+        this.git.checkIsRepo().then(r => {
+          console.log('isRepo', r)
+          this.isRepo = r
+        }).catch(e => console.error(e))
+      }
+    },
+    isRepo (val) {
+    },
+    bkitinstalled (val) {
+      console.log('new bkitinstalled', val)
+      if (!val) {
+        if (isEmpty(this.location)) {
+          console.log('Go clone')
+          this.clone()
+        } else if (this.isRepo) {
+          console.log('Go pull')
+          this.pull()
+        }
+      }
+    },
     needCheck (val) {
       if (val) {
         console.log('bkitisok?', this.bkitok)
@@ -97,7 +160,7 @@ export default {
     chosebkitLocation () {
       const dst = this.location
       console.log('dst', dst)
-      dialog.showOpenDialog({
+      return dialog.showOpenDialog({
         title: 'Select a new location for bKit client',
         defaultPath: dst,
         buttonLabel: 'Choose',
@@ -106,6 +169,7 @@ export default {
         if (result.filePaths instanceof Array) {
           const location = result.filePaths[0]
           if (location !== null) {
+            console.log('Set new location on', location)
             this.bKitPath = location
           }
         }
@@ -117,23 +181,38 @@ export default {
     },
     clone () {
       const dst = this.bKitPath
-      const git = require('simple-git')(dst)
-      git.silent(false)
-      console.log('clone to', dst)
-      this.loading = true
-      git.clone('https://github.com/jvverde/bKit.git', dst, (...args) => {
-        console.log(...args)
-        this.loading = false
-        this.checkbkitInstalled()
-      })
+      // const git = require('simple-git')(dst)
+      if (!exists(dst)) mkdir(dst)
+      if (!isEmpty(dst)) {
+        this.askuser = true
+        this.statement = 'irectory is not empty'
+        this.message = 'Please select a empty dir'
+        this.goahead = () => {
+          this.chosebkitLocation()
+        }
+      } else {
+        console.log('Clone to', dst)
+        this.loading = true
+        return this.git.clone('https://github.com/jvverde/bKit.git', dst, ['--depth', 1], (...args) => {
+        }).then((...args) => {
+          console.log(...args)
+          this.loading = false
+          this.checkbkitInstalled()
+        }).catch(err => {
+          console.warn(err)
+        })
+      }
     },
     pull () {
-      const git = require('simple-git')(this.bKitPath)
-      git.pull('public', 'master', (...args) => {
-        console.log(...args)
-      })
+      if (this.isRepo) {
+        return this.git.pull('public', 'master', (...args) => {
+          console.log(...args)
+        })
+      } else {
+        console.error('XXXXXXXXXXXXXXXXXX')
+      }
     },
-    install () {
+    setup () {
       if (isWin) {
         const onreaddata = (data) => console.log('data:', data.toString())
         const onreaderror = (data) => console.warn('error:', data.toString())
@@ -150,8 +229,22 @@ export default {
         this.checkbkitOk()
       }
     },
-    setup () {
-      // if (!bkitinstalled)
+    checkRepo () {
+      if (!this.isRepo) {
+        if (!exists(this.location)) return this.chosebkitLocation()
+        if (isEmpty(this.location)) {
+          console.log('Go to clone')
+          // this.clone()
+        } else {
+          this.askuser = true
+          this.statement = `Directory '${this.location}' is not empty`
+          this.message = 'Please select a empty dir'
+          this.goahead = () => {
+            this.askuser = false
+            this.chosebkitLocation()
+          }
+        }
+      }
     }
   }
 }

@@ -250,6 +250,7 @@ ipcMain.on('setbKitPath', (event, path) => {
   console.log('setbKitPath')
   config.bkit = path
   store.set('config', config)
+  event.returnValue = true
 })
 
 ipcMain.on('app_version', (event) => {
