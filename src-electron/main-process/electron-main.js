@@ -199,14 +199,8 @@ Menu.setApplicationMenu(menu)
 
 app.on('ready', () => {
   if(!config.bkit || !fs.existsSync(config.bkit)) {
+    const current = path.join(app.getAppPath())
     const dst = path.normalize(path.join(current, '../', 'bkit-client'))
-    // const bkitdir = dialog.showOpenDialogSync({
-    //   title: 'Where is bkit Client?',
-    //   multiSelections: false,
-    //   buttonLabel: 'This is the bKit directory',
-    //   properties: ['openDirectory']
-    // })
-    // if (bkitdir)  = bkitdir[0]
     config.bkit = dst
   }
   createWindow()

@@ -18,37 +18,38 @@
           <q-item-label>{{bKitPath}}</q-item-label>
         </q-item-section>
         <q-item-section side>
-          <q-btn color="ok" flat label="Change" no-caps @click="chosebkitLocation"/>
+          <q-btn :disable="disable" color="ok" flat label="Change" no-caps @click="chosebkitLocation"/>
         </q-item-section>
       </q-item>
       <q-item>
         <q-item-section side>
-          <q-item-label>Bkit Client is present:</q-item-label>
+          <q-item-label>bKit Client is installed:</q-item-label>
         </q-item-section>
         <q-item-section>
           <q-item-label>{{bkitinstalled}}</q-item-label>
         </q-item-section>
-        <q-item-section side v-if="bkitinstalled">
-          <q-btn :disable="installing" color="ok" flat label="Reset" no-caps @click="reset"/>
-          <q-btn :disable="installing" :loading="updating" color="ok" flat label="Update" no-caps @click="update"/>
+        <q-item-section side v-if="bkitinstalled" no-wrap>
+          <q-btn :disable="disable" color="ok" flat label="Reset" no-caps @click="reset"/>
+          <q-btn :disable="disable" :loading="updating" color="ok" flat label="Update" no-caps @click="update"/>
         </q-item-section>
         <q-item-section side v-else>
-          <q-btn :disable="installing" :loading="cloning" color="ok" flat label="Install" no-caps @click="initRepo"/>
+          <q-btn :disable="disable" :loading="installing" color="ok" flat label="Install" no-caps @click="install"/>
         </q-item-section>
       </q-item>
-      <q-item>
+      <q-item v-if="bkitinstalled">
         <q-item-section side>
-          <q-item-label>Bkit Client is running ok:</q-item-label>
+          <q-item-label>bKit Client is runnable:</q-item-label>
         </q-item-section>
         <q-item-section>
           <q-item-label>{{bkitok}}</q-item-label>
         </q-item-section>
         <q-item-section side v-if="isWin">
-          <q-btn :disable="installing" color="ok" flat label="Setup" no-caps @click="setup"/>
+          <q-btn :disable="disable" :loading="setuping" color="ok" flat label="Setup" no-caps @click="setup"/>
         </q-item-section>
       </q-item>
     </q-list>
     <q-dialog
+      @hide="hide"
       v-model="askuser" transition-show="scale" transition-hide="scale">
       <q-card>
         <q-bar>
@@ -86,12 +87,16 @@ const isEmpty = (path) => { return fs.readdirSync(path).length === 0 }
 const exists = (path) => { return path && fs.existsSync(path) }
 const mkdir = (path) => { return fs.mkdirSync(path, { recursive: true }) }
 
-const chosebkitLocation = (path) => {
+const nill = () => false
+
+const defaultPath = path.normalize(path.join(app.getAppPath(), '../bKit-client'))
+const chosebkitLocation = (path = defaultPath) => {
   return dialog.showOpenDialog({
     title: 'Select a new location for bKit client',
     defaultPath: path,
     buttonLabel: 'Choose',
-    properties: ['openDirectory', 'promptToCreate']
+    // properties: ['openDirectory', 'promptToCreate']
+    properties: ['openDirectory']
   }).then((result) => {
     console.log('result', result)
     if (result.canceled) return false
@@ -108,11 +113,14 @@ export default {
       askuser: false,
       statement: '',
       message: '',
-      goahead: () => false,
+      goahead: nill,
+      hide: nill,
       step: 1,
       isWin,
       cloning: false,
-      updating: false
+      updating: false,
+      setuping: false,
+      installing: false
     }
   },
   computed: {
@@ -125,7 +133,7 @@ export default {
         this.setbkitLocation(path)
       }
     },
-    installing () { return this.cloning || this.updating },
+    disable () { return this.cloning || this.updating || this.setuping || this.installing },
     needAttention () {
       const { bkitlocation, bkitinstalled, bkitok } = this
       return {
@@ -146,15 +154,13 @@ export default {
         console.log('needAttention', val)
         const { bkitlocation, bkitinstalled, bkitok } = this
         if (!bkitlocation) {
-          const defaultPath = path.normalize(path.join(app.getAppPath(), '../bKit-client'))
-          mkdir(defaultPath)
-          this.chosebkitLocation(defaultPath)
+          this.chosebkitLocation()
         } else if (!exists(bkitlocation)) {
           mkdir(bkitlocation)
           this.initRepo()
         } else if (!bkitinstalled) {
           this.initRepo()
-        } else if (!bkitok) {
+        } else if (isWin && !bkitok) {
           this.setup()
         }
       }
@@ -176,25 +182,56 @@ export default {
           // console.log('')
         })
     },
-    clone () {
+    whenNotEmpty (location = this.bKitPath) {
+      return new Promise((resolve, reject) => {
+        this.askuser = true
+        this.message = `Directory '${location}' is not empty`
+        this.statement = 'Please select a empty dir'
+        this.goahead = async () => {
+          this.hide = nill
+          const newlocation = await this.chosebkitLocation()
+          if (!newlocation) reject('New location wasn\'t "Selected"')
+          else if (location === newlocation) resolve(this.whenNotEmpty(location))
+          else resolve(newlocation)
+        }
+        this.hide = () => reject('Ask for new location was "Canceled"')
+      }).then(() => {
+        console.log('Reset dialog handlers')
+        this.goahead = this.hide = nill
+      })
+    },
+    checkRepo () {
+      console.log('Check if there is a repo at', this.bKitPath)
+      return this.git.checkIsRepo()
+        .catch(err => {
+          console.warn('checkRepo:', err)
+          return false
+        })
+    },
+    clone (dst = this.bKitPath) {
+      console.log('Clone to', dst)
+      this.cloning = true
+      return this.git.clone('https://github.com/jvverde/bKit.git', dst, ['--depth', 1])
+        .then((...args) => {
+          console.log(...args)
+        })
+        .catch(err => {
+          console.warn(err)
+        })
+        .finally(() => {
+          this.cloning = false
+          this.checkbkitInstalled()
+        })
+    },
+    async setupRepo () {
+      console.log('setupRepo')
       const dst = this.bKitPath
+      if (!dst) await this.chosebkitLocation()
       if (!exists(dst)) mkdir(dst)
       if (!isEmpty(dst)) {
-        this.whenNotEmpty()
+        return this.whenNotEmpty()
       } else {
-        console.log('Clone to', dst)
-        this.cloning = true
-        return this.git.clone('https://github.com/jvverde/bKit.git', dst, ['--depth', 1])
-          .then((...args) => {
-            console.log(...args)
-          })
-          .catch(err => {
-            console.warn(err)
-          })
-          .finally(() => {
-            this.cloning = false
-            this.checkbkitInstalled()
-          })
+        return this.clone(dst)
       }
     },
     async update () {
@@ -223,12 +260,14 @@ export default {
       }
     },
     setup () {
-      return new Promise((resolve, reject) => {
-        if (isWin) {
+      console.log('setup')
+      return new Promise(async (resolve, reject) => {
+        if (isWin && this.bkitinstalled) {
           const onclose = (code) => {
             if (0 | code === 0) this.checkbkitOk() // check again
             if (this.bkitok) resolve(true)
-            else reject(new Error('Bkit is not running'))
+            else reject(new Error('Setup: bKit still not running'))
+            this.setuping = false
           }
           const onreaddata = (data) => console.log('data:', data.toString())
           const onreaderror = (data) => console.warn('error:', data.toString())
@@ -237,38 +276,29 @@ export default {
             onreaderror,
             onclose
           })
+          this.setuping = true
+        } else if (!isWin) {
+          reject(new Error('Setup: This is not a Windows platform'))
         } else {
-          reject(new Error('This is not a Windows platform, as so the cygwin is not used'))
+          reject(new Error('Setup: bKit is not yet installed'))
         }
       })
-    },
-    whenNotEmpty () {
-      this.askuser = true
-      this.statement = `Directory '${this.bKitPath}' is not empty`
-      this.message = 'Please select a empty dir'
-      this.goahead = () => {
-        this.askuser = false
-        this.chosebkitLocation()
-      }
-    },
-    checkRepo () {
-      console.log('Check if is repo at', this.bKitPath)
-      return this.git.checkIsRepo()
-        .catch(err => {
-          console.warn('checkRepo:', err)
-          return false
-        })
     },
     async initRepo () {
       console.log('initRepo')
       const isRepo = await this.checkRepo()
       if (!isRepo) {
-        return this.clone()
-      } else if (!this.bkitinstalled) {
+        return this.setupRepo()
+      } else {
         return this.reset()
-      } else if (isWin && !this.bkitok) {
-        return this.setup()
-      } else return false
+      }
+    },
+    async install () {
+      console.log('install')
+      this.installing = true
+      await this.initRepo()
+      if (isWin) await this.setup()
+      this.installing = false
     }
   }
 }
