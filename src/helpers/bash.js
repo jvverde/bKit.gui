@@ -48,7 +48,7 @@ export function bkitping (msg) {
   try {
     const bKitPath = getbkitlocation()
     // if (!isBkitClintInstalled(bKitPath)) return undefined
-    console.log('bKitPath', bKitPath)
+    console.log('bkitping on', bKitPath)
     const result = spawnSync(BASH, ['./bash.sh', 'echo', msg], { cwd: bKitPath, windowsHide: true })
     return result.stdout.toString().replace(/(\r|\n|\s)*$/, '')
   } catch (err) {
