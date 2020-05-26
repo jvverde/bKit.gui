@@ -200,13 +200,18 @@ export default {
         this.goahead = this.hide = nill
       })
     },
-    checkRepo () {
+    asyn checkRepo () {
       console.log('Check if there is a repo at', this.bKitPath)
-      return this.git.checkIsRepo()
-        .catch(err => {
-          console.warn('checkRepo:', err)
-          return false
-        })
+      try {
+        const isrepo = await this.git.checkIsRepo()
+        if (isrepo) {
+          const top = await this.git.revparse(['--show-toplevel'])
+          return top === this.bKitPath
+        } else return false
+      } catch (err) {
+        console.warn('checkRepo:', err)
+        return false
+      }
     },
     clone (dst = this.bKitPath) {
       console.log('Clone to', dst)
