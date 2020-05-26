@@ -18,7 +18,7 @@ if (process.platform === 'win32') {
 
 const getbkitlocation = () => ipcRenderer.sendSync('getbKitPath')
 
-export function install (events = {}) {
+export function winInstall (events = {}) {
   if (process.platform !== 'win32') return
   try {
     const {
@@ -69,7 +69,7 @@ export function shell () {
 
 // Spawn a bash script
 function _bash (name, args, events = {}, done = nill) {
-  const warn = (err) => console.warn(`Errors from bash script ${name}: ${err}`)
+  const warn = (err) => console.warn(`Received on stderr from bash script ${name}: ${err}`)
 
   const { onreadline = nill, onerror = nill, stderr = warn, oncespawn = nill } = events
 

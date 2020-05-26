@@ -6,8 +6,11 @@
       <span v-if="isWin">and install cygwin and packages as well other underlying apps</span>
     </div>
     <div>
-      We may do it manually one by one or just let it install
-      <q-btn color="ok" flat dense label="automatically" no-caps @click="setup"/>
+      We may do it manually one by one or just let it <span v-if="bkitok">re</span>install
+      <q-btn color="ok" flat dense label="automatically" no-caps @click="install"/>
+    </div>
+    <div>
+      However, we probably don't need to worry as everything will be done automatically the first time we arrive to this page. Just use in case of some troubles.
     </div>
     <q-list padding class="absolute-center">
       <q-item>
@@ -29,8 +32,8 @@
           <q-item-label>{{bkitinstalled}}</q-item-label>
         </q-item-section>
         <q-item-section side v-if="bkitinstalled" no-wrap>
-          <q-btn :disable="disable" color="ok" flat label="Reset" no-caps @click="reset"/>
-          <q-btn :disable="disable" :loading="updating" color="ok" flat label="Update" no-caps @click="update"/>
+          <q-btn :disable="disable" color="ok" flat label="Reset" no-caps @click="resetRepo"/>
+          <q-btn :disable="disable" :loading="updating" color="ok" flat label="Update" no-caps @click="updateRepo"/>
         </q-item-section>
         <q-item-section side v-else>
           <q-btn :disable="disable" :loading="installing" color="ok" flat label="Install" no-caps @click="install"/>
@@ -44,7 +47,7 @@
           <q-item-label>{{bkitok}}</q-item-label>
         </q-item-section>
         <q-item-section side v-if="isWin">
-          <q-btn :disable="disable" :loading="setuping" color="ok" flat label="Setup" no-caps @click="setup"/>
+          <q-btn :disable="disable" :loading="setuping" color="ok" flat label="Setup" no-caps @click="winSetup"/>
         </q-item-section>
       </q-item>
     </q-list>
@@ -76,7 +79,7 @@
 import { mapGetters, mapMutations } from 'vuex'
 
 const { remote: { app, dialog } } = require('electron')
-const { install } = require('src/helpers/bash')
+const { winInstall } = require('src/helpers/bash')
 const path = require('path')
 const isWin = process.platform === 'win32'
 
@@ -157,11 +160,11 @@ export default {
           this.chosebkitLocation()
         } else if (!exists(bkitlocation)) {
           mkdir(bkitlocation)
-          this.initRepo()
+          this.setupRepo()
         } else if (!bkitinstalled) {
-          this.initRepo()
+          this.setupRepo()
         } else if (isWin && !bkitok) {
-          this.setup()
+          this.winSetup()
         }
       }
     }
@@ -200,12 +203,12 @@ export default {
         this.goahead = this.hide = nill
       })
     },
-    asyn checkRepo () {
+    async checkRepo () {
       console.log('Check if there is a repo at', this.bKitPath)
       try {
         const isrepo = await this.git.checkIsRepo()
         if (isrepo) {
-          const top = await this.git.revparse(['--show-toplevel'])
+          const top = path.normalize(await this.git.revparse(['--show-toplevel']))
           return top === this.bKitPath
         } else return false
       } catch (err) {
@@ -228,8 +231,8 @@ export default {
           this.checkbkitInstalled()
         })
     },
-    async setupRepo () {
-      console.log('setupRepo')
+    async initRepo () {
+      console.log('initRepo')
       const dst = this.bKitPath
       if (!dst) await this.chosebkitLocation()
       if (!exists(dst)) mkdir(dst)
@@ -239,8 +242,8 @@ export default {
         return this.clone(dst)
       }
     },
-    async update () {
-      console.log('update')
+    async updateRepo () {
+      console.log('updateRepo')
       const isRepo = await this.checkRepo()
       if (isRepo) {
         this.updating = true
@@ -253,7 +256,7 @@ export default {
         return Promise.reject(new Error(`${this.path} is not a repository`))
       }
     },
-    async reset () {
+    async resetRepo () {
       const isRepo = await this.checkRepo()
       if (isRepo) {
         return this.git.reset(['--hard'])
@@ -264,8 +267,8 @@ export default {
         return Promise.reject(new Error(`${this.path} is not a repository`))
       }
     },
-    setup () {
-      console.log('setup')
+    winSetup () {
+      console.log('winSetup')
       return new Promise(async (resolve, reject) => {
         if (isWin && this.bkitinstalled) {
           const onclose = (code) => {
@@ -276,7 +279,7 @@ export default {
           }
           const onreaddata = (data) => console.log('data:', data.toString())
           const onreaderror = (data) => console.warn('error:', data.toString())
-          install({
+          winInstall({
             onreaddata,
             onreaderror,
             onclose
@@ -289,20 +292,20 @@ export default {
         }
       })
     },
-    async initRepo () {
-      console.log('initRepo')
+    async setupRepo () {
+      console.log('setupRepo')
       const isRepo = await this.checkRepo()
       if (!isRepo) {
-        return this.setupRepo()
+        return this.initRepo()
       } else {
-        return this.reset()
+        return this.resetRepo()
       }
     },
     async install () {
       console.log('install')
       this.installing = true
-      await this.initRepo()
-      if (isWin) await this.setup()
+      await this.setupRepo()
+      if (isWin) await this.winSetup()
       this.installing = false
     }
   }
