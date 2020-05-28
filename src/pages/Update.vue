@@ -78,7 +78,9 @@
 
 import { mapGetters, mapMutations } from 'vuex'
 
-const { remote: { app, dialog } } = require('electron')
+import { ipcRenderer } from 'electron'
+
+const { remote: { dialog } } = require('electron')
 const { winInstall } = require('src/helpers/bash')
 const path = require('path')
 const isWin = process.platform === 'win32'
@@ -92,7 +94,8 @@ const mkdir = (path) => { return fs.mkdirSync(path, { recursive: true }) }
 
 const nill = () => false
 
-const defaultPath = path.normalize(path.join(app.getAppPath(), '../bKit-client'))
+const defaultPath = ipcRenderer.sendSync('getbKitPath')
+
 const chosebkitLocation = (path = defaultPath) => {
   return dialog.showOpenDialog({
     title: 'Select a new location for bKit client',
@@ -130,9 +133,9 @@ export default {
     ...mapGetters('global', ['bkitlocation', 'bkitinstalled', 'bkitok']),
     bKitPath: {
       get () { return this.bkitlocation },
-      set (path) {
+      async set (path) {
         if (!path) return this.chosebkitLocation()
-        if (!exists(path)) mkdir(path)
+        if (!exists(path)) await this.mkdir(path)
         this.setbkitLocation(path)
       }
     },
@@ -153,13 +156,13 @@ export default {
     needAttention: {
       immediate: true,
       deep: true,
-      handler (val) {
+      async handler (val) {
         console.log('needAttention', val)
         const { bkitlocation, bkitinstalled, bkitok } = this
         if (!bkitlocation) {
           this.chosebkitLocation()
         } else if (!exists(bkitlocation)) {
-          mkdir(bkitlocation)
+          await this.mkdir(bkitlocation)
           this.setupRepo()
         } else if (!bkitinstalled) {
           this.setupRepo()
@@ -171,6 +174,17 @@ export default {
   },
   methods: {
     ...mapMutations('global', ['setbkitLocation', 'checkbkitInstalled', 'checkbkitOk']),
+    mkdir (fullname) {
+      try {
+        const parent = path.dirname(fullname)
+        fs.accessSync(parent, fs.constants.W_OK)
+        console.log('I can write on %s', parent)
+        return mkdir(fullname)
+      } catch (err) {
+        console.log("%s doesn't allow you to create directory", path)
+        return this.chosebkitLocation()
+      }
+    },
     chosebkitLocation (defaultPath) {
       const dst = this.bKitPath || defaultPath
       return chosebkitLocation(dst)
@@ -235,7 +249,7 @@ export default {
       console.log('initRepo')
       const dst = this.bKitPath
       if (!dst) await this.chosebkitLocation()
-      if (!exists(dst)) mkdir(dst)
+      if (!exists(dst)) await this.mkdir(dst)
       if (!isEmpty(dst)) {
         return this.whenNotEmpty()
       } else {

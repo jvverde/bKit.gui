@@ -199,8 +199,8 @@ Menu.setApplicationMenu(menu)
 
 app.on('ready', () => {
   if(!config.bkit || !fs.existsSync(config.bkit)) {
-    const current = path.join(app.getAppPath())
-    const dst = path.normalize(path.join(current, '../', 'bkit-client'))
+    const current = path.join(app.getAppPath()).replace(/[\\\/]bKit[\\\/]resources[\\\/].*/i, '')
+    const dst = path.normalize(path.join(current, 'bkit-client'))
     config.bkit = dst
   }
   createWindow()
@@ -236,15 +236,20 @@ if (app.commandLine.hasSwitch('bkit')) {
 }
 
 ipcMain.on('getbKitPath', (event) => {
-  console.log('getbKitPath')
+  console.log('getbKitPath', config.bkit)
   event.returnValue = config.bkit
 })
 
 ipcMain.on('setbKitPath', (event, path) => {
-  console.log('setbKitPath')
+  console.log('setbKitPath', path)
   config.bkit = path
   store.set('config', config)
   event.returnValue = true
+})
+
+ipcMain.on('getStatics', (event) => {
+  console.log('__statics', __statics)
+  event.returnValue = __statics
 })
 
 ipcMain.on('app_version', (event) => {

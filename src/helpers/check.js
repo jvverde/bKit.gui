@@ -5,7 +5,8 @@ import { readFileSync, existsSync } from 'fs'
 
 const _getList = () => {
   try {
-    const depends = path.join(__statics, '/depends.lst')
+    const statics = ipcRenderer.sendSync('getStatics')
+    const depends = path.join(statics, '/depends.lst')
     const result = readFileSync(depends, 'utf8')
     return result.split(/\r*\n+/).filter(e => e.match(/\.sh$/))
   } catch (err) {
