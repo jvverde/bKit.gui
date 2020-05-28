@@ -15,7 +15,7 @@
     <q-list padding class="absolute-center">
       <q-item>
         <q-item-section side>
-          <q-item-label>Locatiom:</q-item-label>
+          <q-item-label>Location:</q-item-label>
         </q-item-section>
         <q-item-section>
           <q-item-label>{{bKitPath}}</q-item-label>

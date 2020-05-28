@@ -196,12 +196,108 @@ const template = [
 const menu = Menu.buildFromTemplate(template)
 Menu.setApplicationMenu(menu)
 // ------------------------------
+const mkdir = (path) => { return fs.mkdirSync(path, { recursive: true }) }
+const execSync = require('child_process').execSync 
+
+const isWin = process.platform === 'win32'
+
+const isAdmin = () => {
+  try{
+    console.log('Check admin rights')
+    execSync('NET SESSION') 
+    return true
+  } catch (err) {
+    return false
+  } 
+}
+
+const elevate = () => {
+  if (isWin) {
+    if (isAdmin()) {
+      console.log('I am already run as admin')
+      return false
+    } else {
+      const executeSync = require('elevator').executeSync
+      console.log('Elevate', process.argv)
+      executeSync(process.argv, {
+        waitForTermination: true
+      })
+      return true
+    }
+  } else {
+    return false
+  }
+}
+
+const chosebkitLocation = (path) => {
+  const result = dialog.showOpenDialogSync({
+    title: 'Select a location for bKit client',
+    defaultPath: path,
+    buttonLabel: 'Choose',
+    // properties: ['openDirectory', 'promptToCreate']
+    properties: ['openDirectory']
+  })
+  console.log('result', result)
+  if (result && result instanceof Array) return result[0]
+  else return null
+}
+
+const askUser = (fullpath) => {
+  const detail =  isWin ? 'Please choose a another directory or give Admin rights' : 'Please choose a another directory'
+  const buttons = isWin ? ['Choose another location', 'Admin rights'] : ['Choose another location']
+  const option = dialog.showMessageBoxSync({
+    title: "bKit client isn't installed yet",
+    message: `However, you don't have rights to install it on ${fullpath}`,
+    detail,
+    buttons,
+    defaultId: 0,
+    cancelId: 0
+  })
+  if (option === 1 && elevate()) {
+    console.log('quit')
+    app.quit()
+    return null
+  } else {
+    return chosebkitLocation(fullpath)
+  }
+} 
+
+const Store = require('electron-store')
+const store = new Store({ name: 'config' })
+const config = store.get('config') || {}
+
+if (app.commandLine.hasSwitch('bkit')) {
+  config.bkit = app.commandLine.getSwitchValue('bkit')
+}
+
+const defaultbKitClientPath = () => {
+  const current = path.join(app.getAppPath()).replace(/[\\\/]bKit[\\\/]resources[\\\/].*/i, '')
+  return path.normalize(path.join(current, 'bkit-client'))  
+}
+
+const newbKitPath = (dst = defaultbKitClientPath()) => {
+  const parent = path.dirname(dst)
+  if (!fs.existsSync(dst)) {
+    try {
+      console.log('Test access to %s', parent)
+      fs.accessSync(parent, fs.constants.W_OK)
+      console.log('Yes, I can write on %s', parent)
+      mkdir(dst)
+      config.bkit = dst
+    } catch (err) {
+      config.bkit = askUser(dst)
+    }
+  } else {
+    config.bkit = dst
+  }
+  store.set('config', config)
+  return config.bkit
+}
 
 app.on('ready', () => {
+  console.log('App is ready')
   if(!config.bkit || !fs.existsSync(config.bkit)) {
-    const current = path.join(app.getAppPath()).replace(/[\\\/]bKit[\\\/]resources[\\\/].*/i, '')
-    const dst = path.normalize(path.join(current, 'bkit-client'))
-    config.bkit = dst
+    newbKitPath()
   }
   createWindow()
   check4updates()
@@ -227,17 +323,22 @@ ipcMain.on('debug', (event, arg) => {
   } 
 })
 
-const Store = require('electron-store')
-const store = new Store({ name: 'config' })
-const config = store.get('config') || {}
+// Workaround to close all processes / sub-processes after closing the app
+// https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
+app.once('window-all-closed', app.quit)
 
-if (app.commandLine.hasSwitch('bkit')) {
-  config.bkit = app.commandLine.getSwitchValue('bkit')
-}
+app.once('before-quit', () => {
+  config.lasttime = new Date(Date.now()).toISOString()
+  store.set('config', config)
+  
+  // Workaround to close all processes / sub-processes after closing the app
+  // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
+  window.removeAllListeners('close')
+})
 
 ipcMain.on('getbKitPath', (event) => {
   console.log('getbKitPath', config.bkit)
-  event.returnValue = config.bkit
+  event.returnValue = config.bkit || newbKitPath()
 })
 
 ipcMain.on('setbKitPath', (event, path) => {
@@ -258,19 +359,6 @@ ipcMain.on('app_version', (event) => {
 
 ipcMain.on('getPath', (event, name) => {
   event.returnValue = app.getPath(name)
-})
-
-// Workaround to close all processes / sub-processes after closing the app
-// https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
-app.once('window-all-closed', app.quit)
-
-app.once('before-quit', () => {
-  config.lasttime = new Date(Date.now()).toISOString()
-  store.set('config', config)
-  
-  // Workaround to close all processes / sub-processes after closing the app
-  // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
-  window.removeAllListeners('close')
 })
 
 // Auto updater section
