@@ -106,6 +106,7 @@ function getUpdates(channel = 'latest') {
 
 function gitpull() {
   const git = require('simple-git')(config.bkit)
+  this.git.addConfig('core.autocrlf', false)
   git.pull('public', 'master', (...args) => {
     console.log(...args)
   })
