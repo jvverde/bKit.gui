@@ -1,6 +1,11 @@
 <template>
   <q-page padding class="relative">
     <q-list padding class="absolute-center" style="min-width:20em">
+      <q-item v-if="!servers.length">
+        <q-item-section>
+          <q-item-label>For testing purposes we can add the server available on test.bki.pt</q-item-label>
+        </q-item-section>
+      </q-item>
       <q-item>
         <q-item-section>
           <q-item-label>Change to bKit server:</q-item-label>

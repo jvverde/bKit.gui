@@ -322,6 +322,12 @@ export default {
       if (isWin) await this.winSetup()
       this.installing = false
     }
+  },
+  mounted () {
+    this.git.addConfig('core.autocrlf', false)
+    this.git.listConfig().then(result => {
+      console.log('result:', result)
+    })
   }
 }
 </script>
