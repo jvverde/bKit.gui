@@ -1,4 +1,6 @@
 import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu, Notification } from 'electron'
+import { setupbkit, isBkitClintInstalled } from './bkitClient'
+
 const log = require('electron-log')
 const { autoUpdater } = require("electron-updater")
 const path = require('path')
@@ -197,122 +199,6 @@ const template = [
 const menu = Menu.buildFromTemplate(template)
 Menu.setApplicationMenu(menu)
 // ------------------------------
-const mkdir = (path) => { return fs.mkdirSync(path, { recursive: true }) }
-const execSync = require('child_process').execSync 
-
-const isWin = process.platform === 'win32'
-
-const isAdmin = () => {
-  try{
-    console.log('Check admin rights')
-    execSync('NET SESSION') 
-    return true
-  } catch (err) {
-    return false
-  } 
-}
-
-const elevate = () => {
-  if (isWin) {
-    if (isAdmin()) {
-      console.log('I am already run as admin')
-      return false
-    } else {
-      const executeSync = require('elevator').executeSync
-      console.log('Elevate', process.argv)
-      executeSync(process.argv, {
-        waitForTermination: true
-      })
-      return true
-    }
-  } else {
-    return false
-  }
-}
-
-const chosebkitLocation = (path) => {
-  const result = dialog.showOpenDialogSync({
-    title: 'Select a location for bKit client',
-    defaultPath: path,
-    buttonLabel: 'Choose',
-    // properties: ['openDirectory', 'promptToCreate']
-    properties: ['openDirectory']
-  })
-  console.log('result', result)
-  if (result && result instanceof Array) return result[0]
-  else return null
-}
-
-const askUser = async (fullpath, args = {}) => {
-  const {
-    detail =  isWin ? 'Please choose a another location or give Admin rights' : 'Please choose a another location',
-    buttons = isWin ? ['Choose another location', 'Admin rights'] : ['Choose another location'],
-    message = `However, you don't have rights to install it on ${fullpath}`
-  } = args
-  const option = dialog.showMessageBoxSync({
-    title: "bKit client isn't installed yet",
-    detail,
-    buttons,
-    message,
-    defaultId: 0,
-    cancelId: 0
-  })
-  if (option === 1 && elevate()) {
-    console.log('quit')
-    app.quit()
-    return null
-  } else {
-    const location = chosebkitLocation(fullpath)
-    if (location) {
-      installbKit()
-    }
-  }
-} 
-
-const installbKit = async (location, force = false) => {
-  const git = require('simple-git/promise')(location)
-  git.addConfig('core.autocrlf', false)
-  if (isEmpty(location)) {
-    await git.clone('https://github.com/jvverde/bKit.git', location, ['--depth', 1])
-  } else {
-    const isrepo = await git.checkIsRepo()
-    if (isrepo) {
-      try {
-        if (force) await git.pull()
-      } catch(err) {
-        console.warn("Wasn't possible to pull repository to %s", location )
-      }
-    } else {
-      const newlocation = await askUser(location, {
-        message: "The chosen location isn't empty or is not a git repository",
-        detail: 'Please choose a another location',
-        buttons: ['Choose another location']
-      })
-      return setupbkit(newlocation)
-    }
-  }
-  return location
-}
-
-const setupbkit = async (dst) => {
-  const parent = path.dirname(dst)
-  if (!fs.existsSync(dst)) {
-    try {
-      console.log('Test access to %s', parent)
-      fs.accessSync(parent, fs.constants.W_OK)
-      console.log('Yes, I can write on %s', parent)
-      mkdir(dst)
-      config.bkit = await installbKit(dst)
-    } catch (err) {
-      config.bkit = await askUser(dst)
-    }
-  } else {
-    config.bkit = await installbKit(dst)
-  }
-}
-
-import { list } from './check'
-console.log('imporde list', list)
 
 const Store = require('electron-store')
 const store = new Store({ name: 'config' })
@@ -328,17 +214,15 @@ const defaultbKitClientPath = () => {
 }
 
 const newbKitPath = async (dst = defaultbKitClientPath()) => {
-  await setupbkit(dst)
+  config.bkit = await setupbkit(dst)
   store.set('config', config)
   return config.bkit
 }
 
-const isEmpty = (path) => { return fs.readdirSync(path).length === 0 }
-
 app.on('ready', async () => {
   console.log('App is ready')
-  if(!config.bkit || !fs.existsSync(config.bkit)) {
-    await newbKitPath()
+  if(!config.bkit || !fs.existsSync(config.bkit) || !isBkitClintInstalled(config.bkit)) {
+    await newbKitPath(config.bkit)
   }
   createWindow()
   check4updates()
