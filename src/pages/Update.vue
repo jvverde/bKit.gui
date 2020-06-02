@@ -9,6 +9,9 @@
       We may do it manually one by one or just let it <span v-if="bkitok">re</span>install
       <q-btn color="ok" flat dense label="automatically" no-caps @click="install"/>
     </div>
+    <div v-if="isWin">
+         Under the hood it uses Cygwin
+    </div>
     <div>
       However, we probably don't need to worry as everything will be done automatically the first time we arrive to this page. Just use in case of some troubles.
     </div>

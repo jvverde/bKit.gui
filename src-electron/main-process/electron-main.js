@@ -106,7 +106,7 @@ function getUpdates(channel = 'latest') {
 
 function gitpull() {
   const git = require('simple-git')(config.bkit)
-  this.git.addConfig('core.autocrlf', false)
+  git.addConfig('core.autocrlf', false)
   git.pull('public', 'master', (...args) => {
     console.log(...args)
   })
@@ -243,14 +243,17 @@ const chosebkitLocation = (path) => {
   else return null
 }
 
-const askUser = (fullpath) => {
-  const detail =  isWin ? 'Please choose a another directory or give Admin rights' : 'Please choose a another directory'
-  const buttons = isWin ? ['Choose another location', 'Admin rights'] : ['Choose another location']
+const askUser = async (fullpath, args = {}) => {
+  const {
+    detail =  isWin ? 'Please choose a another location or give Admin rights' : 'Please choose a another location',
+    buttons = isWin ? ['Choose another location', 'Admin rights'] : ['Choose another location'],
+    message = `However, you don't have rights to install it on ${fullpath}`
+  } = args
   const option = dialog.showMessageBoxSync({
     title: "bKit client isn't installed yet",
-    message: `However, you don't have rights to install it on ${fullpath}`,
     detail,
     buttons,
+    message,
     defaultId: 0,
     cancelId: 0
   })
@@ -259,9 +262,57 @@ const askUser = (fullpath) => {
     app.quit()
     return null
   } else {
-    return chosebkitLocation(fullpath)
+    const location = chosebkitLocation(fullpath)
+    if (location) {
+      installbKit()
+    }
   }
 } 
+
+const installbKit = async (location, force = false) => {
+  const git = require('simple-git/promise')(location)
+  git.addConfig('core.autocrlf', false)
+  if (isEmpty(location)) {
+    await git.clone('https://github.com/jvverde/bKit.git', location, ['--depth', 1])
+  } else {
+    const isrepo = await git.checkIsRepo()
+    if (isrepo) {
+      try {
+        if (force) await git.pull()
+      } catch(err) {
+        console.warn("Wasn't possible to pull repository to %s", location )
+      }
+    } else {
+      const newlocation = await askUser(location, {
+        message: "The chosen location isn't empty or is not a git repository",
+        detail: 'Please choose a another location',
+        buttons: ['Choose another location']
+      })
+      return setupbkit(newlocation)
+    }
+  }
+  return location
+}
+
+const setupbkit = async (dst) => {
+  const parent = path.dirname(dst)
+  if (!fs.existsSync(dst)) {
+    try {
+      console.log('Test access to %s', parent)
+      fs.accessSync(parent, fs.constants.W_OK)
+      console.log('Yes, I can write on %s', parent)
+      mkdir(dst)
+      config.bkit = await installbKit(dst)
+    } catch (err) {
+      config.bkit = await askUser(dst)
+    }
+  } else {
+    config.bkit = await installbKit(dst)
+  }
+}
+
+import { list } from './check'
+console.log('imporde list', list)
 
 const Store = require('electron-store')
 const store = new Store({ name: 'config' })
@@ -276,29 +327,18 @@ const defaultbKitClientPath = () => {
   return path.normalize(path.join(current, 'bkit-client'))  
 }
 
-const newbKitPath = (dst = defaultbKitClientPath()) => {
-  const parent = path.dirname(dst)
-  if (!fs.existsSync(dst)) {
-    try {
-      console.log('Test access to %s', parent)
-      fs.accessSync(parent, fs.constants.W_OK)
-      console.log('Yes, I can write on %s', parent)
-      mkdir(dst)
-      config.bkit = dst
-    } catch (err) {
-      config.bkit = askUser(dst)
-    }
-  } else {
-    config.bkit = dst
-  }
+const newbKitPath = async (dst = defaultbKitClientPath()) => {
+  await setupbkit(dst)
   store.set('config', config)
   return config.bkit
 }
 
-app.on('ready', () => {
+const isEmpty = (path) => { return fs.readdirSync(path).length === 0 }
+
+app.on('ready', async () => {
   console.log('App is ready')
   if(!config.bkit || !fs.existsSync(config.bkit)) {
-    newbKitPath()
+    await newbKitPath()
   }
   createWindow()
   check4updates()
@@ -350,7 +390,7 @@ ipcMain.on('setbKitPath', (event, path) => {
 })
 
 ipcMain.on('getStatics', (event) => {
-  console.log('__statics', __statics)
+  console.log('getStatics', __statics)
   event.returnValue = __statics
 })
 
