@@ -1,5 +1,5 @@
 import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu, Notification } from 'electron'
-import { setupbkit, isBkitClintInstalled } from './bkitClient'
+import { setupbkit, isBkitClintInstalled, isbkitok } from './bkitClient'
 
 const log = require('electron-log')
 const { autoUpdater } = require("electron-updater")
@@ -221,7 +221,7 @@ const newbKitPath = async (dst = defaultbKitClientPath()) => {
 
 app.on('ready', async () => {
   console.log('App is ready')
-  if(!config.bkit || !fs.existsSync(config.bkit) || !isBkitClintInstalled(config.bkit)) {
+  if(!config.bkit || !fs.existsSync(config.bkit) || !isBkitClintInstalled(config.bkit) || !isbkitok(config.bkit)) {
     await newbKitPath(config.bkit)
   }
   createWindow()

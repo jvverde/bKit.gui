@@ -1,11 +1,12 @@
 import path from 'path'
 import { readFileSync, readdirSync, existsSync, mkdirSync, accessSync, constants } from 'fs'
-import { spawnSync } from 'child_process'
+import { spawnSync, execSync } from 'child_process'
 
 import { app, dialog } from 'electron'
 
+const BKIT = 'https://github.com/jvverde/bKit.git'
+
 const mkdir = (path) => { return mkdirSync(path, { recursive: true }) }
-const execSync = require('child_process').execSync 
 
 const isWin = process.platform === 'win32'
 
@@ -24,7 +25,7 @@ const isEmpty = (path) => { return readdirSync(path).length === 0 }
 const elevate = () => {
   if (isWin) {
     if (isAdmin()) {
-      console.log('I am already run as admin')
+      console.error('I am already run as admin')
       return false
     } else {
       const executeSync = require('elevator').executeSync
@@ -37,6 +38,12 @@ const elevate = () => {
   } else {
     return false
   }
+}
+
+const runasAdmin = () => {
+  console.log('Run as Administrator')
+  elevate()
+  app.quit()
 }
 
 const chosebkitLocation = (path) => {
@@ -52,60 +59,78 @@ const chosebkitLocation = (path) => {
   else return null
 }
 
-const askUser = async (fullpath, args = {}) => {
+const install2AlternateLocation = async (fullpath, args = {}) => {
   const {
-    detail =  isWin ? 'Please choose a another location or give Admin rights' : 'Please choose a another location',
-    buttons = isWin ? ['Choose another location', 'Admin rights'] : ['Choose another location'],
-    message = `However, you don't have rights to install it on ${fullpath}`
+    title = "bKit client isn't installed yet",
+    detail =  'Please choose a another location',
+    buttons = ['Choose'],
+    message = fullpath ? `For some unknown reason you can't install on ${fullpath}` : ''
   } = args
   const option = dialog.showMessageBoxSync({
-    title: "bKit client isn't installed yet",
+    title,
     detail,
     buttons,
     message,
     defaultId: 0,
     cancelId: 0
   })
-  if (option === 1 && elevate()) {
-    console.log('quit')
-    app.quit()
-    return null
-  } else {
+  if (option === 0) {
     const location = chosebkitLocation(fullpath)
     if (location) {
-      installbKit()
+      return await installbKit()
+    } else {
+      return await install2AlternateLocation(fullpath, args)
     }
+  } else if (option > 0) {
+    return option
+  } else {
+    console.log('Something else')
+    return await install2AlternateLocation(fullpath, args)
   }
-} 
+}
+
+const notbkitrepo = {
+  title: 'Not a bkit Client Repo',
+  message: "The chosen location isn't a valid repository for bkit",
+  detail: 'Please choose a another location'
+}
+
+const wronglocation = {
+  title: 'Wrong location for bk Client',
+  message: "The chosen location isn't empty or is not a git repository",
+  detail: 'Please choose a another location'
+}
 
 const installbKit = async (location, force = false) => {
   const git = require('simple-git/promise')(location)
   git.addConfig('core.autocrlf', false)
   if (isEmpty(location)) {
-    await git.clone('https://github.com/jvverde/bKit.git', location, ['--depth', 1])
+    console.log('Git clone to', location)
+    await git.clone(BKIT, location, ['--depth', 1])
   } else {
     const isrepo = await git.checkIsRepo()
     if (isrepo) {
+      console.log('"%s" is a Repo', location)
       try {
         const remotes = await git.getRemotes(true )
-        console.log('remotes', remotes)
-        if (force) await git.pull()
-        if (!isBkitClintInstalled(location)) {
-          await git.reset(['--hard'])
+        console.log('Remotes', remotes)
+        if (remotes.some(e => e.refs && e.refs.fetch && e.refs.fetch === BKIT)) {
+          if (!isBkitClintInstalled(location)) {
+            console.log('Git hard reset Repo on "%s"', location)
+            await git.reset(['--hard'])
+          }          
+        } else {
+          console.log('"%s" is not a bKit Repo', location)
+          return await install2AlternateLocation(location, notbkitrepo)
         }
       } catch(err) {
         console.warn("Wasn't possible to pull/reset repository to %s", location )
       }
     } else {
-      const newlocation = await askUser(location, {
-        message: "The chosen location isn't empty or is not a git repository",
-        detail: 'Please choose a another location',
-        buttons: ['Choose another location']
-      })
-      location = await setupbkit(newlocation)
+      return await install2AlternateLocation(location, wronglocation)
     }
   }
-  // if (location && existsSync(bKitPath) && )
+  if (!bkitping(location)) winInstall(location)
   return location
 }
 
@@ -119,7 +144,11 @@ export const setupbkit = async (dst) => {
       mkdir(dst)
       return await installbKit(dst)
     } catch (err) {
-      return await askUser(dst)
+      if (isWin && !isAdmin()) {
+        runasAdmin()
+      } else {
+        return await install2AlternateLocation(dst)
+      }
     }
   } else {
     return await installbKit(dst)
@@ -137,7 +166,6 @@ const _getList = () => {
 }
 
 const list = _getList() || []
-console.log('list', list)
 
 export const isBkitClintInstalled = (bKitPath) => {
   return bKitPath && existsSync(bKitPath) && list.every(e => {
@@ -145,3 +173,46 @@ export const isBkitClintInstalled = (bKitPath) => {
     return existsSync(fullpath)
   })
 }
+
+const BASH = isWin ? 'bash.bat' : 'bash'
+
+function bkitping (bKitPath) {
+  try {
+    console.log('bkitping on', bKitPath)
+    const msg = 'aqui'
+    const result = spawnSync(BASH, ['./bash.sh', 'echo', msg], { cwd: bKitPath, windowsHide: true })
+    console.log('result', result)
+    return result.stdout.toString().replace(/(\r|\n|\s)*$/, '') === msg
+  } catch (err) {
+    console.warn('bKitping fail:', err)
+    return false
+  }
+}
+
+const impossible2install = {
+  title: 'Impossible to install',
+  message: "Errors while instaling on given location",
+  detail: 'Please choose a another location'
+}
+
+function winInstall (bKitPath) {
+  if (!isWin) return
+  try {
+    const result = spawnSync(
+      'CMD',
+      ['/C', 'setup.bat'],
+      { cwd: bKitPath, windowsHide: false }
+    )
+    console.log('winInstall.stdout', result.stdout.toString())
+    console.log('winInstall.stderr', result.stderr.toString())
+    console.log('winInstall.status', result.status)
+    console.log('winInstall.error', result.error)
+    if (result.status !== 0) {
+      install2AlternateLocation(location, winInstall)
+    } 
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export const isbkitok = (bKitPath) => isBkitClintInstalled(bKitPath) && bkitping(bKitPath)
