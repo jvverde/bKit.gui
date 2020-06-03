@@ -87,11 +87,11 @@ const installbKit = async (location, force = false) => {
     const isrepo = await git.checkIsRepo()
     if (isrepo) {
       try {
-        const remotes = await git.getRemotes()
+        const remotes = await git.getRemotes(true )
         console.log('remotes', remotes)
         if (force) await git.pull()
         if (!isBkitClintInstalled(location)) {
-          git.reset(['--hard'])
+          await git.reset(['--hard'])
         }
       } catch(err) {
         console.warn("Wasn't possible to pull/reset repository to %s", location )
@@ -102,9 +102,10 @@ const installbKit = async (location, force = false) => {
         detail: 'Please choose a another location',
         buttons: ['Choose another location']
       })
-      return setupbkit(newlocation)
+      location = await setupbkit(newlocation)
     }
   }
+  // if (location && existsSync(bKitPath) && )
   return location
 }
 
