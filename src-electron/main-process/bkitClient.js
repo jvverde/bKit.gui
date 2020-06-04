@@ -4,13 +4,17 @@ import { spawnSync, execSync } from 'child_process'
 
 import { app, dialog } from 'electron'
 
+if (process.env.PROD) {
+  global.__statics = path.join(__dirname, 'statics').replace(/\\/g, '\\\\')
+}
+
 const BKIT = 'https://github.com/jvverde/bKit.git'
 
 const mkdir = (path) => { return mkdirSync(path, { recursive: true }) }
 
 const isWin = process.platform === 'win32'
 
-const isAdmin = () => {
+const isAdmin = isWin && (() => {
   try{
     console.log('Check admin rights')
     execSync('NET SESSION') 
@@ -18,32 +22,36 @@ const isAdmin = () => {
   } catch (err) {
     return false
   } 
-}
+})()
 
 const isEmpty = (path) => { return readdirSync(path).length === 0 }
 
 const elevate = () => {
-  if (isWin) {
-    if (isAdmin()) {
-      console.error('I am already run as admin')
-      return false
-    } else {
-      const executeSync = require('elevator').executeSync
-      console.log('Elevate', process.argv)
-      executeSync(process.argv, {
-        waitForTermination: true
-      })
-      return true
-    }
+  if (isWin && isAdmin) {
+    throw new Error('I am already run as admin')
+  } else if (isWin) {
+    const executeSync = require('elevator').executeSync
+    //const args = process.argv.concat(['--elevated'])
+    const args = process.argv
+    console.log('Elevate', args)
+    executeSync(args, {
+      waitForTermination: true
+    }, function(error, stdout, stderr) {
+      if (error) {
+        throw error
+      }
+      console.log(stdout)
+      console.log(stderr)
+    })
   } else {
-    return false
+    throw new Error('I am supposed to be called only in a windows platform')
   }
 }
 
 const runasAdmin = () => {
   console.log('Run as Administrator')
   elevate()
-  app.quit()
+  console.log('Continue run as normal user')
 }
 
 const chosebkitLocation = (path) => {
@@ -101,57 +109,79 @@ const wronglocation = {
   detail: 'Please choose a another location'
 }
 
+
 const installbKit = async (location, force = false) => {
-  const git = require('simple-git/promise')(location)
-  git.addConfig('core.autocrlf', false)
-  if (isEmpty(location)) {
-    console.log('Git clone to', location)
-    await git.clone(BKIT, location, ['--depth', 1])
-  } else {
-    const isrepo = await git.checkIsRepo()
-    if (isrepo) {
-      console.log('"%s" is a Repo', location)
-      try {
-        const remotes = await git.getRemotes(true )
-        console.log('Remotes', remotes)
-        if (remotes.some(e => e.refs && e.refs.fetch && e.refs.fetch === BKIT)) {
-          if (!isBkitClintInstalled(location)) {
-            console.log('Git hard reset Repo on "%s"', location)
-            await git.reset(['--hard'])
-          }          
-        } else {
-          console.log('"%s" is not a bKit Repo', location)
-          return await install2AlternateLocation(location, notbkitrepo)
-        }
-      } catch(err) {
-        console.warn("Wasn't possible to pull/reset repository to %s", location )
-      }
+  console.log('installbKit', location)
+  try {
+    if (isEmpty(location)) {
+      const git = require('nodegit')
+      console.log('Location "%s" is empty', location)
+      const result = await git.clone(BKIT, location)
+      console.log('after git clone', result)    
     } else {
-      return await install2AlternateLocation(location, wronglocation)
+      // const git = require('simple-git/promise')(location)
+      // git.addConfig('core.autocrlf', false)
+      // const isrepo = await git.checkIsRepo()
+      // if (isrepo) {
+      //   console.log('"%s" is a Repo', location)
+      //   const remotes = await git.getRemotes(true )
+      //   if (remotes.some(e => e.refs && e.refs.fetch && e.refs.fetch === BKIT)) {
+      //     if (!isBkitClintInstalled(location)) {
+      //       console.log('Git hard reset Repo on "%s"', location)
+      //       await git.reset(['--hard'])
+      //     }          
+      //   } else {
+      //     console.log('However "%s" is not a bKit Repo', location)
+      //     return await install2AlternateLocation(location, notbkitrepo)
+      //   }
+      // } else {
+      //   return await install2AlternateLocation(location, wronglocation)
+      // }
     }
+    // if (!bkitping(location)) winInstall(location)
+  } catch(err) {
+    console.warn("Wasn't possible to pull/reset repository to", location, err )
   }
-  if (!bkitping(location)) winInstall(location)
   return location
 }
 
-export const setupbkit = async (dst) => {
-  const parent = path.dirname(dst)
-  if (!existsSync(dst)) {
-    try {
-      console.log('Test access to %s', parent)
-      accessSync(parent, constants.W_OK)
-      console.log('Yes, I can write on %s', parent)
-      mkdir(dst)
-      return await installbKit(dst)
-    } catch (err) {
-      if (isWin && !isAdmin()) {
-        runasAdmin()
-      } else {
-        return await install2AlternateLocation(dst)
-      }
-    }
+const checkRights = (dst) => {
+  try {
+    if (!existsSync(dst)) mkdir(dst)
+    console.log('Test write access to %s', dst)
+    accessSync(dst, constants.W_OK)
+    console.log('Yes, I can write on %s', dst)
+    return true
+  } catch (err) {
+    return false
+  }
+} 
+
+const syncdir = require('sync-directory')
+
+const install = (dst) => {
+  if (checkRights(dst)) {
+    const setup = path.join(__statics, 'setup')
+    console.log('sync', setup, dst)
+    syncdir(setup, dst)
+    return Promise.resolve(true)
   } else {
-    return await installbKit(dst)
+    return install2AlternateLocation(dst)
+  }
+}
+
+export const setupbkit = (dst) => {
+  console.log('setupbkit', dst)
+  if (isWin && !isAdmin) {
+    runasAdmin()
+  } else {
+    return install(dst)
+      .then(() => {
+        if (isAdmin && app.commandLine.hasSwitch('--elevated')) {
+          console.log('The elevated run instance will quit now')
+          app.quit()
+        }      
+      })
   }
 }
 
@@ -181,7 +211,6 @@ function bkitping (bKitPath) {
     console.log('bkitping on', bKitPath)
     const msg = 'aqui'
     const result = spawnSync(BASH, ['./bash.sh', 'echo', msg], { cwd: bKitPath, windowsHide: true })
-    console.log('result', result)
     return result.stdout.toString().replace(/(\r|\n|\s)*$/, '') === msg
   } catch (err) {
     console.warn('bKitping fail:', err)

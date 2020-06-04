@@ -16,7 +16,7 @@ autoUpdater.on('error', (err) => {
   log.erro(err)
 })
 
-log.info('Bkit starting...')
+log.info('Bkit starting...', app.commandLine.hasSwitch('--elevated'))
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
@@ -214,6 +214,7 @@ const defaultbKitClientPath = () => {
 }
 
 const newbKitPath = async (dst = defaultbKitClientPath()) => {
+  console.log('newbKitPath', dst)
   config.bkit = await setupbkit(dst)
   store.set('config', config)
   return config.bkit
@@ -221,8 +222,9 @@ const newbKitPath = async (dst = defaultbKitClientPath()) => {
 
 app.on('ready', async () => {
   console.log('App is ready')
-  if(!config.bkit || !fs.existsSync(config.bkit) || !isBkitClintInstalled(config.bkit) || !isbkitok(config.bkit)) {
-    await newbKitPath(config.bkit)
+  if(app || !config.bkit || !fs.existsSync(config.bkit) || !isbkitok(config.bkit)) {
+    // await newbKitPath(config.bkit)
+    await newbKitPath('C:\\Program Files\\bkit-client\\a\\b\\c')
   }
   createWindow()
   check4updates()
@@ -292,4 +294,6 @@ function sendStatusToWindow(text) {
   log.info(text)
   mainWindow.webContents.send('message', text)
 }
+
+log.info('Bkit started')
 
