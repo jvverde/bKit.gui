@@ -16,7 +16,7 @@ if (process.platform === 'win32') {
   TERM = BASH // for windows user bash as a terminal
 }
 
-const getbkitlocation = () => ipcRenderer.sendSync('getbKitPath')
+const getbkitlocation = () => ipcRenderer.sendSync('getbkitPath')
 
 export function winInstall (events = {}) {
   if (process.platform !== 'win32') return

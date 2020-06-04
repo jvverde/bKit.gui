@@ -97,7 +97,7 @@ const mkdir = (path) => { return fs.mkdirSync(path, { recursive: true }) }
 
 const nill = () => false
 
-const defaultPath = ipcRenderer.sendSync('getbKitPath')
+const defaultPath = ipcRenderer.sendSync('getbkitPath')
 
 const chosebkitLocation = (path = defaultPath) => {
   return dialog.showOpenDialog({
@@ -156,24 +156,24 @@ export default {
     }
   },
   watch: {
-    needAttention: {
-      immediate: true,
-      deep: true,
-      async handler (val) {
-        console.log('needAttention', val)
-        const { bkitlocation, bkitinstalled, bkitok } = this
-        if (!bkitlocation) {
-          this.chosebkitLocation()
-        } else if (!exists(bkitlocation)) {
-          await this.mkdir(bkitlocation)
-          this.setupRepo()
-        } else if (!bkitinstalled) {
-          this.setupRepo()
-        } else if (isWin && !bkitok) {
-          this.winSetup()
-        }
-      }
-    }
+    // needAttention: {
+    //   immediate: true,
+    //   deep: true,
+    //   async handler (val) {
+    //     console.log('needAttention', val)
+    //     const { bkitlocation, bkitinstalled, bkitok } = this
+    //     if (!bkitlocation) {
+    //       this.chosebkitLocation()
+    //     } else if (!exists(bkitlocation)) {
+    //       await this.mkdir(bkitlocation)
+    //       this.setupRepo()
+    //     } else if (!bkitinstalled) {
+    //       this.setupRepo()
+    //     } else if (isWin && !bkitok) {
+    //       this.winSetup()
+    //     }
+    //   }
+    // }
   },
   methods: {
     ...mapMutations('global', ['setbkitLocation', 'checkbkitInstalled', 'checkbkitOk']),
@@ -327,10 +327,10 @@ export default {
     }
   },
   mounted () {
-    this.git.addConfig('core.autocrlf', false)
-    this.git.listConfig().then(result => {
-      console.log('result:', result)
-    })
+    // this.git.addConfig('core.autocrlf', false)
+    // this.git.listConfig().then(result => {
+    //  console.log('result:', result)
+    // })
   }
 }
 </script>

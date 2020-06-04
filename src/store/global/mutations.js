@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron'
+// import { ipcRenderer } from 'electron'
 import { getbkitlocation, isbkitok, isBkitClintInstalled } from 'src/helpers/check'
 
 export function setServer (state, server) {
@@ -6,7 +6,7 @@ export function setServer (state, server) {
 }
 export function setbkitLocation (state, location) {
   if (!location) throw new Error('Location cannot be null')
-  ipcRenderer.sendSync('setbKitPath', location)
+  // ipcRenderer.sendSync('setbKitPath', location)
   state.bkitlocation = getbkitlocation()
   if (state.bkitlocation !== location) throw new Error('Location not properly set')
   checkbkitInstalled(state)

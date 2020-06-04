@@ -16,7 +16,7 @@ const _getList = () => {
 const list = _getList() || []
 console.log('list', list)
 
-export const getbkitlocation = () => ipcRenderer.sendSync('getbKitPath')
+export const getbkitlocation = () => ipcRenderer.sendSync('getbkitPath')
 export const isBkitClintInstalled = (bKitPath = getbkitlocation()) => {
   return bKitPath && existsSync(bKitPath) && list.every(e => {
     const fullpath = path.join(bKitPath, e)

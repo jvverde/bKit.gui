@@ -1,5 +1,5 @@
 import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu, Notification } from 'electron'
-import { setupbkit, isBkitClintInstalled, isbkitok } from './bkitClient'
+import { bkitPath, setupbkit, isbkitClintInstalled, isbkitok, save_config } from './bkitClient'
 
 const log = require('electron-log')
 const { autoUpdater } = require("electron-updater")
@@ -13,10 +13,26 @@ autoUpdater.autoInstallOnAppQuit = false
 autoUpdater.autoDownload = false
 autoUpdater.logger.transports.file.level = 'info'
 autoUpdater.on('error', (err) => {
-  log.erro(err)
+  log.error(err)
 })
 
-log.info('Bkit starting...', app.commandLine.hasSwitch('--elevated'))
+const say = {
+  log: (...args) => {
+    console.log(...args)
+    log.info(...args)
+  },
+  warn: (...args) => {
+    console.warn(...args)
+    log.warn(...args)
+  },
+  error: (...args) => {
+    console.error(...args)
+    log.error(...args)
+  }
+}
+
+say.log('bkit starting...')
+say.log('Elevated', app.commandLine.hasSwitch('elevated'))
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
@@ -74,7 +90,7 @@ function createWindow () {
 function check4updates () {
   autoUpdater.on('update-available', (info) => {
     sendStatusToWindow(info)
-    log.info(info)
+    say.log(info)
     if (Notification.isSupported()) {
       const notify = new Notification({
         title: 'Updated version',
@@ -85,7 +101,7 @@ function check4updates () {
   })
   autoUpdater.autoInstallOnAppQuit = false
   autoUpdater.autoDownload = false
-  log.info(`Check for updates...`)
+  say.log(`Check for updates...`)
   autoUpdater.checkForUpdatesAndNotify()
 }
 
@@ -102,16 +118,8 @@ function getUpdates(channel = 'latest') {
   })
   autoUpdater.autoInstallOnAppQuit = true
   autoUpdater.autoDownload = true
-  log.info(`Check and get updates on channel ${channel}`)
+  say.log(`Check and get updates on channel ${channel}`)
   return autoUpdater.checkForUpdates()
-}
-
-function gitpull() {
-  const git = require('simple-git')(config.bkit)
-  git.addConfig('core.autocrlf', false)
-  git.pull('public', 'master', (...args) => {
-    console.log(...args)
-  })
 }
 
 // from https://www.tutorialspoint.com/electron/electron_menus.htm
@@ -134,10 +142,6 @@ const template = [
             }
           }
         ]
-      },
-      {
-        label: 'Upgrade bKit Client',
-        click: () => gitpull() 
       },
       {
         role: 'quit'
@@ -200,31 +204,22 @@ const menu = Menu.buildFromTemplate(template)
 Menu.setApplicationMenu(menu)
 // ------------------------------
 
-const Store = require('electron-store')
-const store = new Store({ name: 'config' })
-const config = store.get('config') || {}
-
-if (app.commandLine.hasSwitch('bkit')) {
-  config.bkit = app.commandLine.getSwitchValue('bkit')
-}
-
-const defaultbKitClientPath = () => {
-  const current = path.join(app.getAppPath()).replace(/[\\\/]bKit[\\\/]resources[\\\/].*/i, '')
+const defaultbkitClientPath = () => {
+  const current = path.join(app.getAppPath()).replace(/[\\\/]bkit[\\\/]resources[\\\/].*/i, '')
   return path.normalize(path.join(current, 'bkit-client'))  
 }
 
-const newbKitPath = async (dst = defaultbKitClientPath()) => {
-  console.log('newbKitPath', dst)
-  config.bkit = await setupbkit(dst)
-  store.set('config', config)
-  return config.bkit
+const newbkitPath = (dst = defaultbkitClientPath()) => {
+  say.log('newbkitPath', dst)
+  return setupbkit(dst)
 }
 
 app.on('ready', async () => {
-  console.log('App is ready')
-  if(app || !config.bkit || !fs.existsSync(config.bkit) || !isbkitok(config.bkit)) {
-    // await newbKitPath(config.bkit)
-    await newbKitPath('C:\\Program Files\\bkit-client\\a\\b\\c')
+  const client = bkitPath()
+  say.log('App is ready', client)
+  if(!client || !fs.existsSync(client) || !isbkitok(client)) {
+    await newbkitPath(client)
+    // await newbkitPath('C:\\Program Files\\bkit-client\\a\\b\\c')
   }
   createWindow()
   check4updates()
@@ -255,28 +250,20 @@ ipcMain.on('debug', (event, arg) => {
 app.once('window-all-closed', app.quit)
 
 app.once('before-quit', () => {
-  config.lasttime = new Date(Date.now()).toISOString()
-  store.set('config', config)
-  
+  save_config()  
   // Workaround to close all processes / sub-processes after closing the app
   // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
   window.removeAllListeners('close')
 })
 
-ipcMain.on('getbKitPath', (event) => {
-  console.log('getbKitPath', config.bkit)
-  event.returnValue = config.bkit || newbKitPath()
-})
-
-ipcMain.on('setbKitPath', (event, path) => {
-  console.log('setbKitPath', path)
-  config.bkit = path
-  store.set('config', config)
-  event.returnValue = true
+ipcMain.on('getbkitPath', (event) => {
+  const location = bkitPath()
+  say.log('getbkitPath', location)
+  event.returnValue = location || newbkitPath()
 })
 
 ipcMain.on('getStatics', (event) => {
-  console.log('getStatics', __statics)
+  say.log('getStatics', __statics)
   event.returnValue = __statics
 })
 
@@ -291,9 +278,9 @@ ipcMain.on('getPath', (event, name) => {
 // Auto updater section
 
 function sendStatusToWindow(text) {
-  log.info(text)
+  say.log(text)
   mainWindow.webContents.send('message', text)
 }
 
-log.info('Bkit started')
+say.log('bkit started')
 

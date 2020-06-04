@@ -1,0 +1,3 @@
+[submodule "src/statics/bkit-client"]
+	path = src/statics/bkit-client
+	url = https://github.com/jvverde/bKit.git
