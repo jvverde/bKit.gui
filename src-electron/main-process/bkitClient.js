@@ -100,7 +100,7 @@ const install2AlternateLocation = (fullpath, args = {}) => {
   const {
     title = "bkit client isn't installed yet",
     detail =  'Please choose a location for install it',
-    buttons = ['Choose'],
+    buttons = ['Choose', 'Ignore'],
     message = fullpath ? `For some unknown reason you can't install on ${fullpath}` : ''
   } = args
   const option = dialog.showMessageBoxSync({
@@ -118,7 +118,9 @@ const install2AlternateLocation = (fullpath, args = {}) => {
     } else {
       return install2AlternateLocation(fullpath, args)
     }
-  } else if (option > 0) {
+  } else if(option === 1) { 
+    return null
+  } else if (option > 1) {
     return option
   } else {
     say.log('Something else')
