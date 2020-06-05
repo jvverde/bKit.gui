@@ -1,5 +1,6 @@
 <template>
   <q-page padding class="q-pa-lg column relative fit">
+  <!--
     <div class="q-mb-xl self-center">This app is a GUI for the bKit Client.</div>
     <div>
       <span>Here we may change the bKit Client location, download or update it from the public repository</span>
@@ -74,11 +75,13 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+  -->
   </q-page>
 </template>
 
 <script>
 
+/*
 import { mapGetters, mapMutations } from 'vuex'
 
 import { ipcRenderer } from 'electron'
@@ -333,4 +336,6 @@ export default {
     // })
   }
 }
+*/
+
 </script>

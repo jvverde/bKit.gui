@@ -38,6 +38,7 @@
           <q-item-label caption>Manage Schedule Tasks</q-item-label>
       </q-item-section>
     </q-item>
+    <!--
     <q-item :clickable="current !== 'update'" @click="$router.push({ name: 'update' })">
       <q-item-section avatar>
         <q-icon color="menu" name="system_update_alt" />
@@ -47,6 +48,7 @@
         <q-item-label caption>Update GUI and/or client</q-item-label>
       </q-item-section>
     </q-item>
+    -->
     <q-item clickable @click="terminal">
       <q-item-section avatar>
         <q-icon color="menu" name="fas fa-terminal" />
