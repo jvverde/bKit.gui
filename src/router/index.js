@@ -3,10 +3,10 @@ import VueRouter from 'vue-router'
 
 import routes from './routes'
 
-import { Store } from 'src/store'
+// import { Store } from 'src/store'
 
 // const isBkitInstalled = () => Store.getters['global/bkitinstalled']
-const isBkitOk = () => Store.getters['global/bkitok']
+// const isBkitOk = () => Store.getters['global/bkitok']
 
 Vue.use(VueRouter)
 
@@ -31,17 +31,17 @@ export default function (/* { store, ssrContext } */) {
     base: process.env.VUE_ROUTER_BASE
   })
 
-  router.beforeEach((to, from, next) => {
-    if (to.name === from.name) {
-      next(false)
-    } else if (['update', 'home', 'customize'].includes(to.name)) {
-      next()
-    } else if (!isBkitOk()) {
-      next({ name: 'update' })
-    } else {
-      next()
-    }
-  })
+  // router.beforeEach((to, from, next) => {
+  //   if (to.name === from.name) {
+  //     next(false)
+  //   } else if (['update', 'home', 'customize'].includes(to.name)) {
+  //     next()
+  //   } else if (!isBkitOk()) {
+  //     next({ name: 'update' })
+  //   } else {
+  //     next()
+  //   }
+  // })
 
   return router
 }
