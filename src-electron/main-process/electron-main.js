@@ -1,5 +1,5 @@
 import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu, Notification } from 'electron'
-import { bkitPath, setupbkit, isbkitClintInstalled, isbkitok, save_config } from './bkitClient'
+import { bkitPath, setupbkit, isbkitClintInstalled, isbkitok, save_config, load_config } from './bkitClient'
 
 const log = require('electron-log')
 const { autoUpdater } = require("electron-updater")
@@ -209,17 +209,19 @@ const defaultbkitClientPath = () => {
   return path.normalize(path.join(current, 'bkit-client'))  
 }
 
-const newbkitPath = (dst = defaultbkitClientPath()) => {
-  say.log('newbkitPath', dst)
+const reinstallbkit = (dst = defaultbkitClientPath()) => {
+  say.log('reinstallbkit', dst)
   return setupbkit(dst)
 }
 
-app.on('ready', async () => {
+app.on('ready', () => {
+  say.log('App is ready')
+  load_config()
   const client = bkitPath()
-  say.log('App is ready', client)
+  say.log('Check if client is run at', client)
   if(!client || !fs.existsSync(client) || !isbkitok(client)) {
-    await newbkitPath(client)
-    // await newbkitPath('C:\\Program Files\\bkit-client\\a\\b\\c')
+    reinstallbkit(client)
+    load_config()
   }
   createWindow()
   check4updates()
@@ -259,7 +261,7 @@ app.once('before-quit', () => {
 ipcMain.on('getbkitPath', (event) => {
   const location = bkitPath()
   say.log('getbkitPath', location)
-  event.returnValue = location || newbkitPath()
+  event.returnValue = location || reinstallbkit()
 })
 
 ipcMain.on('getStatics', (event) => {

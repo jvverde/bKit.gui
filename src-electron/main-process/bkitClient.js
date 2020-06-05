@@ -7,7 +7,13 @@ import { app, dialog } from 'electron'
 
 const Store = require('electron-store')
 const store = new Store({ name: 'config' })
-const config = store.get('config') || {}
+const get_config = () => store.get('config') || {}
+
+let config = get_config()
+
+export const load_config = () => {
+  config = get_config() 
+}
 
 export const save_config = () => {
   config.lasttime = new Date(Date.now()).toISOString()
@@ -37,8 +43,6 @@ if (process.env.PROD) {
   global.__statics = path.join(__dirname, 'statics').replace(/\\/g, '\\\\')
 }
 
-const bkit = 'https://github.com/jvverde/bkit.git'
-
 const mkdir = (path) => { return mkdirSync(path, { recursive: true }) }
 
 const isWin = process.platform === 'win32'
@@ -53,7 +57,7 @@ const isAdmin = isWin && (() => {
   } 
 })()
 
-const isEmpty = (path) => { return readdirSync(path).length === 0 }
+const isEmpty = (path) => readdirSync(path).length === 0
 
 const elevate = () => {
   if (isWin && isAdmin) {
@@ -65,11 +69,9 @@ const elevate = () => {
     executeSync(args, {
       waitForTermination: true
     }, function(error, stdout, stderr) {
-      if (error) {
-        throw error
-      }
-      say.log('stdout', stdout)
-      say.log('stderr', stderr)
+      if (error) throw error
+      say.log('executeSync stdout', stdout)
+      say.log('executeSync stderr', stderr)
     })
   } else {
     throw new Error('I am supposed to be called only in a windows platform')
@@ -94,7 +96,7 @@ const chosebkitLocation = (path) => {
   else return null
 }
 
-const install2AlternateLocation = async (fullpath, args = {}) => {
+const install2AlternateLocation = (fullpath, args = {}) => {
   const {
     title = "bkit client isn't installed yet",
     detail =  'Please choose a location for install it',
@@ -112,15 +114,15 @@ const install2AlternateLocation = async (fullpath, args = {}) => {
   if (option === 0) {
     const location = chosebkitLocation(fullpath)
     if (location) {
-      return await install(location)
+      return install(location)
     } else {
-      return await install2AlternateLocation(fullpath, args)
+      return install2AlternateLocation(fullpath, args)
     }
   } else if (option > 0) {
     return option
   } else {
     say.log('Something else')
-    return await install2AlternateLocation(fullpath, args)
+    return install2AlternateLocation(fullpath, args)
   }
 }
 
@@ -142,7 +144,7 @@ const install = (dst) => {
     say.log('Sync', client, dst)
     copySync(client, dst)
     if (isWin) winInstall(dst)
-    return Promise.resolve(dst)
+    return dst
   } else {
     return install2AlternateLocation(dst)
   }
@@ -152,26 +154,25 @@ export const setupbkit = (dst) => {
   say.log('Setup bkit', dst)
   if (isWin && !isAdmin) {
     runasAdmin()
-    say.log('Go to relaunch')
-    app.relaunch()
-    app.exit(0)
-    return Promise.resolve(null)
+    // say.log('Go to relaunch')
+    // app.relaunch()
+    // app.exit(0)
+    load_config()
+    return bkitPath()
   } else {
-    return install(dst)
-      .then((location) => {
-        say.log('Installation done to', location)
+    const location = install(dst)
+    say.log('Installation done to', location)
 
-        config.bkit = location
-        say.log('save bkit client location', config.bkit)
-        save_config()
+    config.bkit = location
+    say.log('save bkit client location', config.bkit)
+    save_config()
 
-        if (isAdmin && app.commandLine.hasSwitch('elevated')) {
-          say.log('The elevated run instance will quit now')
-          app.quit()
-        } else {
-          return location
-        }      
-      })
+    if (isAdmin && app.commandLine.hasSwitch('elevated')) {
+      say.log('The elevated run instance will quit now')
+      app.quit()
+    } else {
+      return location
+    }      
   }
 }
 
@@ -228,9 +229,9 @@ function winInstall (location) {
     say.log('winInstall.error', result.error)
     if (result.status !== 0) {
       install2AlternateLocation(location, winInstall)
-    } 
+    }
   } catch (err) {
-    say.error(err)
+    say.error('winInstall errors:', err)
   }
 }
 
