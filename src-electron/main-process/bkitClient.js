@@ -77,10 +77,10 @@ const elevate = () => {
     throw new Error('I am supposed to be called only in a windows platform')
   }
 }
-
 const runasAdmin = () => {
   say.log('Run as Administrator')
   elevate()
+  // runAs()
   say.log('Continue run as normal user')
 }
 
