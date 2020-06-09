@@ -1,14 +1,20 @@
 <template>
   <q-page padding class="relative">
-  <Photoshop v-model="colors" v-if="chooseop === 'Photoshop'"/>
-  <Material v-model="colors" v-if="chooseop === 'Material'"/>
-  <Chrome v-model="colors" v-if="chooseop === 'Chrome'"/>
-  <Compact v-model="colors" v-if="chooseop === 'Compact'"/>
-  <Sketch v-model="colors" v-if="chooseop === 'Sketch'"/>
-  <Slider v-model="colors" v-if="chooseop === 'Slider'"/>
+  <Photoshop v-model="color" v-if="chooseop === 'Photoshop'"/>
+  <Material v-model="color" v-if="chooseop === 'Material'"/>
+  <Chrome v-model="color" v-if="chooseop === 'Chrome'"/>
+  <Compact v-model="color" v-if="chooseop === 'Compact'"/>
+  <Sketch v-model="color" v-if="chooseop === 'Sketch'"/>
+  <Slider v-model="color" v-if="chooseop === 'Slider'"/>
    Customize .....
     <q-select v-model="chooseop" :options="choose" label="Escolha" />
-    <q-select v-model="cor" :options="options" label="Nome" />
+
+     <q-option-group
+      :options="options"
+      label="colors"
+      type="radio"
+      v-model="group"
+    />
     <q-btn color="primary" label="change" @click="change"/>
     <q-badge color="ok">texto do ok</q-badge>
     <q-badge color="error">texto do error</q-badge>>
@@ -26,11 +32,23 @@ export default {
   name: 'Customize',
   data () {
     return {
-      colors: '',
+      color: '',
       valor: '',
       cor: 'ok',
-      options: ['ok', 'error'],
       chooseop: '',
+      cores: ['ok', 'error'],
+      group: 'ok',
+      options: [
+        { label: 'ok', value: 'ok' },
+        { label: 'error', value: 'error', color: 'green' }
+        { label: 'error', value: 'error', color: 'green' }
+        { label: 'error', value: 'error', color: 'green' }
+        { label: 'error', value: 'error', color: 'green' }
+        { label: 'error', value: 'error', color: 'green' }
+        { label: 'error', value: 'error', color: 'green' }
+        { label: 'error', value: 'error', color: 'green' }
+        { label: 'error', value: 'error', color: 'green' }
+      ],
       choose: ['Chrome', 'Compact', 'Material', 'Photoshop', 'Sketch', 'Slider']
     }
   },
@@ -44,8 +62,8 @@ export default {
   },
   methods: {
     change () {
-      console.log('colors', this.colors)
-      colors.setBrand(this.cor, this.colors.hex)
+      console.log('color', this.color)
+      colors.setBrand(this.cor, this.color.hex)
     }
   },
   async mounted () {
