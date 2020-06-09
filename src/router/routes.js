@@ -44,6 +44,11 @@ const routes = [
         path: 'customize',
         component: () => import('pages/Customize.vue'),
         name: 'customize'
+      },
+      {
+        path: 'Jorge',
+        component: () => import('pages/Jorge.vue'),
+        name: 'Jorge'
       }
     ]
   }

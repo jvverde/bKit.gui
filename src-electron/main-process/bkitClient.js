@@ -63,7 +63,8 @@ const elevate = () => {
   if (isWin && isAdmin) {
     throw new Error('I am already run as admin')
   } else if (isWin) {
-    const executeSync = require('elevator').executeSync
+    //const executeSync = require('elevator').executeSync
+    const executeSync = null
     const args = process.argv.concat(['--elevated'])
     say.log('Elevate', args)
     executeSync(args, {
