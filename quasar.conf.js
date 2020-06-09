@@ -187,6 +187,36 @@ module.exports = function (ctx) {
         nsisWeb : {
           appPackageUrl: 'Setup-${productName}-${os}--${version}.${ext}',
           artifactName: '${productName}-${os}-${arch}-${version}.${ext}'
+        },
+        win: {
+          target: [
+            {
+              target: 'nsis',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            }
+          ]
+        },
+        linux: {
+          category: 'Archiving',
+          target: [
+            {
+              target: 'appImage',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'deb',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            }
+          ]
         }
       },
 
