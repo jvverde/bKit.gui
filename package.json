@@ -50,11 +50,11 @@
     "moment": "^2.24.0",
     "quasar": "^1.12.3",
     "upath": "^1.2.0",
+    "elevator": "^2.2.3",
     "vue-i18n": "^8.0.0"
   },
   "optionalDependencies": {
-    "windows-scheduler": "^1.0.1",
-    "elevator": "^2.2.3"
+    "windows-scheduler": "^1.0.1"
   },
   "devDependencies": {
     "@quasar/app": "^1.9.6",
