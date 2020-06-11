@@ -214,13 +214,14 @@ const reinstallbkit = (dst = defaultbkitClientPath()) => {
   return setupbkit(dst)
 }
 
-app.on('ready', () => {
+app.on('ready', async () => {
   say.log('App is ready')
   load_config()
   const client = bkitPath()
   say.log('Check if client is run at', client)
   if(!client || !fs.existsSync(client) || !isbkitok(client)) {
-    reinstallbkit(client)
+    await reinstallbkit(client)
+    say.log('After wait')
     load_config()
   }
   createWindow()

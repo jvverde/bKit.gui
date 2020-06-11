@@ -1,9 +1,17 @@
+import {
+  readFileSync,
+  readdirSync,
+  existsSync,
+  mkdirSync,
+  accessSync,
+  constants
+} from 'fs'
+
 import path from 'path'
-import { readFileSync, readdirSync, existsSync, mkdirSync, accessSync, constants } from 'fs'
 import { spawnSync, execSync } from 'child_process'
 import { copySync } from 'fs-extra'
-
 import { app, dialog } from 'electron'
+const Shell = require('node-powershell')
 
 const Store = require('electron-store')
 const store = new Store({ name: 'config' })
@@ -82,10 +90,29 @@ const elevate = () => {
     throw new Error('I am supposed to be called only in a windows platform')
   }
 }
-const runasAdmin = () => {
+const runas = async () => {
+  const args = process.argv.concat(['--elevated'])
+  const cmd = args.shift()
+  const escaped = args.join(' ')
+  console.log('escaped', escaped)
+  const ps = new Shell({
+      executionPolicy: 'Bypass',
+      noProfile: true
+  })
+  ps.addCommand(`Start-Process -WindowStyle hidden "${cmd}" -Verb RunAs -Wait -ArgumentList '${escaped}'`)
+  await ps.invoke()
+    .then(output => {
+      say.log('output', output)
+    })
+    .catch(err => {
+      say.log('err', err)
+    })
+  say.log('Runas done')
+} 
+const runasAdmin = async () => {
   say.log('Run as Administrator')
-  elevate()
-  // runAs()
+  // elevate()
+  await runas()
   say.log('Continue run as normal user')
 }
 
@@ -157,10 +184,10 @@ const install = (dst) => {
   }
 }
 
-export const setupbkit = (dst) => {
+export const setupbkit = async (dst) => {
   say.log('Setup bkit', dst)
   if (isWin && !isAdmin) {
-    runasAdmin()
+    await runasAdmin()
     // say.log('Go to relaunch')
     // app.relaunch()
     // app.exit(0)
