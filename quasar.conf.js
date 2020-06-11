@@ -173,6 +173,9 @@ module.exports = function (ctx) {
         generateUpdatesFilesForAllChannels: true,
         publish: [
           {
+            provider: 'github'
+          },
+          {
             provider: 'generic',
             url: 'http://gui.bkit.pt/download/'
           }
@@ -185,13 +188,27 @@ module.exports = function (ctx) {
           perMachine: true
         },
         nsisWeb : {
-          appPackageUrl: 'Setup-${productName}-${os}--${version}.${ext}',
-          artifactName: '${productName}-${os}-${arch}-${version}.${ext}'
+          appPackageUrl: 'http://gui.bkit.pt/download/latest',
+          artifactName: 'Setup-${productName}-${os}-${arch}-${version}.${ext}'
         },
         win: {
           target: [
             {
               target: 'nsis',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'nsis-web',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'msi',
               arch: [
                 'x64',
                 'ia32'
@@ -204,6 +221,27 @@ module.exports = function (ctx) {
           target: [
             {
               target: 'appImage',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'tar.gz',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'apk',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'rpm',
               arch: [
                 'x64',
                 'ia32'
