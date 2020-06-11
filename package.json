@@ -74,7 +74,8 @@
     "eslint-plugin-vue": "^5.0.0",
     "majestic": "^1.2.24",
     "sinon": "^9.0.2",
-    "wallaby-vue-compiler": "^1.0.3"
+    "wallaby-vue-compiler": "^1.0.3",
+    "xvfb-maybe": "^0.2.1"
   },
   "engines": {
     "node": ">= 8.9.0",
