@@ -93,25 +93,28 @@ const elevate = () => {
 const runas = async () => {
   const args = process.argv.concat(['--elevated'])
   const cmd = args.shift()
-  const escaped = args.join(' ')
+  const escaped = args.map(e => {
+   return e.startsWith('-') && !e.match(/^["']/) ? e : `"${e}"` 
+  }).join(' ')
   console.log('escaped', escaped)
   const ps = new Shell({
       executionPolicy: 'Bypass',
       noProfile: true
   })
   ps.addCommand(`Start-Process -WindowStyle hidden "${cmd}" -Verb RunAs -Wait -ArgumentList '${escaped}'`)
+  say.log('invoke RunAs')
   await ps.invoke()
     .then(output => {
-      say.log('output', output)
+      say.log('Output:', output)
     })
     .catch(err => {
-      say.log('err', err)
+      say.log('Err:', err)
     })
-  say.log('Runas done')
+  say.log('RunAs done')
 } 
+
 const runasAdmin = async () => {
   say.log('Run as Administrator')
-  // elevate()
   await runas()
   say.log('Continue run as normal user')
 }
