@@ -2,9 +2,10 @@ import {
   app,
   BrowserWindow,
   nativeTheme,
-  ipcMain,
-  Menu
+  ipcMain
 } from 'electron'
+
+import menu from './menu'
 
 import {
   bkitPath,
@@ -75,88 +76,6 @@ function createWindow () {
 
   mainWindowState.manage(mainWindow)
 }
-
-// from https://www.tutorialspoint.com/electron/electron_menus.htm
-const template = [
-  {
-    role: 'fileMenu',
-    submenu: [
-      {
-        label: 'Upgrade GUI',
-        submenu: [
-          {
-            label: 'Beta',
-            click: async () => {
-              await getUpdates('beta')
-            }
-          },{
-            label: 'Stable',
-            click: async () => {
-              await getUpdates('latest')
-            }
-          }
-        ]
-      },
-      {
-        role: 'quit'
-      }
-    ]
-  },{
-    label: 'Edit',
-    submenu: [{
-        role: 'undo'
-      },{
-        role: 'redo'
-      },{
-        type: 'separator'
-      },{
-        role: 'cut'
-      },{
-        role: 'copy'
-      },{
-        role: 'paste'
-      },{
-        type: 'separator'
-      }]
-  },{
-    label: 'View',
-    submenu: [{
-        role: 'reload'
-      },{
-        role: 'forceReload'
-      },{
-        role: 'toggledevtools'
-      },{
-        type: 'separator'
-      },{
-        role: 'resetzoom'
-      },{
-        role: 'zoomin'
-      },{
-        role: 'zoomout'
-      },{
-        type: 'separator'
-      },{
-        role: 'togglefullscreen'
-      }]
-  },{
-    role: 'window',
-    submenu: [{
-        role: 'minimize'
-      },{
-        role: 'close'
-      }]
-  } /*,{
-    role: 'help',
-    submenu: [{
-        label: 'Learn More'
-       }]
-  }*/
-]
-
-const menu = Menu.buildFromTemplate(template)
-Menu.setApplicationMenu(menu)
-// ------------------------------
 
 const defaultbkitClientPath = () => {
   const current = path.join(app.getAppPath()).replace(/[\\\/]bkit[\\\/]resources[\\\/].*/i, '')
@@ -231,6 +150,8 @@ ipcMain.on('app_version', (event) => {
 ipcMain.on('getPath', (event, name) => {
   event.returnValue = app.getPath(name)
 })
+
+menu()
 
 say.log('bkit started')
 
