@@ -1,42 +1,35 @@
-import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu, Notification } from 'electron'
-import { bkitPath, setupbkit, isbkitClintInstalled, isbkitok, save_config, load_config } from './bkitClient'
+import {
+  app,
+  BrowserWindow,
+  nativeTheme,
+  ipcMain,
+  dialog,
+  Menu,
+  Notification
+} from 'electron'
 
-const log = require('electron-log')
-const { autoUpdater } = require("electron-updater")
-const path = require('path')
-const fs = require('fs')
+import {
+  bkitPath,
+  setupbkit,
+  isbkitClintInstalled,
+  isbkitok,
+  save_config,
+  load_config
+} from './bkitClient'
 
-
-autoUpdater.logger = log
-autoUpdater.allowDowngrade = true
-autoUpdater.autoInstallOnAppQuit = false
-autoUpdater.autoDownload = false
-autoUpdater.logger.transports.file.level = 'info'
-autoUpdater.on('error', (err) => {
-  log.error(err)
-})
-
-const say = {
-  log: (...args) => {
-    console.log(...args)
-    log.info(...args)
-  },
-  warn: (...args) => {
-    console.warn(...args)
-    log.warn(...args)
-  },
-  error: (...args) => {
-    console.error(...args)
-    log.error(...args)
-  }
-}
+import { check4updates, getUpdates } from './auto-update'
+import say from './say'
+import path from 'path'
+import fs from 'fs'
+import { autoUpdater } from 'electron-updater'
+import windowStateKeeper from 'electron-window-state'
 
 say.log('bkit starting...')
-say.log('Elevated', app.commandLine.hasSwitch('elevated'))
+say.log('is Elevated:', app.commandLine.hasSwitch('elevated'))
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
-    require('fs').unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'))
+    fs.unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'))
   }
 } catch (_) { }
 
@@ -51,8 +44,6 @@ if (process.env.PROD) {
 let mainWindow
 
 function createWindow () {
-
-  const windowStateKeeper = require('electron-window-state')
   const mainWindowState = windowStateKeeper({
     defaultWidth: 1000,
     defaultHeight: 800
@@ -85,41 +76,6 @@ function createWindow () {
   })
 
   mainWindowState.manage(mainWindow)
-}
-
-function check4updates () {
-  autoUpdater.on('update-available', (info) => {
-    sendStatusToWindow(info)
-    say.log(info)
-    if (Notification.isSupported()) {
-      const notify = new Notification({
-        title: 'Updated version',
-        body: `A new version ${info.version} is available`
-      })
-      notify.show()
-    }
-  })
-  autoUpdater.autoInstallOnAppQuit = false
-  autoUpdater.autoDownload = false
-  say.log(`Check for updates...`)
-  autoUpdater.checkForUpdatesAndNotify()
-}
-
-function getUpdates(channel = 'latest') {
-  autoUpdater.channel = channel
-  autoUpdater.on('update-not-available', (info) => {
-    dialog.showMessageBox({
-      title: 'No Updates',
-      message: 'Current version is up-to-date.'
-    })
-  })
-  autoUpdater.on('update-downloaded', (info) => {
-    setImmediate(() => autoUpdater.quitAndInstall())
-  })
-  autoUpdater.autoInstallOnAppQuit = true
-  autoUpdater.autoDownload = true
-  say.log(`Check and get updates on channel ${channel}`)
-  return autoUpdater.checkForUpdates()
 }
 
 // from https://www.tutorialspoint.com/electron/electron_menus.htm
@@ -277,13 +233,6 @@ ipcMain.on('app_version', (event) => {
 ipcMain.on('getPath', (event, name) => {
   event.returnValue = app.getPath(name)
 })
-
-// Auto updater section
-
-function sendStatusToWindow(text) {
-  say.log(text)
-  mainWindow.webContents.send('message', text)
-}
 
 say.log('bkit started')
 

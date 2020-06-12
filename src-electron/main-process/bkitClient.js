@@ -7,13 +7,14 @@ import {
   constants
 } from 'fs'
 
-import path from 'path'
 import { spawnSync, execSync } from 'child_process'
 import { copySync } from 'fs-extra'
 import { app, dialog } from 'electron'
-const Shell = require('node-powershell')
+import path from 'path'
+import Shell from 'node-powershell'
+import say from './say'
+import Store from 'electron-store'
 
-const Store = require('electron-store')
 const store = new Store({ name: 'config' })
 const get_config = () => store.get('config') || {}
 
@@ -26,26 +27,10 @@ export const load_config = () => {
 export const save_config = () => {
   config.lasttime = new Date(Date.now()).toISOString()
   store.set('config', config)
+  say.log('Saved config')
 }
 
 export const bkitPath = () => config.bkit
-
-const log = require('electron-log')
-
-const say = {
-  log: (...args) => {
-    console.log(...args)
-    log.info(...args)
-  },
-  warn: (...args) => {
-    console.warn(...args)
-    log.warn(...args)
-  },
-  error: (...args) => {
-    console.error(...args)
-    log.error(...args)
-  }
-}
 
 if (process.env.PROD) {
   global.__statics = path.join(__dirname, 'statics').replace(/\\/g, '\\\\')
@@ -109,6 +94,7 @@ const runas = async () => {
     })
     .catch(err => {
       say.log('Err:', err)
+      throw err
     })
   say.log('RunAs done')
 } 
