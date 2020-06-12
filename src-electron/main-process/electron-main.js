@@ -22,6 +22,7 @@ import path from 'path'
 import fs from 'fs'
 import { autoUpdater } from 'electron-updater'
 import windowStateKeeper from 'electron-window-state'
+import statics from './statics'
 
 say.log('bkit starting...')
 say.log('is Elevated:', app.commandLine.hasSwitch('elevated'))
@@ -31,14 +32,6 @@ try {
     fs.unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'))
   }
 } catch (_) { }
-
-/**
- * Set `__statics` path to static files in production;
- * The reason we are setting it here is that the path needs to be evaluated at runtime
- */
-if (process.env.PROD) {
-  global.__statics = path.join(__dirname, 'statics').replace(/\\/g, '\\\\')
-}
 
 let mainWindow
 
@@ -139,8 +132,8 @@ ipcMain.on('getbkitPath', (event) => {
 })
 
 ipcMain.on('getStatics', (event) => {
-  say.log('getStatics', __statics)
-  event.returnValue = __statics
+  say.log('getStatics', statics)
+  event.returnValue = statics
 })
 
 ipcMain.on('app_version', (event) => {
@@ -154,4 +147,3 @@ ipcMain.on('getPath', (event, name) => {
 menu()
 
 say.log('bkit started')
-

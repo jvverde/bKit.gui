@@ -14,6 +14,8 @@ import path from 'path'
 import Shell from 'node-powershell'
 import say from './say'
 import Store from 'electron-store'
+import runasAdmin from './runas'
+import statics from './statics'
 
 const store = new Store({ name: 'config' })
 const get_config = () => store.get('config') || {}
@@ -32,10 +34,6 @@ export const save_config = () => {
 
 export const bkitPath = () => config.bkit
 
-if (process.env.PROD) {
-  global.__statics = path.join(__dirname, 'statics').replace(/\\/g, '\\\\')
-}
-
 const mkdir = (path) => { return mkdirSync(path, { recursive: true }) }
 
 const isWin = process.platform === 'win32'
@@ -52,35 +50,17 @@ const isAdmin = isWin && (() => {
 
 const isEmpty = (path) => readdirSync(path).length === 0
 
-const runas = async () => {
-  const args = process.argv.concat(['--elevated'])
-  const cmd = args.shift()
-  const escaped = args.map(e => {
-   return e.startsWith('-') && !e.match(/^["']/) ? e : `"${e}"` 
-  }).join(' ')
-  console.log('escaped', escaped)
-  const ps = new Shell({
-      executionPolicy: 'Bypass',
-      noProfile: true
-  })
-  ps.addCommand(`Start-Process -WindowStyle hidden "${cmd}" -Verb RunAs -Wait -ArgumentList '${escaped}'`)
-  say.log('invoke RunAs')
-  await ps.invoke()
-    .then(output => {
-      say.log('Output:', output)
-    })
-    .catch(err => {
-      say.log('Err:', err)
-      throw err
-    })
-  say.log('RunAs done')
+const checkRights = (dst) => {
+  try {
+    if (!existsSync(dst)) mkdir(dst)
+    say.log('Test write access to', dst)
+    accessSync(dst, constants.W_OK)
+    say.log('Yes, I can write on', dst)
+    return true
+  } catch (err) {
+    return false
+  }
 } 
-
-const runasAdmin = async () => {
-  say.log('Run as Administrator')
-  await runas()
-  say.log('Continue run as normal user')
-}
 
 const chosebkitLocation = (path) => {
   const result = dialog.showOpenDialogSync({
@@ -126,21 +106,9 @@ const install2AlternateLocation = (fullpath, args = {}) => {
   }
 }
 
-const checkRights = (dst) => {
-  try {
-    if (!existsSync(dst)) mkdir(dst)
-    say.log('Test write access to', dst)
-    accessSync(dst, constants.W_OK)
-    say.log('Yes, I can write on', dst)
-    return true
-  } catch (err) {
-    return false
-  }
-} 
-
 const install = (dst) => {
   if (checkRights(dst)) {
-    const client = path.join(__statics, 'bkit-client')
+    const client = path.join(statics, 'bkit-client')
     say.log('Sync', client, dst)
     copySync(client, dst)
     if (isWin) winInstall(dst)
@@ -154,9 +122,6 @@ export const setupbkit = async (dst) => {
   say.log('Setup bkit', dst)
   if (isWin && !isAdmin) {
     await runasAdmin()
-    // say.log('Go to relaunch')
-    // app.relaunch()
-    // app.exit(0)
     load_config()
     return bkitPath()
   } else {
@@ -178,7 +143,7 @@ export const setupbkit = async (dst) => {
 
 const _getList = () => {
   try {
-    const depends = path.join(__statics, '/depends.lst')
+    const depends = path.join(statics, '/depends.lst')
     const result = readFileSync(depends, 'utf8')
     return result.split(/\r*\n+/).filter(e => e.match(/\.sh$/))
   } catch (err) {
@@ -207,12 +172,6 @@ function bkitping (location) {
     say.warn('bkitping fail:', err)
     return false
   }
-}
-
-const impossible2install = {
-  title: 'Impossible to install',
-  message: "Errors while instaling on given location",
-  detail: 'Please choose a another location'
 }
 
 function winInstall (location) {

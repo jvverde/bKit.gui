@@ -1,5 +1,4 @@
 import {  Menu } from 'electron'
-
 import { check4updates, getUpdates } from './auto-update'
 
 // from https://www.tutorialspoint.com/electron/electron_menus.htm
