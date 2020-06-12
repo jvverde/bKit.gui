@@ -47,7 +47,7 @@
     "electron-updater": "^4.2.2",
     "electron-window-state": "^5.0.3",
     "elevator": "^2.2.3",
-    "fs-extra": "^8.1.0",
+    "fs-extra": "^9.0.1",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "node-powershell": "^4.0.0",
