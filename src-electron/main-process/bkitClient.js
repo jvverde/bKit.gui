@@ -1,11 +1,20 @@
-import path from 'path'
-import { readFileSync, readdirSync, existsSync, mkdirSync, accessSync, constants } from 'fs'
+import {
+  readFileSync,
+  readdirSync,
+  existsSync,
+  mkdirSync,
+  accessSync,
+  constants
+} from 'fs'
+
 import { spawnSync, execSync } from 'child_process'
 import { copySync } from 'fs-extra'
-
 import { app, dialog } from 'electron'
+import path from 'path'
+import Shell from 'node-powershell'
+import say from './say'
+import Store from 'electron-store'
 
-const Store = require('electron-store')
 const store = new Store({ name: 'config' })
 const get_config = () => store.get('config') || {}
 
@@ -18,26 +27,10 @@ export const load_config = () => {
 export const save_config = () => {
   config.lasttime = new Date(Date.now()).toISOString()
   store.set('config', config)
+  say.log('Saved config')
 }
 
 export const bkitPath = () => config.bkit
-
-const log = require('electron-log')
-
-const say = {
-  log: (...args) => {
-    console.log(...args)
-    log.info(...args)
-  },
-  warn: (...args) => {
-    console.warn(...args)
-    log.warn(...args)
-  },
-  error: (...args) => {
-    console.error(...args)
-    log.error(...args)
-  }
-}
 
 if (process.env.PROD) {
   global.__statics = path.join(__dirname, 'statics').replace(/\\/g, '\\\\')
@@ -59,33 +52,33 @@ const isAdmin = isWin && (() => {
 
 const isEmpty = (path) => readdirSync(path).length === 0
 
-const elevate = () => {
-  if (isWin && isAdmin) {
-    throw new Error('I am already run as admin')
-  } else if (isWin) {
-    try {
-      const executeSync = require('elevator').executeSync
-      const args = process.argv.concat(['--elevated'])
-      say.log('Elevate', args)
-      executeSync(args, {
-        waitForTermination: true
-      }, function(error, stdout, stderr) {
-        if (error) throw error
-        say.log('executeSync stdout', stdout)
-        say.log('executeSync stderr', stderr)
-      })
-    } catch (err) {
-      console.log('Elevate error', err)
+const runas = async () => {
+  const args = process.argv.concat(['--elevated'])
+  const cmd = args.shift()
+  const escaped = args.map(e => {
+   return e.startsWith('-') && !e.match(/^["']/) ? e : `"${e}"` 
+  }).join(' ')
+  console.log('escaped', escaped)
+  const ps = new Shell({
+      executionPolicy: 'Bypass',
+      noProfile: true
+  })
+  ps.addCommand(`Start-Process -WindowStyle hidden "${cmd}" -Verb RunAs -Wait -ArgumentList '${escaped}'`)
+  say.log('invoke RunAs')
+  await ps.invoke()
+    .then(output => {
+      say.log('Output:', output)
+    })
+    .catch(err => {
+      say.log('Err:', err)
       throw err
-    }
-  } else {
-    throw new Error('I am supposed to be called only in a windows platform')
-  }
-}
-const runasAdmin = () => {
+    })
+  say.log('RunAs done')
+} 
+
+const runasAdmin = async () => {
   say.log('Run as Administrator')
-  elevate()
-  // runAs()
+  await runas()
   say.log('Continue run as normal user')
 }
 
@@ -157,10 +150,10 @@ const install = (dst) => {
   }
 }
 
-export const setupbkit = (dst) => {
+export const setupbkit = async (dst) => {
   say.log('Setup bkit', dst)
   if (isWin && !isAdmin) {
-    runasAdmin()
+    await runasAdmin()
     // say.log('Go to relaunch')
     // app.relaunch()
     // app.exit(0)
