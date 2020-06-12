@@ -3,9 +3,7 @@ import {
   BrowserWindow,
   nativeTheme,
   ipcMain,
-  dialog,
-  Menu,
-  Notification
+  Menu
 } from 'electron'
 
 import {

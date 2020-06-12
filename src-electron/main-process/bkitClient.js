@@ -52,29 +52,6 @@ const isAdmin = isWin && (() => {
 
 const isEmpty = (path) => readdirSync(path).length === 0
 
-const elevate = () => {
-  if (isWin && isAdmin) {
-    throw new Error('I am already run as admin')
-  } else if (isWin) {
-    try {
-      const executeSync = require('elevator').executeSync
-      const args = process.argv.concat(['--elevated'])
-      say.log('Elevate', args)
-      executeSync(args, {
-        waitForTermination: true
-      }, function(error, stdout, stderr) {
-        if (error) throw error
-        say.log('executeSync stdout', stdout)
-        say.log('executeSync stderr', stderr)
-      })
-    } catch (err) {
-      console.log('Elevate error', err)
-      throw err
-    }
-  } else {
-    throw new Error('I am supposed to be called only in a windows platform')
-  }
-}
 const runas = async () => {
   const args = process.argv.concat(['--elevated'])
   const cmd = args.shift()
