@@ -71,7 +71,9 @@ function createWindow () {
 }
 
 const defaultbkitClientPath = () => {
-  const current = path.join(app.getAppPath()).replace(/[\\\/]bkit[\\\/]resources[\\\/].*/i, '')
+  const appath = app.getAppPath()
+  say.log('App path', appath)
+  const current = appath.replace(/[\\\/]bkit[\\\/]resources[\\\/].*/i, '')
   return path.normalize(path.join(current, 'bkit-client'))  
 }
 
@@ -81,7 +83,9 @@ const reinstallbkit = (dst = defaultbkitClientPath()) => {
 }
 
 app.on('ready', async () => {
-  say.log('App is ready')
+  say.log('App is ready', app.getAppPath())
+  say.log('__dirname', __dirname)
+  say.log('__filename', __filename)
   load_config()
   const client = bkitPath()
   say.log('Check if client is run at', client)

@@ -181,6 +181,11 @@ module.exports = function (ctx) {
             url: 'http://gui.bkit.pt/download/'
           }
         ],
+        asar: {
+        },
+        extraFiles: [
+          'bkit-client/**'
+        ],
         productName: 'bKit',
         artifactName: '${productName}-${os}-${arch}-${version}.${ext}',
         nsis: {
@@ -200,8 +205,15 @@ module.exports = function (ctx) {
                 'x64',
                 'ia32'
               ]
-            },
+            },            
             {
+              target: 'zip',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            }
+/*            {
               target: 'nsis-web',
               arch: [
                 'x64',
@@ -214,7 +226,7 @@ module.exports = function (ctx) {
                 'x64',
                 'ia32'
               ]
-            }
+            }*/
           ]
         },
         linux: {
