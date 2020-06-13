@@ -172,9 +172,10 @@ module.exports = function (ctx) {
         copyright: 'Copyright © 2020 ${author}',
         generateUpdatesFilesForAllChannels: true,
         publish: [
-          // {
-          //   provider: 'github'
-          // },
+          {
+            provider: 'github',
+            releaseType: 'release'
+          },
           {
             provider: 'generic',
             url: 'http://gui.bkit.pt/download/'
@@ -199,22 +200,21 @@ module.exports = function (ctx) {
                 'x64',
                 'ia32'
               ]
+            },
+            {
+              target: 'nsis-web',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'msi',
+              arch: [
+                'x64',
+                'ia32'
+              ]
             }
-            // },
-            // {
-            //   target: 'nsis-web',
-            //   arch: [
-            //     'x64',
-            //     'ia32'
-            //   ]
-            // },
-            // {
-            //   target: 'msi',
-            //   arch: [
-            //     'x64',
-            //     'ia32'
-            //   ]
-            // }
           ]
         },
         linux: {
@@ -234,13 +234,13 @@ module.exports = function (ctx) {
                 'ia32'
               ]
             },
-            {
-              target: 'apk',
-              arch: [
-                'x64',
-                'ia32'
-              ]
-            },
+            // {
+            //   target: 'apk',
+            //   arch: [
+            //     'x64',
+            //     'ia32'
+            //   ]
+            // },
             {
               target: 'rpm',
               arch: [
