@@ -1,4 +1,4 @@
-import { webContents, Notification } from 'electron'
+import { webContents, Notification, dialog } from 'electron'
 
 import say from './say'
 import { autoUpdater } from 'electron-updater'
