@@ -191,7 +191,9 @@ module.exports = function (ctx) {
         nsis: {
           // oneClick: false,
           // allowToChangeInstallationDirectory: true,
-          perMachine: true
+          perMachine: true,
+          include: 'build/installer.nsh',
+          runAfterFinish: false
         },
         nsisWeb : {
           appPackageUrl: 'http://gui.bkit.pt/download/latest',
@@ -205,15 +207,15 @@ module.exports = function (ctx) {
                 'x64',
                 'ia32'
               ]
-            },            
+            }/*,            
             {
               target: 'zip',
               arch: [
                 'x64',
                 'ia32'
               ]
-            }
-/*            {
+            },
+            {
               target: 'nsis-web',
               arch: [
                 'x64',

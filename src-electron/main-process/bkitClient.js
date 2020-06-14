@@ -32,7 +32,15 @@ export const save_config = () => {
   say.log('Saved config')
 }
 
-export const bkitPath = () => config.bkit
+export const bkitPath = (location) => {
+  if (location && existsSync(location)) {
+    config.bkit = location
+    save_config()
+  } else if (location) {
+    throw new Error `'${location}' doen't exist`
+  }
+  return config.bkit
+}
 
 const mkdir = (path) => { return mkdirSync(path, { recursive: true }) }
 
@@ -141,26 +149,6 @@ export const setupbkit = async (dst) => {
   }
 }
 
-const options = [
-  (location) => location.replace(/[\\\/]resources[\\\/].*$/i, ''),
-  (location) => location.replace(/[\\\/][.]quasar[\\\/].*$/i, ''),
-  (location) => location
-]
-
-const LIMIT = 100
-const findbkit = (appath = app.getAppPath(), option = 0) => {
-  if (option < options.length) {
-    const base = options[option](appath)
-    const location = path.join(base, 'bkit-client')
-    if (isbkitClintInstalled(location)) return location
-    else return findbkit(appath, ++option)
-  } else if (option < LIMIT) {
-    const parent = path.dirname(appath)
-    if (parent && parent !== appath) return findbkit(parent, ++option)
-  }
-  return null
-}
-
 const _getList = () => {
   try {
     const depends = path.join(statics, '/depends.lst')
@@ -215,3 +203,24 @@ function winInstall (location) {
 }
 
 export const isbkitok = (location) => isbkitClintInstalled(location) && bkitping(location)
+
+const options = [
+  (location) => location.replace(/[\\\/]resources[\\\/].*$/i, ''),
+  (location) => location.replace(/[\\\/][.]quasar[\\\/].*$/i, ''), // this is only for the development phase
+  (location) => location
+]
+
+const LIMIT = 100
+export const findbkit = (appath = app.getAppPath(), option = 0) => {
+  if (option < options.length) {
+    const base = options[option](appath)
+    const location = path.join(base, 'bkit-client')
+    say.log('Check bkit at', location)
+    if (isbkitClintInstalled(location)) return location
+    else return findbkit(appath, ++option)
+  } else if (option < LIMIT) {
+    const parent = path.dirname(appath)
+    if (parent && parent !== appath) return findbkit(parent, ++option)
+  }
+  return null
+}

@@ -12,6 +12,7 @@ import {
   setupbkit,
   isbkitClintInstalled,
   isbkitok,
+  findbkit,
   save_config,
   load_config
 } from './bkitClient'
@@ -70,28 +71,15 @@ function createWindow () {
   mainWindowState.manage(mainWindow)
 }
 
-const defaultbkitClientPath = () => {
-  const appath = app.getAppPath()
-  say.log('App path', appath)
-  const current = appath.replace(/[\\\/]bkit[\\\/]resources[\\\/].*/i, '')
-  return path.normalize(path.join(current, 'bkit-client'))  
-}
-
-const reinstallbkit = (dst = defaultbkitClientPath()) => {
-  say.log('reinstallbkit', dst)
-  return setupbkit(dst)
-}
-
 app.on('ready', async () => {
-  say.log('App is ready', app.getAppPath())
-  say.log('__dirname', __dirname)
-  say.log('__filename', __filename)
+  say.log('App is ready')
   load_config()
   const client = bkitPath()
   say.log('Check if client is run at', client)
   if(!client || !fs.existsSync(client) || !isbkitok(client)) {
-    await reinstallbkit(client)
-    say.log('After wait')
+    const location = findbkit(client)
+    say.log('Found bkit-script at', location)
+    bkitPath(location)
     load_config()
   }
   createWindow()
@@ -132,7 +120,7 @@ app.once('before-quit', () => {
 ipcMain.on('getbkitPath', (event) => {
   const location = bkitPath()
   say.log('getbkitPath', location)
-  event.returnValue = location || reinstallbkit()
+  event.returnValue = location || findbkit()
 })
 
 ipcMain.on('getStatics', (event) => {
