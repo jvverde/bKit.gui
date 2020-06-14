@@ -167,7 +167,7 @@ module.exports = function (ctx) {
 
       builder: {
         // https://www.electron.build/configuration/configuration
-
+        generateUpdatesFilesForAllChannels: true,
         appId: 'gui.bkit.pt',
         copyright: 'Copyright © 2020 ${author}',
         generateUpdatesFilesForAllChannels: true,
