@@ -104,7 +104,7 @@ module.exports = function (ctx) {
         description: 'A bKit Client App',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#ffffff',
+        background_color: '#fffffe',
         theme_color: '#027be3',
         icons: [
           {
