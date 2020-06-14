@@ -99,55 +99,32 @@ const install2AlternateLocation = (fullpath, args = {}) => {
   })
   if (option === 0) {
     const location = chosebkitLocation(fullpath)
-    if (location) {
-      return install(location)
-    } else {
-      return install2AlternateLocation(fullpath, args)
-    }
+    return checkBkit(location)
   } else if(option === 1) { 
     return null
-  } else if (option > 1) {
-    return option
+  } else if (option === 2) {
+    runasAdmin()
+    load_config()
+    return bkitPath()
   } else {
     say.log('Something else')
     return install2AlternateLocation(fullpath, args)
   }
+  // If option Admin elevate and the load_config, bkitPath(), and check again
 }
 
-const install = (dst) => {
-  if (checkRights(dst)) {
-    const client = path.join(statics, 'bkit-client')
-    say.log('Sync', client, dst)
-    copySync(client, dst)
-    if (isWin) winInstall(dst)
-    return dst
-  } else {
-    return install2AlternateLocation(dst)
-  }
-}
+// const install = (dst) => {
+//   if (checkRights(dst)) {
+//     const client = path.join(statics, 'bkit-client')
+//     say.log('Sync', client, dst)
+//     copySync(client, dst)
+//     if (isWin) winInstall(dst)
+//     return dst
+//   } else {
+//     return install2AlternateLocation(dst)
+//   }
+// }
 
-export const setupbkit = async (dst) => {
-  say.log('Setup bkit', dst)
-  if (isWin && !isAdmin) {
-    await runasAdmin()
-    load_config()
-    return bkitPath()
-  } else {
-    const location = install(dst)
-    say.log('Installation done to', location)
-
-    config.bkit = location
-    say.log('save bkit client location', config.bkit)
-    save_config()
-
-    if (isAdmin && app.commandLine.hasSwitch('elevated')) {
-      say.log('The elevated run instance will quit now')
-      app.quit()
-    } else {
-      return location
-    }      
-  }
-}
 
 const _getList = () => {
   try {
@@ -182,45 +159,112 @@ function bkitping (location) {
   }
 }
 
-function winInstall (location) {
-  if (!isWin) return
-  try {
-    const result = spawnSync(
-      'CMD',
-      ['/C', 'setup.bat'],
-      { cwd: location, windowsHide: false }
-    )
-    say.log('winInstall.stdout', result.stdout.toString())
-    say.log('winInstall.stderr', result.stderr.toString())
-    say.log('winInstall.status', result.status)
-    say.log('winInstall.error', result.error)
-    if (result.status !== 0) {
-      install2AlternateLocation(location, winInstall)
-    }
-  } catch (err) {
-    say.error('winInstall errors:', err)
-  }
-}
-
 export const isbkitok = (location) => isbkitClintInstalled(location) && bkitping(location)
 
-const options = [
-  (location) => location.replace(/[\\\/]resources[\\\/].*$/i, ''),
-  (location) => location.replace(/[\\\/][.]quasar[\\\/].*$/i, ''), // this is only for the development phase
-  (location) => location
-]
+function winInstall (location) {
+  if (!isWin) throw new Error 'Not a windows platform'
+  if (checkRights(location)) {
+    try {
+      const result = spawnSync(
+        'CMD',
+        ['/C', 'setup.bat'],
+        { cwd: location, windowsHide: false }
+      )
+      say.log('winInstall.stdout', result.stdout.toString())
+      say.log('winInstall.stderr', result.stderr.toString())
+      say.log('winInstall.status', result.status)
+      say.log('winInstall.error', result.error)
+      if (result.status !== 0) {
+        return install2AlternateLocation(location, winInstall) // envia mensagem adequda e opção para correr como Admin
+      } else {
+        return location
+      }
+    } catch (err) {
+      say.error('winInstall errors:', err)
+      return install2AlternateLocation(location, winInstall)
+    }
+  } else {
+    return install2AlternateLocation(location, winInstall)    
+  }
+}
+
+
+export const setupbkit = async (dst) => {
+  say.log('Setup bkit', dst)
+  if (isWin && !isAdmin) {
+    await runasAdmin()
+    load_config()
+    return bkitPath()
+  } else {
+    const location = install(dst)
+    say.log('Installation done to', location)
+
+    config.bkit = location
+    say.log('save bkit client location', config.bkit)
+    save_config()
+
+    if (isAdmin && app.commandLine.hasSwitch('elevated')) {
+      say.log('The elevated run instance will quit now')
+      app.quit()
+    } else {
+      return location
+    }      
+  }
+}
+
+
+const checkBkit = (location, recheck = false) => {
+  if (isbkitok(location)) {
+    if (isAdmin && app.commandLine.hasSwitch('elevated')) {
+      say.log('The elevated run instance will quit now')
+      app.quit()
+    } else {
+      return bkitPath(location)
+    }
+  } else if (!recheck) {
+    return installBkit(location)
+  } else {
+    return install2AlternateLocation(location, winInstall)
+  }
+}
+
+const recheck = (location) => checkBkit(location, true)
+
+const installBkit(location) {
+  if (isWin && !process.env.PROD) { // Only need for windows, as we need to run setup.bat
+    const client = path.join(app.getAppPath(), 'bkit-client')
+    mkdir(client)
+    say.log(`Copy from ${location} to ${client}`)
+    copySync(location, client)
+    const installed = winInstall(client)
+    return recheck(installed)
+  } else if (isWin) {
+    const installed = winInstall(client)
+    return recheck(installed)    
+  } else {
+    return recheck(location)
+  }
+}
 
 const LIMIT = 100
-export const findbkit = (appath = app.getAppPath(), option = 0) => {
-  if (option < options.length) {
-    const base = options[option](appath)
-    const location = path.join(base, 'bkit-client')
-    say.log('Check bkit at', location)
-    if (isbkitClintInstalled(location)) return location
-    else return findbkit(appath, ++option)
-  } else if (option < LIMIT) {
-    const parent = path.dirname(appath)
-    if (parent && parent !== appath) return findbkit(parent, ++option)
+const findbkitLocation = (dir = app.getAppPath(), cnt = 0) => {
+  const base = dir.replace(/[\\\/]resources[\\\/].*$/i, '')
+  const location = path.join(base, 'bkit-client')
+  say.log('Check bkit at', dir)
+  if (isbkitClintInstalled(location)) {
+    return bkitPath(location)
+  } else if (cnt < LIMIT) {
+    const parent = path.dirname(dir)
+    if (parent && parent !== dir) return findbkitLocation(parent, ++cnt)
+  } else {
+    // ASK USER
+    return null
   }
-  return null
 }
+
+export const findbkit = () => {
+  const location = findbkitLocation()
+  return installBkit(location)
+}
+
+
