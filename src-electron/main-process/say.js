@@ -2,15 +2,21 @@ import log  from 'electron-log'
 
 export default {
   log: (...args) => {
-    console.log(...args)
-    log.info(...args)
+    try {
+      console.log(...args)
+      log.info(...args)
+    } catch(_) {}
   },
   warn: (...args) => {
-    console.warn(...args)
-    log.warn(...args)
+    try {
+      console.warn(...args)
+      log.warn(...args)
+    } catch(_)  {}
   },
   error: (...args) => {
-    console.error(...args)
-    log.error(...args)
+    try {
+      console.error(...args)
+      log.error(...args)
+    } catch(_) {}
   }
 }

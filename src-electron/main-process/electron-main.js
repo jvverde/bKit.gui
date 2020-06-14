@@ -77,10 +77,14 @@ app.on('ready', async () => {
   const client = bkitPath()
   say.log('Check if client is run at', client)
   if(!client || !fs.existsSync(client) || !isbkitok(client)) {
-    const location = findbkit(client)
-    say.log('Found bkit-script at', location)
-    bkitPath(location)
-    load_config()
+    try {
+      const location = await findbkit(client)
+      say.log('Found bkit client at', location)
+      bkitPath(location)
+      load_config()
+    } catch (err) {
+      say.warn('bKit client not found')
+    }
   }
   createWindow()
   check4updates()

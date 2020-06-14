@@ -14,7 +14,7 @@ const runas = async () => {
   })
   ps.addCommand(`Start-Process -WindowStyle hidden "${cmd}" -Verb RunAs -Wait -ArgumentList '${escaped}'`)
   say.log('invoke RunAs')
-  await ps.invoke()
+  return ps.invoke()
     .then(output => {
       say.log('Output:', output)
     })
@@ -22,7 +22,7 @@ const runas = async () => {
       say.log('Err:', err)
       throw err
     })
-  say.log('RunAs done')
+    .finally(() => say.log('RunAs done'))
 } 
 
 export default async function () {

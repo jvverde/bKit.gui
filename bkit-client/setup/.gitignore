@@ -1,0 +1,7 @@
+*.vbs
+*.log
+*.full
+*.exe
+subinacl/
+cygwin/
+shadowspawn/

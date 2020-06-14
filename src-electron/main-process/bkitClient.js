@@ -37,7 +37,7 @@ export const bkitPath = (location) => {
     config.bkit = location
     save_config()
   } else if (location) {
-    throw new Error `'${location}' doen't exist`
+    throw new Error(`'${location}' doen't exist`)
   }
   return config.bkit
 }
@@ -59,6 +59,7 @@ const isAdmin = isWin && (() => {
 const isEmpty = (path) => readdirSync(path).length === 0
 
 const checkRights = (dst) => {
+  if (!dst) return false
   try {
     if (!existsSync(dst)) mkdir(dst)
     say.log('Test write access to', dst)
@@ -69,62 +70,6 @@ const checkRights = (dst) => {
     return false
   }
 } 
-
-const chosebkitLocation = (path) => {
-  const result = dialog.showOpenDialogSync({
-    title: 'Select a location for bkit client',
-    defaultPath: path,
-    buttonLabel: 'Choose',
-    properties: ['openDirectory']
-  })
-  say.log('result', result)
-  if (result && result instanceof Array) return result[0]
-  else return null
-}
-
-const install2AlternateLocation = (fullpath, args = {}) => {
-  const {
-    title = "bkit client isn't installed yet",
-    detail =  'Please choose a location for install it',
-    buttons = ['Choose', 'Ignore'],
-    message = fullpath ? `For some unknown reason you can't install on ${fullpath}` : ''
-  } = args
-  const option = dialog.showMessageBoxSync({
-    title,
-    detail,
-    buttons,
-    message,
-    defaultId: 0,
-    cancelId: 0
-  })
-  if (option === 0) {
-    const location = chosebkitLocation(fullpath)
-    return checkBkit(location)
-  } else if(option === 1) { 
-    return null
-  } else if (option === 2) {
-    runasAdmin()
-    load_config()
-    return bkitPath()
-  } else {
-    say.log('Something else')
-    return install2AlternateLocation(fullpath, args)
-  }
-  // If option Admin elevate and the load_config, bkitPath(), and check again
-}
-
-// const install = (dst) => {
-//   if (checkRights(dst)) {
-//     const client = path.join(statics, 'bkit-client')
-//     say.log('Sync', client, dst)
-//     copySync(client, dst)
-//     if (isWin) winInstall(dst)
-//     return dst
-//   } else {
-//     return install2AlternateLocation(dst)
-//   }
-// }
-
 
 const _getList = () => {
   try {
@@ -161,9 +106,73 @@ function bkitping (location) {
 
 export const isbkitok = (location) => isbkitClintInstalled(location) && bkitping(location)
 
-function winInstall (location) {
-  if (!isWin) throw new Error 'Not a windows platform'
+const chosebkitLocation = (path) => {
+  const result = dialog.showOpenDialogSync({
+    title: 'Select a location for bkit client',
+    defaultPath: path,
+    buttonLabel: 'Choose',
+    properties: ['openDirectory']
+  })
+  say.log('result', result)
+  if (result && result instanceof Array) return result[0]
+  else return null
+}
+
+const install2AlternateLocation = async (fullpath, args = {}) => {
+  const {
+    title = "bKit Client isn't installed",
+    detail =  'Please choose the location of bKit Client',
+    message = `For some reason bKit Client isn't install on ${fullpath}`
+  } = args
+  const buttons = ['Ignore', 'Choose']
+  if (args.admin) buttons.push('Run as Admin')
+  const option = dialog.showMessageBoxSync({
+    title,
+    detail,
+    buttons,
+    message,
+    defaultId: 1,
+    cancelId: 0
+  })
+  if(option === 0) { 
+    return Promise.reject('Ignore')
+  } else if (option === 1) {
+    const location = chosebkitLocation(fullpath)
+    return verify(location)
+  } else if (option === 2) {
+    await runasAdmin()
+    load_config()
+    return Promise.resolve(bkitPath())
+  } else {
+    say.log('Something else')
+    return install2AlternateLocation(fullpath, args)
+  }
+}
+
+const makeargs = (title = '', message = '') => {
+  const mayElevate = isWin && !isAdmin
+  let detail = 'Please select a location where bKit Client is installed'
+  if (mayElevate) detail += ', or run as admin' 
+  return {
+    admin: mayElevate,
+    title,
+    detail,
+    message
+  }
+}
+
+const errorsRunning = (fullpath) => {
+  return makeargs('Error while running setup', `For some unknown reason the setup on  '${fullpath}' run into errors`)
+}
+const noRights2install = (fullpath) => {
+  return makeargs('No write permissions', `The current user have no permissions to write on ${fullpath}`)
+}
+
+const winInstall = async (location) => {
+  if (!isWin) throw new Error('Not a windows platform')
+  say.log('Try to setup bkit client at', location)
   if (checkRights(location)) {
+    say.log('Start setup bkit client at', location)
     try {
       const result = spawnSync(
         'CMD',
@@ -172,99 +181,90 @@ function winInstall (location) {
       )
       say.log('winInstall.stdout', result.stdout.toString())
       say.log('winInstall.stderr', result.stderr.toString())
-      say.log('winInstall.status', result.status)
-      say.log('winInstall.error', result.error)
       if (result.status !== 0) {
-        return install2AlternateLocation(location, winInstall) // envia mensagem adequda e opção para correr como Admin
-      } else {
-        return location
+        say.warn('The exist status of winstall is not 0', result.status)
+        say.warn('winInstall.error', result.error)
       }
+      return Promise.resolve(location)
     } catch (err) {
       say.error('winInstall errors:', err)
-      return install2AlternateLocation(location, winInstall)
+      return install2AlternateLocation(location, errorsRunning(location))
     }
   } else {
-    return install2AlternateLocation(location, winInstall)    
+    return install2AlternateLocation(location, noRights2install(location))    
   }
 }
 
-
-export const setupbkit = async (dst) => {
-  say.log('Setup bkit', dst)
-  if (isWin && !isAdmin) {
-    await runasAdmin()
-    load_config()
-    return bkitPath()
-  } else {
-    const location = install(dst)
-    say.log('Installation done to', location)
-
-    config.bkit = location
-    say.log('save bkit client location', config.bkit)
-    save_config()
-
-    if (isAdmin && app.commandLine.hasSwitch('elevated')) {
-      say.log('The elevated run instance will quit now')
-      app.quit()
-    } else {
-      return location
-    }      
-  }
+const notInstalled = (fullpath) => {
+  return makeargs('It was impossible to install', `For some reason bkit client isn't correctly intalled on ${fullpath}`)
 }
 
-
-const checkBkit = (location, recheck = false) => {
+const recheck = async (location) => {
+  say.log('Recheck bkit client at', location)
   if (isbkitok(location)) {
     if (isAdmin && app.commandLine.hasSwitch('elevated')) {
       say.log('The elevated run instance will quit now')
       app.quit()
     } else {
-      return bkitPath(location)
+      return Promise.resolve(bkitPath(location))
     }
-  } else if (!recheck) {
-    return installBkit(location)
   } else {
-    return install2AlternateLocation(location, winInstall)
+    return install2AlternateLocation(location, notInstalled(location))
   }
 }
 
-const recheck = (location) => checkBkit(location, true)
-
-const installBkit(location) {
+const installBkit = async (location) => {
+  say.log('Install bkit client at', location)
   if (isWin && !process.env.PROD) { // Only need for windows, as we need to run setup.bat
     const client = path.join(app.getAppPath(), 'bkit-client')
-    mkdir(client)
-    say.log(`Copy from ${location} to ${client}`)
-    copySync(location, client)
-    const installed = winInstall(client)
+    say.log('Copy bkit to development area', client)
+    if (client !== location) {
+      mkdir(client)
+      say.log(`Copy from ${location} to ${client}`)
+      copySync(location, client)
+    }
+    const installed = await winInstall(client)
     return recheck(installed)
   } else if (isWin) {
-    const installed = winInstall(client)
+    const installed = await winInstall(client)
     return recheck(installed)    
   } else {
     return recheck(location)
   }
 }
 
+const invalidLocation = (fullpath) => {
+  return makeargs('Invalid Location',`'${fullpath}' is an invalid location`)
+}
+
+const verify = async (location) => {
+  say.log('Verify bkit client at', location)
+  if (location && isbkitok(location)) {
+    return Promise.resolve(location)
+  } else if(location && existsSync(location)) {
+    return installBkit(location)
+  } else {
+    return install2AlternateLocation(location, invalidLocation(location))
+  }  
+}
+
 const LIMIT = 100
 const findbkitLocation = (dir = app.getAppPath(), cnt = 0) => {
   const base = dir.replace(/[\\\/]resources[\\\/].*$/i, '')
   const location = path.join(base, 'bkit-client')
-  say.log('Check bkit at', dir)
+  say.log('Search for bkit client at', dir)
   if (isbkitClintInstalled(location)) {
     return bkitPath(location)
   } else if (cnt < LIMIT) {
     const parent = path.dirname(dir)
     if (parent && parent !== dir) return findbkitLocation(parent, ++cnt)
-  } else {
-    // ASK USER
-    return null
   }
+  return null
 }
 
-export const findbkit = () => {
+export const findbkit = async () => {
   const location = findbkitLocation()
-  return installBkit(location)
+  return verify(location)
 }
 
 
