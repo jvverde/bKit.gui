@@ -232,7 +232,7 @@ module.exports = function (ctx) {
           ]
         },
         linux: {
-          category: 'Archiving',
+          category: 'Utility',
           target: [
             {
               target: 'appImage',
@@ -257,6 +257,13 @@ module.exports = function (ctx) {
             // },
             {
               target: 'rpm',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'pacman',
               arch: [
                 'x64',
                 'ia32'
