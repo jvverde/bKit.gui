@@ -189,11 +189,12 @@ module.exports = function (ctx) {
         productName: 'bKit',
         artifactName: '${productName}-${os}-${arch}-${version}.${ext}',
         nsis: {
-          // oneClick: false,
+          oneClick: false,
+          allowElevation: true, 
           // allowToChangeInstallationDirectory: true,
-          perMachine: true,
+          perMachine: false,
           include: 'build/installer.nsh',
-          runAfterFinish: false
+          runAfterFinish: true
         },
         nsisWeb : {
           appPackageUrl: 'http://gui.bkit.pt/download/latest',
@@ -248,13 +249,6 @@ module.exports = function (ctx) {
                 'ia32'
               ]
             },
-            // {
-            //   target: 'apk',
-            //   arch: [
-            //     'x64',
-            //     'ia32'
-            //   ]
-            // },
             {
               target: 'rpm',
               arch: [
