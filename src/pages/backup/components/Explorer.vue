@@ -209,8 +209,6 @@ export default {
     }
   },
   mounted () {
-    // this.show(this.mountpoint)
-    // console.log('mountpoint', this.mountpoint)
   },
   methods: {
     usesnap (snap) {

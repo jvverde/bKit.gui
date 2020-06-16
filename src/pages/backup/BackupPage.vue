@@ -1,47 +1,49 @@
 <template>
-  <q-page padding class="bkit-page row no-wrap">
-    <div style="flex-shrink: 0" class="disks column no-wrap items-center">
-      <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px">
-      <span class="text-center">Disks</span>
-      <q-tabs
-        v-model="disktab"
-        vertical
-        dense
-        no-caps
-        style="background-color: ghostwhite"
-        indicator-color="active"
-        active-bg-color="white">
-        <q-tab
-          v-for="disk in disks"
-          :key="disk.id"
-          :name="disk.id"
-          :disable="loading"
-          :ripple="{ early: true, color: 'indigo'}"
-          icon="far fa-hdd"
-          :class="'text-' + color(disk)"
-        >
-          <span class="disk">{{diskname(disk)}}</span>
-          <tooltip v-if="disklabel(disk)" :label="disklabel(disk)"/>
-        </q-tab>
-      </q-tabs>
-      <q-btn icon="sync" size="xs" flat color="bkit" @click="load"/>
-    </div>
+  <q-page padding class="fit">
     <q-splitter
       style="flex-grow: 1"
-      class="bkit-spliter-horizontal"
+      class="fit"
       :limits="[10, 99]"
       horizontal
       v-model="splitter">
       <template v-slot:before>
-        <q-tab-panels v-model="disktab" animated keep-alive class="bkit-panels">
-          <q-tab-panel
-            class="bkit-panel"
-            :name="disk.id"
-            v-for="disk in disks"
-            :key="disk.id">
-              <explorer v-bind="disk" @backup="backup" @restore="restore" @recover="recover"/>
-          </q-tab-panel>
-        </q-tab-panels>
+        <div class="row no-wrap fit">
+          <div style="flex-shrink: 0" class="disks column no-wrap items-center">
+            <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px">
+            <span class="text-center">Disks</span>
+            <q-tabs
+              v-model="disktab"
+              vertical
+              dense
+              no-caps
+              style="background-color: ghostwhite"
+              indicator-color="active"
+              active-bg-color="white">
+              <q-tab
+                v-for="disk in disks"
+                :key="disk.id"
+                :name="disk.id"
+                :disable="loading"
+                :ripple="{ early: true, color: 'indigo'}"
+                icon="far fa-hdd"
+                :class="'text-' + color(disk)"
+              >
+                <span class="disk">{{diskname(disk)}}</span>
+                <tooltip v-if="disklabel(disk)" :label="disklabel(disk)"/>
+              </q-tab>
+            </q-tabs>
+            <q-btn icon="sync" size="xs" flat color="bkit" @click="load"/>
+          </div>
+          <q-tab-panels v-model="disktab" animated keep-alive class="fit">
+            <q-tab-panel
+              class="fit"
+              :name="disk.id"
+              v-for="disk in disks"
+              :key="disk.id">
+                <explorer v-bind="disk" @backup="backup" @restore="restore" @recover="recover"/>
+            </q-tab-panel>
+          </q-tab-panels>
+        </div>
         <q-inner-loading :showing="loading">
           <q-spinner-ios size="100px" color="loader"/>
         </q-inner-loading>
@@ -226,23 +228,6 @@ export default {
 
 <style scoped lang="scss">
   @import 'src/css/app.scss';
-  .bkit-page {
-    height: 100%;
-    overflow-y: hidden;
-    .bkit-spliter-horizontal {
-      overflow-y:hidden;
-      height:100%;
-      .bkit-panels{
-        overflow-y: hidden;
-        height:100%;
-        .bkit-panel {
-          display: flex;
-          flex-direction: column;
-          height:100%;
-        }
-      }
-    }
-  }
   .console {
     background-color: $console;
     border: 2px solid $console-border;
