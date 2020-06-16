@@ -1,8 +1,8 @@
 <template>
   <q-page padding class="bkit-page row no-wrap">
-    <div style="flex-shrink: 0" class="column no-wrap items-center">
+    <div style="flex-shrink: 0" class="disks column no-wrap items-center">
       <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px">
-      <span class="text-center">Local Disks</span>
+      <span class="text-center">Disks</span>
       <q-tabs
         v-model="disktab"
         vertical
@@ -21,15 +21,18 @@
           icon="far fa-hdd"
           :class="'text-' + color(disk)"
         >
-          <div class="row no-wrap" style="color:initial">
-            <span>{{diskname(disk)}}</span>
-            <span v-if="disk.present === true">
-              <q-icon name="done" color="ok"/>
-            </span>
-            <span v-else-if="disk.present === false">
-              <q-icon name="priority_high" color="missing"/>
-            </span>
+          <div class="column disk">
+            <div class="row no-wrap justify-center" style="color:initial">
+              <span>{{diskname(disk)}}</span>
+              <span v-if="disk.present === true">
+                <q-icon name="done" color="ok"/>
+              </span>
+              <span v-else-if="disk.present === false">
+                <q-icon name="priority_high" color="missing"/>
+              </span>
+            </div>
           </div>
+          <tooltip v-if="disklabel(disk)" :label="disklabel(disk)"/>
         </q-tab>
       </q-tabs>
     </div>
@@ -81,6 +84,7 @@
 import explorer from './components/Explorer'
 import restore from './components/Restore'
 import backup from './components/Backup'
+import tooltip from 'src/components/tooltip'
 import { listDisksOnBackup, listLocalDisks } from 'src/helpers/bkit'
 
 export default {
@@ -127,7 +131,8 @@ export default {
   components: {
     explorer,
     restore,
-    backup
+    backup,
+    tooltip
   },
   methods: {
     color (disk) {
@@ -144,15 +149,20 @@ export default {
         return '&#10005;'
       } else return ''
     },
-    diskname  (disk) {
-      const name = disk.name.replace(/\\$|\/$/, '')
-      if (name && name !== '_' && disk.label && disk.label !== '_') {
-        return `${disk.label} (${name})`
-      } else if (name && name !== '_') {
+    diskname (disk) {
+      // remove endind (back)slash
+      // const name = disk.name.replace(/\\$|\/$/, '')
+      const name = disk.name
+      if (name && name !== '_') {
         return `${name}`
-      } else if (disk.label && disk.label !== '_') {
+      } else return ''
+    },
+    disklabel (disk) {
+      if (disk.label && disk.label !== '_') {
         return `${disk.label}`
-      } else return `[${disk.uuid}]`
+      } else if (!disk.name || disk.name === '_') {
+        return `[${disk.uuid}]`
+      } else return ''
     },
     async getDisksOnBackup () {
       const disks = await listDisksOnBackup() || []
@@ -248,5 +258,19 @@ export default {
   .console {
     background-color: $console;
     border: 2px solid $console-border;
+  }
+  .disk>.label {
+    display: none
+  }
+  .disk:hover>.label {
+    display: block
+  }
+  .disks .disk {
+    max-width: 2em;
+    overflow-x: hidden;
+  }
+ .disks:hover .disk {
+    max-width: initial;
+    overflow-x: initial;
   }
 </style>
