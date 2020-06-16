@@ -197,7 +197,7 @@ module.exports = function (ctx) {
           runAfterFinish: true
         },
         nsisWeb : {
-          appPackageUrl: 'http://gui.bkit.pt/download/latest',
+          appPackageUrl: 'https://github.com/jvverde/bKit-gui/releases/latest//download/',
           artifactName: 'Setup-${productName}-${os}-${arch}-${version}.${ext}'
         },
         win: {
