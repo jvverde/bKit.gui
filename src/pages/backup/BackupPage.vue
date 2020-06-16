@@ -24,6 +24,7 @@
           <tooltip v-if="disklabel(disk)" :label="disklabel(disk)"/>
         </q-tab>
       </q-tabs>
+      <q-btn icon="sync" size="xs" flat color="bkit" @click="load"/>
     </div>
     <q-splitter
       style="flex-grow: 1"
@@ -76,6 +77,8 @@ import backup from './components/Backup'
 import tooltip from 'src/components/tooltip'
 import { listDisksOnBackup, listLocalDisks } from 'src/helpers/bkit'
 
+import { mapGetters } from 'vuex'
+
 export default {
   name: 'Backup',
   data () {
@@ -91,6 +94,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('global', ['server']),
     splitter: {
       get: function () {
         const length = 10 * (this.restores.length + this.backups.length)
@@ -103,9 +107,6 @@ export default {
       set: function (val) {
         this.mark = 100 - val
       }
-    },
-    server () {
-      return this.$store.state.global.server
     },
     showConsole () {
       return this.backups.length > 0 || this.restores.length > 0
@@ -144,6 +145,7 @@ export default {
         return `[${disk.uuid}]`
       } else return ''
     },
+
     async getDisksOnBackup () {
       const disks = await listDisksOnBackup() || []
       for (const rvid of disks) {
@@ -162,10 +164,16 @@ export default {
       const disks = await listLocalDisks() || []
       for (const disk of disks) {
         console.log('Local disk:', disk)
-        const disk2 = disk.replace(/\|(?=\|)/g, '|_') // replace all the sequences '||' by '|_|'
-        const [mountpoint, label, uuid, fs] = disk2.split(/\|/)
+        const id = disk.replace(/\|(?=\|)/g, '|_') // replace all the sequences '||' by '|_|'
+        const [mountpoint, label, uuid, fs] = id.split(/\|/)
         const name = mountpoint
-        this.disks.push({ name, mountpoint, label, uuid, fs, id: disk2 })
+        const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label)
+        if (index >= 0) {
+          const updatedisk = { ...this.disks[index], name, mountpoint, label, uuid, fs, id }
+          this.disks.splice(index, 1, updatedisk) // as requested by Vue reactiveness
+        } else {
+          this.disks.push({ name, mountpoint, label, uuid, fs, id })
+        }
       }
     },
     restore (resource) {
