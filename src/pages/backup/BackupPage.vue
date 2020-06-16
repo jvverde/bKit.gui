@@ -243,7 +243,7 @@ export default {
     max-width: 3em;
     overflow-x: hidden;
   }
- .disk:hover{
+ .disks:hover .disk{
     max-width: initial;
     overflow-x: initial;
   }
