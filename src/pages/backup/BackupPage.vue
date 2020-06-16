@@ -8,7 +8,6 @@
         vertical
         dense
         no-caps
-        switch-indicator
         style="background-color: ghostwhite"
         indicator-color="active"
         active-bg-color="white">
@@ -21,17 +20,7 @@
           icon="far fa-hdd"
           :class="'text-' + color(disk)"
         >
-          <div class="column disk">
-            <div class="row no-wrap justify-center" style="color:initial">
-              <span>{{diskname(disk)}}</span>
-              <span v-if="disk.present === true">
-                <q-icon name="done" color="ok"/>
-              </span>
-              <span v-else-if="disk.present === false">
-                <q-icon name="priority_high" color="missing"/>
-              </span>
-            </div>
-          </div>
+          <span class="disk">{{diskname(disk)}}</span>
           <tooltip v-if="disklabel(disk)" :label="disklabel(disk)"/>
         </q-tab>
       </q-tabs>
@@ -142,17 +131,8 @@ export default {
         return 'missing'
       } else return 'initial'
     },
-    badge (disk) {
-      if (disk.present === true) {
-        return '&#10003;'
-      } else if (disk.present === false) {
-        return '&#10005;'
-      } else return ''
-    },
     diskname (disk) {
-      // remove endind (back)slash
-      // const name = disk.name.replace(/\\$|\/$/, '')
-      const name = disk.name
+      const name = disk.name.replace(/\\$/, '') // remove ending backslash
       if (name && name !== '_') {
         return `${name}`
       } else return ''
@@ -259,17 +239,11 @@ export default {
     background-color: $console;
     border: 2px solid $console-border;
   }
-  .disk>.label {
-    display: none
-  }
-  .disk:hover>.label {
-    display: block
-  }
-  .disks .disk {
-    max-width: 2em;
+  .disk {
+    max-width: 3em;
     overflow-x: hidden;
   }
- .disks:hover .disk {
+ .disk:hover{
     max-width: initial;
     overflow-x: initial;
   }
