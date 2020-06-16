@@ -1,19 +1,37 @@
 <template>
   <q-page padding class="relative">
-  <Photoshop v-model="color" v-if="chooseop === 'Photoshop'"/>
-  <Material v-model="color" v-if="chooseop === 'Material'"/>
-  <Chrome v-model="color" v-if="chooseop === 'Chrome'"/>
-  <Compact v-model="color" v-if="chooseop === 'Compact'"/>
-  <Sketch v-model="color" v-if="chooseop === 'Sketch'"/>
-  <Slider v-model="color" v-if="chooseop === 'Slider'"/>
-   Customize .....
-    <q-select v-model="chooseop" :options="choose" label="Escolha a tabela de cores" />
+    <div style="with:100%; text-align:center">
+      On this page you may customize the colors used by the bKit GUI
+    </div>
+    <q-select v-model="chooseop" :options="choose"
+      style="max-width: 18em"
+      label="If you want you may switch to another pickup color" />
 
-     <q-btn color="primary" label="change" @click="change"/>
+    <div class="row no-wrap items-center q-mt-lg">
+      <div style="min-width:40%" class="row items-center justify-center">
+        <Photoshop v-model="color" v-if="chooseop === 'Photoshop'"/>
+        <Material v-model="color" v-if="chooseop === 'Material'"/>
+        <Chrome v-model="color" v-if="chooseop === 'Chrome'"/>
+        <Compact v-model="color" v-if="chooseop === 'Compact'"/>
+        <Sketch v-model="color" v-if="chooseop === 'Sketch'"/>
+        <Slider v-model="color" v-if="chooseop === 'Slider'"/>
+      </div>
+      <q-option-group :options="options"
+        size="xs"
+        class="q-pa-md q-ml-lg"
+        label="Select the color that you want to change"
+        inline dense type="radio" v-model="group" />
+    </div>
+    <div>
+      <q-btn v-for="option in options" :key="option.value"
+        :label="option.value"
+        @click="setcolor(option.value)"
+        dense
+        :color="option.color"/>
+    </div>
+    <q-btn color="primary" label="change" @click="change"/>
     <q-badge color="ok">texto do ok</q-badge>
     <q-badge color="error">texto do error</q-badge>
-    <div class="text-h6">Escolha o item que pretende mudar a cor</div>
-     <q-option-group :options="options" label="colors" type="radio" v-model="group" />
   </q-page>
 </template>
 
@@ -31,7 +49,7 @@ export default {
       color: '',
       valor: '',
       cor: 'ok',
-      chooseop: '',
+      chooseop: 'Photoshop',
       cores: ['ok', 'error'],
       group: 'ok',
       options: [
@@ -45,7 +63,7 @@ export default {
         { label: 'warning', value: 'warning', color: 'yellow' },
         { label: 'cancel', value: 'cancel', color: 'black' },
         { label: 'done', value: 'done', color: 'grey' },
-        { label: 'missing', value: 'missing', color: 'white' },
+        { label: 'missing', value: 'missing', color: 'missing' },
         { label: 'active', value: 'active', color: 'green' },
         { label: 'updated', value: 'updated', color: 'orange' },
         { label: 'modified', value: 'modified', color: 'blue' },
@@ -82,7 +100,14 @@ export default {
         { label: 'console', value: 'console', color: 'brown' },
         { label: 'console-border', value: 'console-border', color: 'red' }
       ],
-      choose: ['Chrome', 'Compact', 'Material', 'Photoshop', 'Sketch', 'Slider']
+      choose: [
+        'Chrome',
+        'Compact',
+        'Material',
+        'Photoshop',
+        'Sketch',
+        'Slider'
+      ]
     }
   },
   components: {
@@ -96,7 +121,10 @@ export default {
   methods: {
     change () {
       console.log('color', this.color)
-      colors.setBrand(this.cor, this.color.hex)
+      colors.setBrand(this.group, this.color.hex)
+    },
+    setcolor (val) {
+      this.group = val
     }
   },
   async mounted () {
