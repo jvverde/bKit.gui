@@ -58,7 +58,6 @@
         <q-item-label caption>Open a BASH shell</q-item-label>
       </q-item-section>
     </q-item>
-    <!--
     <q-item clickable @click="$router.push('/customize')">
       <q-item-section avatar>
         <q-icon color="menu" name="tune" />
@@ -68,7 +67,6 @@
           <q-item-label caption>Customize colors</q-item-label>
       </q-item-section>
     </q-item>
-    -->
     <q-item clickable @click="debug">
       <q-item-section avatar>
         <q-icon color="menu" name="build" />

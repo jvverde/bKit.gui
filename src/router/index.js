@@ -27,6 +27,8 @@ export default function (/* { store, ssrContext } */) {
   router.beforeEach((to, from, next) => {
     if (to.name === from.name) {
       next(false)
+    } else if (to.name === 'customize') {
+      next()
     } else if (to.name !== 'servers' && !server()) {
       next({ name: 'servers' })
     } else {
