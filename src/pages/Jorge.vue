@@ -3,35 +3,41 @@
     <div style="with:100%; text-align:center">
       On this page you may customize the colors used by the bKit GUI
     </div>
+    <div>Text Color</div>
+    <div class="full with row justify-center">
+    <q-toggle v-model="texto" left-label label="w/b"/>
+    <q-toggle v-model="fgbg" rigth-label label="fb/bg" />
+  </div>
     <q-select v-model="chooseop" :options="choose"
-      style="max-width: 18em"
+      style="max-width: 23em"
       label="If you want you may switch to another pickup color" />
-
-    <div class="row no-wrap items-center q-mt-lg">
-      <div style="min-width:40%" class="row items-center justify-center">
-        <Photoshop v-model="color" v-if="chooseop === 'Photoshop'"/>
-        <Material v-model="color" v-if="chooseop === 'Material'"/>
-        <Chrome v-model="color" v-if="chooseop === 'Chrome'"/>
-        <Compact v-model="color" v-if="chooseop === 'Compact'"/>
-        <Sketch v-model="color" v-if="chooseop === 'Sketch'"/>
-        <Slider v-model="color" v-if="chooseop === 'Slider'"/>
+    <div class="row no-wrap items-stretch q-mt-lg">
+      <div style="min-width:40%" class="row items-stretch justify-center">
+        <div class="column no-wrap items-center q-mt-lg">
+          <Photoshop v-model="color" v-if="chooseop === 'Photoshop'"/>
+          <Material v-model="color" v-if="chooseop === 'Material'"/>
+          <Chrome v-model="color" v-if="chooseop === 'Chrome'"/>
+          <Compact v-model="color" v-if="chooseop === 'Compact'"/>
+          <Sketch v-model="color" v-if="chooseop === 'Sketch'"/>
+          <Slider v-model="color" v-if="chooseop === 'Slider'"/>
+        </div>
       </div>
-      <q-option-group :options="options"
-        size="xs"
-        class="q-pa-md q-ml-lg"
-        label="Select the color that you want to change"
-        inline dense type="radio" v-model="group" />
+      <div class="q-pa-md q-ml-lg">
+       <div style="with:100%; text-align:center" >Select the color that you want to change</div>
+       <q-chip v-for="option in options" :key="option.value"
+        :label="option.label"
+        :selected="bgcolor === option.value"
+        style="cursor:pointer; min-width: 140px;"
+        @click.native="setcolor(option.value)"
+        inline dense
+        class="q-pa-md q-ml-lg centrado"
+        :text-color="fgbg ? fgcolor : option.color"
+        :color="fgbg ? option.color : fgcolor"/>
+        </div>
     </div>
-    <div>
-      <q-btn v-for="option in options" :key="option.value"
-        :label="option.value"
-        @click="setcolor(option.value)"
-        dense
-        :color="option.color"/>
+    <div class="full with row justify-center">
+     <q-btn outline rounded color="primary" label="Apply" @click="change"/>
     </div>
-    <q-btn color="primary" label="change" @click="change"/>
-    <q-badge color="ok">texto do ok</q-badge>
-    <q-badge color="error">texto do error</q-badge>
   </q-page>
 </template>
 
@@ -46,12 +52,14 @@ export default {
   name: 'Customize',
   data () {
     return {
+      fgbg: false,
+      texto: false,
       color: '',
       valor: '',
-      cor: 'ok',
       chooseop: 'Photoshop',
       cores: ['ok', 'error'],
-      group: 'ok',
+      bgcolor: 'ok',
+
       options: [
         { label: 'ok', value: 'ok', color: 'ok' },
         { label: 'error', value: 'error', color: 'error' },
@@ -110,6 +118,11 @@ export default {
       ]
     }
   },
+  computed: {
+    fgcolor () {
+      return this.texto ? 'black' : 'white'
+    }
+  },
   components: {
     Photoshop: Photoshop,
     Material: Material,
@@ -121,13 +134,19 @@ export default {
   methods: {
     change () {
       console.log('color', this.color)
-      colors.setBrand(this.group, this.color.hex)
+      colors.setBrand(this.bgcolor, this.color.hex)
     },
     setcolor (val) {
-      this.group = val
+      this.bgcolor = val
     }
   },
   async mounted () {
   }
 }
 </script>
+<style type="text/css">
+.centrado .ellipsis {
+  width: 100%;
+  text-align: center;
+}
+</style>
