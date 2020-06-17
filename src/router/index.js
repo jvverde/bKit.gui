@@ -3,21 +3,14 @@ import VueRouter from 'vue-router'
 
 import routes from './routes'
 
-// import { Store } from 'src/store'
+import { Store } from 'src/store'
+
+const server = () => Store.getters['global/server']
 
 // const isBkitInstalled = () => Store.getters['global/bkitinstalled']
 // const isBkitOk = () => Store.getters['global/bkitok']
 
 Vue.use(VueRouter)
-
-/*
- * If not building with SSR mode, you can
- * directly export the Router instantiation;
- *
- * The function below can be async too; either use
- * async/await or return a Promise which resolves
- * with the Router instance.
- */
 
 export default function (/* { store, ssrContext } */) {
   const router = new VueRouter({
@@ -31,17 +24,17 @@ export default function (/* { store, ssrContext } */) {
     base: process.env.VUE_ROUTER_BASE
   })
 
-  // router.beforeEach((to, from, next) => {
-  //   if (to.name === from.name) {
-  //     next(false)
-  //   } else if (['update', 'home', 'customize'].includes(to.name)) {
-  //     next()
-  //   } else if (!isBkitOk()) {
-  //     next({ name: 'update' })
-  //   } else {
-  //     next()
-  //   }
-  // })
+  router.beforeEach((to, from, next) => {
+    if (to.name === from.name) {
+      next(false)
+    } else if (to.name === 'customize') {
+      next()
+    } else if (to.name !== 'servers' && !server()) {
+      next({ name: 'servers' })
+    } else {
+      next()
+    }
+  })
 
   return router
 }

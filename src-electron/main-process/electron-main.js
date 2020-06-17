@@ -1,58 +1,42 @@
-import { app, BrowserWindow, nativeTheme, ipcMain, dialog, Menu, Notification } from 'electron'
-import { bkitPath, setupbkit, isbkitClintInstalled, isbkitok, save_config, load_config } from './bkitClient'
+import {
+  app,
+  BrowserWindow,
+  nativeTheme,
+  ipcMain
+} from 'electron'
 
-const log = require('electron-log')
-const { autoUpdater } = require("electron-updater")
-const path = require('path')
-const fs = require('fs')
+import menu from './menu'
 
+import {
+  bkitPath,
+  setupbkit,
+  isbkitClintInstalled,
+  isbkitok,
+  findbkit,
+  save_config,
+  load_config
+} from './bkitClient'
 
-autoUpdater.logger = log
-autoUpdater.allowDowngrade = true
-autoUpdater.autoInstallOnAppQuit = false
-autoUpdater.autoDownload = false
-autoUpdater.logger.transports.file.level = 'info'
-autoUpdater.on('error', (err) => {
-  log.error(err)
-})
-
-const say = {
-  log: (...args) => {
-    console.log(...args)
-    log.info(...args)
-  },
-  warn: (...args) => {
-    console.warn(...args)
-    log.warn(...args)
-  },
-  error: (...args) => {
-    console.error(...args)
-    log.error(...args)
-  }
-}
+import { check4updates, getUpdates } from './auto-update'
+import say from './say'
+import path from 'path'
+import fs from 'fs'
+import { autoUpdater } from 'electron-updater'
+import windowStateKeeper from 'electron-window-state'
+import statics from './statics'
 
 say.log('bkit starting...')
-say.log('Elevated', app.commandLine.hasSwitch('elevated'))
+say.log('is Elevated:', app.commandLine.hasSwitch('elevated'))
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
-    require('fs').unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'))
+    fs.unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'))
   }
 } catch (_) { }
-
-/**
- * Set `__statics` path to static files in production;
- * The reason we are setting it here is that the path needs to be evaluated at runtime
- */
-if (process.env.PROD) {
-  global.__statics = path.join(__dirname, 'statics').replace(/\\/g, '\\\\')
-}
 
 let mainWindow
 
 function createWindow () {
-
-  const windowStateKeeper = require('electron-window-state')
   const mainWindowState = windowStateKeeper({
     defaultWidth: 1000,
     defaultHeight: 800
@@ -69,6 +53,7 @@ function createWindow () {
       // Change from /quasar.conf.js > electron > nodeIntegration;
       // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration
       nodeIntegration: QUASAR_NODE_INTEGRATION,
+      enableRemoteModule: true
 
       // More info: /quasar-cli/developing-electron-apps/electron-preload-script
       // preload: path.resolve(__dirname, 'electron-preload.js')
@@ -87,141 +72,20 @@ function createWindow () {
   mainWindowState.manage(mainWindow)
 }
 
-function check4updates () {
-  autoUpdater.on('update-available', (info) => {
-    sendStatusToWindow(info)
-    say.log(info)
-    if (Notification.isSupported()) {
-      const notify = new Notification({
-        title: 'Updated version',
-        body: `A new version ${info.version} is available`
-      })
-      notify.show()
-    }
-  })
-  autoUpdater.autoInstallOnAppQuit = false
-  autoUpdater.autoDownload = false
-  say.log(`Check for updates...`)
-  autoUpdater.checkForUpdatesAndNotify()
-}
-
-function getUpdates(channel = 'latest') {
-  autoUpdater.channel = channel
-  autoUpdater.on('update-not-available', (info) => {
-    dialog.showMessageBox({
-      title: 'No Updates',
-      message: 'Current version is up-to-date.'
-    })
-  })
-  autoUpdater.on('update-downloaded', (info) => {
-    setImmediate(() => autoUpdater.quitAndInstall())
-  })
-  autoUpdater.autoInstallOnAppQuit = true
-  autoUpdater.autoDownload = true
-  say.log(`Check and get updates on channel ${channel}`)
-  return autoUpdater.checkForUpdates()
-}
-
-// from https://www.tutorialspoint.com/electron/electron_menus.htm
-const template = [
-  {
-    role: 'fileMenu',
-    submenu: [
-      {
-        label: 'Upgrade GUI',
-        submenu: [
-          {
-            label: 'Beta',
-            click: async () => {
-              await getUpdates('beta')
-            }
-          },{
-            label: 'Stable',
-            click: async () => {
-              await getUpdates('latest')
-            }
-          }
-        ]
-      },
-      {
-        role: 'quit'
-      }
-    ]
-  },{
-    label: 'Edit',
-    submenu: [{
-        role: 'undo'
-      },{
-        role: 'redo'
-      },{
-        type: 'separator'
-      },{
-        role: 'cut'
-      },{
-        role: 'copy'
-      },{
-        role: 'paste'
-      },{
-        type: 'separator'
-      }]
-  },{
-    label: 'View',
-    submenu: [{
-        role: 'reload'
-      },{
-        role: 'forceReload'
-      },{
-        role: 'toggledevtools'
-      },{
-        type: 'separator'
-      },{
-        role: 'resetzoom'
-      },{
-        role: 'zoomin'
-      },{
-        role: 'zoomout'
-      },{
-        type: 'separator'
-      },{
-        role: 'togglefullscreen'
-      }]
-  },{
-    role: 'window',
-    submenu: [{
-        role: 'minimize'
-      },{
-        role: 'close'
-      }]
-  } /*,{
-    role: 'help',
-    submenu: [{
-        label: 'Learn More'
-       }]
-  }*/
-]
-
-const menu = Menu.buildFromTemplate(template)
-Menu.setApplicationMenu(menu)
-// ------------------------------
-
-const defaultbkitClientPath = () => {
-  const current = path.join(app.getAppPath()).replace(/[\\\/]bkit[\\\/]resources[\\\/].*/i, '')
-  return path.normalize(path.join(current, 'bkit-client'))  
-}
-
-const reinstallbkit = (dst = defaultbkitClientPath()) => {
-  say.log('reinstallbkit', dst)
-  return setupbkit(dst)
-}
-
-app.on('ready', () => {
+app.on('ready', async () => {
   say.log('App is ready')
   load_config()
   const client = bkitPath()
   say.log('Check if client is run at', client)
   if(!client || !fs.existsSync(client) || !isbkitok(client)) {
-    reinstallbkit(client)
-    load_config()
+    try {
+      const location = await findbkit(client)
+      say.log('Found bkit client at', location)
+      bkitPath(location)
+      load_config()
+    } catch (err) {
+      say.warn('bKit client not found')
+    }
   }
   createWindow()
   check4updates()
@@ -261,12 +125,12 @@ app.once('before-quit', () => {
 ipcMain.on('getbkitPath', (event) => {
   const location = bkitPath()
   say.log('getbkitPath', location)
-  event.returnValue = location || reinstallbkit()
+  event.returnValue = location || findbkit()
 })
 
 ipcMain.on('getStatics', (event) => {
-  say.log('getStatics', __statics)
-  event.returnValue = __statics
+  say.log('getStatics', statics)
+  event.returnValue = statics
 })
 
 ipcMain.on('app_version', (event) => {
@@ -277,12 +141,6 @@ ipcMain.on('getPath', (event, name) => {
   event.returnValue = app.getPath(name)
 })
 
-// Auto updater section
-
-function sendStatusToWindow(text) {
-  say.log(text)
-  mainWindow.webContents.send('message', text)
-}
+menu()
 
 say.log('bkit started')
-

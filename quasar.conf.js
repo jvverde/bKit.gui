@@ -104,7 +104,7 @@ module.exports = function (ctx) {
         description: 'A bKit Client App',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#ffffff',
+        background_color: '#fffffe',
         theme_color: '#027be3',
         icons: [
           {
@@ -167,26 +167,110 @@ module.exports = function (ctx) {
 
       builder: {
         // https://www.electron.build/configuration/configuration
-
+        generateUpdatesFilesForAllChannels: true,
         appId: 'gui.bkit.pt',
         copyright: 'Copyright © 2020 ${author}',
         generateUpdatesFilesForAllChannels: true,
         publish: [
           {
+            provider: 'github',
+            releaseType: 'release'
+          },
+          {
             provider: 'generic',
             url: 'http://gui.bkit.pt/download/'
           }
         ],
+        asar: {
+        },
+        extraFiles: [
+          'bkit-client/**'
+        ],
         productName: 'bKit',
         artifactName: '${productName}-${os}-${arch}-${version}.${ext}',
         nsis: {
-          // oneClick: false,
+          oneClick: false,
+          allowElevation: true, 
           // allowToChangeInstallationDirectory: true,
-          perMachine: true
+          perMachine: false,
+          include: 'build/installer.nsh',
+          runAfterFinish: true
         },
         nsisWeb : {
-          appPackageUrl: 'Setup-${productName}-${os}--${version}.${ext}',
-          artifactName: '${productName}-${os}-${arch}-${version}.${ext}'
+          appPackageUrl: 'https://github.com/jvverde/bKit-gui/releases/latest//download/',
+          artifactName: 'Setup-${productName}-${os}-${arch}-${version}.${ext}'
+        },
+        win: {
+          target: [
+            {
+              target: 'nsis',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            }/*,            
+            {
+              target: 'zip',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'nsis-web',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'msi',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            }*/
+          ]
+        },
+        linux: {
+          category: 'Utility',
+          target: [
+            {
+              target: 'appImage',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'tar.gz',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'rpm',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'pacman',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            },
+            {
+              target: 'deb',
+              arch: [
+                'x64',
+                'ia32'
+              ]
+            }
+          ]
         }
       },
 
