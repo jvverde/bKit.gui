@@ -51,7 +51,7 @@
     "lodash": "^4.17.15",
     "moment": "^2.26.0",
     "node-powershell": "^4.0.0",
-    "quasar": "^1.12.4",
+    "quasar": "^1.12.5",
     "upath": "^1.2.0",
     "vue-color": "^2.7.1",
     "vue-i18n": "^8.18.2",

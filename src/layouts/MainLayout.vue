@@ -26,19 +26,6 @@
       <keep-alive>
         <router-view/>
       </keep-alive>
-    <!--
-      <keep-alive v-if="server || $route.name === 'Servers'">
-        <router-view/>
-      </keep-alive>
-      <q-page v-else padding class="relative flex flex-center" style="height:100vh;width:100vw">
-        <div class="absolute-center column flex-center">
-          <img alt="bKit logo" src="~assets/logotipo.svg"
-            @click="$router.push('/servers')"
-            style="width:50%;height:50%;cursor:pointer">
-          <div>Please select a server on left menu</div>
-        </div>
-      </q-page>
-    -->
     </q-page-container>
   </q-layout>
 </template>
@@ -85,21 +72,7 @@ export default {
         ? this.bkituser === username
           ? username
           : `${username}<i> as </i>${this.bkituser}`
-        : ''
-    }
-  },
-  watch: {
-    bkitok: {
-      immediate: true,
-      handler: async function (val, old) {
-        if (val) {
-          this.currentserver = await getServer()
-          this.bkituser = await getUser()
-        } else {
-          this.currentserver = this.bkituser = undefined
-        }
-        console.log('bkitok', val, old)
-      }
+        : `<i>${username}</i>`
     }
   },
   components: {
@@ -107,6 +80,10 @@ export default {
   },
   methods: {
     ...mapMutations('global', ['setServer'])
+  },
+  mounted () {
+    getServer().then((server) => { this.currentserver = server })
+    getUser().then((user) => { this.bkituser = user })
   }
 }
 </script>

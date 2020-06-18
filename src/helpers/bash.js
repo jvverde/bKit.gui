@@ -1,7 +1,7 @@
 // let wsList = {}
 'use strict'
 let [BASH, TERM] = ['bash', 'xterm']
-const { spawn, spawnSync } = require('child_process')
+const { spawn } = require('child_process')
 const readline = require('readline')
 import { ipcRenderer } from 'electron'
 
@@ -17,45 +17,6 @@ if (process.platform === 'win32') {
 }
 
 const getbkitlocation = () => ipcRenderer.sendSync('getbkitPath')
-
-export function winInstall (events = {}) {
-  if (process.platform !== 'win32') return
-  try {
-    const {
-      onclose = nill,
-      onerror = nill,
-      onexit = nill,
-      onreaddata = nill,
-      onreaderror = nill
-    } = events
-    const bKitPath = getbkitlocation()
-    const fd = spawn(
-      'CMD',
-      ['/C', 'setup.bat'],
-      { cwd: bKitPath, windowsHide: false }
-    )
-    fd.on('close', onclose)
-    fd.on('error', onerror)
-    fd.on('exit', onexit)
-    fd.stdout.on('data', onreaddata)
-    fd.stderr.on('data', onreaderror)
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-export function bkitping (msg) {
-  try {
-    const bKitPath = getbkitlocation()
-    // if (!isBkitClintInstalled(bKitPath)) return undefined
-    console.log('bkitping on', bKitPath)
-    const result = spawnSync(BASH, ['./bash.sh', 'echo', msg], { cwd: bKitPath, windowsHide: true })
-    return result.stdout.toString().replace(/(\r|\n|\s)*$/, '')
-  } catch (err) {
-    console.warn('bKitping fail:', err)
-    return undefined
-  }
-}
 
 export function shell () {
   const bKitPath = getbkitlocation()
@@ -73,13 +34,14 @@ function _bash (name, args, events = {}, done = nill) {
 
   const { onreadline = nill, onerror = nill, stderr = warn, oncespawn = nill } = events
 
-  console.log(`Spawn ${name} with args`, args)
   const bKitPath = getbkitlocation()
+  console.log(`Try spawn ${name} on ${bKitPath} `)
   const fd = spawn(
     BASH,
     ['./run.sh', name, ...args],
-    { cwd: bKitPath, windowsHide: true, windowsVerbatimArguments: false }
+    { cwd: bKitPath, windowsHide: true }
   )
+  console.log(`Spawned ${name} with args`, args)
 
   fd.on('close', (code) => {
     console.log(`Done spawn ${name} with args`, args)
@@ -90,24 +52,31 @@ function _bash (name, args, events = {}, done = nill) {
   fd.on('error', onerror)
 
   fd.on('exit', err => {
+    console.log(`Receive exit for spawn ${name} with value ${err}`)
     err = 0 | err
     if (err !== 0) {
       const params = args.join(' ')
       onerror(`Call to '${name} ${params}' exit with code ${err}`)
       rl.close()
+    } else {
+      fd.kill()
     }
   })
 
   fd.on('disconnect', err => {
-    console.log('Disconnect', err)
+    console.error('Disconnect', err)
   })
   const rl = readline.createInterface({
     input: fd.stdout,
     output: fd.stdin
   })
-  rl.on('line', onreadline)
+  rl.on('line', (line) => {
+    console.log('Line:', line)
+    onreadline(line)
+  })
 
   fd.stderr.on('data', err => {
+    console.log(`Error: ${err}`)
     const error = `${err}`
     const result = stderr(error)
     if (result === 'stop') { // if receive a stop from upper layers
