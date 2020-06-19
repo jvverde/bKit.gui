@@ -4,6 +4,7 @@ export default class Queue {
     this.queue = []
     this.pendingPromise = false
     this.limit = limit
+    this.workingOnPromise = 0
   }
 
   enqueue (promise, key = undefined) {
@@ -50,14 +51,14 @@ export default class Queue {
   }
 
   _run () {
-    if (this.workingOnPromise) {
+    if (this.workingOnPromise > 3) {
       return false
     }
     const item = this.queue.shift()
     if (!item) {
       return false
     }
-    this.workingOnPromise = true
+    this.workingOnPromise++
     item.promise()
       .then(value => this._resolve(item, value))
       .catch(value => {
@@ -65,7 +66,7 @@ export default class Queue {
         this._reject(item, value)
       })
       .finally(() => {
-        this.workingOnPromise = false
+        this.workingOnPromise--
         this._run()
       })
     return true

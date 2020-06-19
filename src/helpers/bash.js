@@ -33,20 +33,25 @@ function _bash (name, args, events = {}, done = nill) {
   const warn = (err) => console.warn(`Received on stderr from bash script ${name}: ${err}`)
 
   const { onreadline = nill, onerror = nill, stderr = warn, oncespawn = nill } = events
-
+  let oncedone = (code) => {
+    oncedone = nill
+    done(code)
+    console.log('Oncedone', name)
+    fd.kill()
+  }
   const bKitPath = getbkitlocation()
   console.log(`Try spawn ${name} on ${bKitPath} `)
   const fd = spawn(
     BASH,
     ['./run.sh', name, ...args],
-    { cwd: bKitPath, windowsHide: true }
+    { cwd: bKitPath, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] }
   )
   console.log(`Spawned ${name} with args`, args)
 
   fd.on('close', (code) => {
     console.log(`Done spawn ${name} with args`, args)
     if (code) console.log(`Return code ${code} is NOT ok`)
-    done(code)
+    oncedone(code)
   })
 
   fd.on('error', onerror)
@@ -59,12 +64,14 @@ function _bash (name, args, events = {}, done = nill) {
       onerror(`Call to '${name} ${params}' exit with code ${err}`)
       rl.close()
     } else {
-      fd.kill()
+      oncedone(0)
+      // fd.kill()
     }
   })
 
   fd.on('disconnect', err => {
     console.error('Disconnect', err)
+    oncedone(err)
   })
   const rl = readline.createInterface({
     input: fd.stdout,
@@ -74,15 +81,18 @@ function _bash (name, args, events = {}, done = nill) {
     console.log('Line:', line)
     onreadline(line)
   })
+  rl.on('close', (v) => {
+    console.log('Realine close', v)
+    oncedone(v)
+  })
 
   fd.stderr.on('data', err => {
     console.log(`Error: ${err}`)
     const error = `${err}`
     const result = stderr(error)
     if (result === 'stop') { // if receive a stop from upper layers
-      done() // send a empty done
-      done = nill // and disable aditional dones
-      fd.kill() // also kill the process
+      oncedone() // send a empty done
+      // fd.kill() // also kill the process
     }
   })
   oncespawn(fd)

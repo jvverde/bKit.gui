@@ -22,6 +22,7 @@
           <q-checkbox
             :indeterminate-value="null"
             toggle-indeterminate
+            toggle-order="ft"
             v-model="checked"
             keep-color
             size="xs"
@@ -121,9 +122,12 @@ export default {
     checked: {
       get () {
         const elem = this.selected.find(e => e.path === this.path)
-        return !elem ? false : elem.op === '-' ? null : true
+        const res = !elem ? false : elem.op === '-' ? null : true
+        console.log('Get', this.path, elem, res)
+        return res
       },
-      set (val) {
+      set (val, old) {
+        console.log('Set', this.path, val, old)
         if (val === null && !this.isIncluded) { // Don't allow an exclude if is is not Included by an ancestor
           this.checked = false
         } else if (val === true && this.isIncluded) { // Don't need to be redundant
