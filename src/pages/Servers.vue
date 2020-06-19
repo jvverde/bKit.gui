@@ -73,6 +73,7 @@ export default {
       servers: []
     }
   },
+  props: ['back'],
   watch: {
   },
   methods: {
@@ -87,7 +88,11 @@ export default {
     },
     change (server) {
       changeServer(server)
-        .then(() => this.reload())
+        .then(() => this.setServer(server))
+        .catch((err) => console.warn('Change server error', err))
+    },
+    setServer (server) {
+      this.$store.commit('global/setServer', server)
     },
     add () {
       if (!this.newserver) return
@@ -113,13 +118,17 @@ export default {
       const p2 = getServer()
         .then(server => {
           this.current = server
-          this.$store.commit('global/setServer', server)
+          this.setServer(server)
+          console.log('Go back to', this.back)
+          if (this.back) this.$router.push({ name: this.back })
         })
+
       return Promise.all([p1, p2])
         .finally(() => (this.loading = false))
     }
   },
   mounted () {
+    console.log('back', this.back)
     this.reload()
   }
 }

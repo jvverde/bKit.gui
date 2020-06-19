@@ -21,24 +21,20 @@ const routes = [
           if (server()) {
             next()
           } else {
-            next({ name: 'servers' })
+            next({ name: 'servers', params: { back: 'backup' } })
           }
         }
       },
       {
-        path: 'servers',
+        path: 'servers/:back?',
         component: () => import('pages/Servers.vue'),
-        name: 'servers'
+        name: 'servers',
+        props: true
       },
       {
         path: 'tasks',
         component: () => import('pages/tasks/TasksPage.vue'),
         name: 'tasks'
-      },
-      {
-        path: 'update',
-        component: () => import('pages/Update.vue'),
-        name: 'update'
       },
       {
         path: 'customize',
