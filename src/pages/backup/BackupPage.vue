@@ -207,14 +207,14 @@ export default {
     this.load()
   },
   beforeRouteEnter (to, from, next) {
-    console.log('beforeRouteEnter', to)
+    // console.log('beforeRouteEnter', to)
     next()
     // called before the route that renders this component is confirmed.
     // does NOT have access to `this` component instance,
     // because it has not been created yet when this guard is called!
   },
   beforeRouteUpdate (to, from, next) {
-    console.log('beforeRouteUpdate', to)
+    // console.log('beforeRouteUpdate', to)
     next()
     // called when the route that renders this component has changed,
     // but this component is reused in the new route.
