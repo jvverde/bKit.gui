@@ -95,7 +95,7 @@ export default {
       }).then(code => {
         this.loading = false
         this.select(this.snaps.length - 1)
-        console.log(`Script listsnaps ends with code code ${code}`)
+        console.log(`Script listsnaps ends with code  ${code}`)
       })
     }
   },
@@ -114,7 +114,6 @@ export default {
     transform: translateY(30px);
   }
 </style>
-
 <style scoped lang="scss">
   @import "src/css/app.scss";
 

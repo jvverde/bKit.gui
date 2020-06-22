@@ -33,10 +33,10 @@ function _bash (name, args, events = {}, done = nill) {
   const warn = (err) => console.warn(`Received on stderr from bash script ${name}: ${err}`)
 
   const { onreadline = nill, onerror = nill, stderr = warn, oncespawn = nill } = events
-  let oncedone = (code) => {
-    oncedone = nill
+  let doneOnce = (code) => {
+    doneOnce = nill
+    console.log('Done', name, ...args)
     done(code)
-    console.log('Oncedone', name)
     fd.kill()
   }
   const bKitPath = getbkitlocation()
@@ -46,12 +46,12 @@ function _bash (name, args, events = {}, done = nill) {
     ['./run.sh', name, ...args],
     { cwd: bKitPath, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] }
   )
-  console.log(`Spawned ${name} with args`, args)
+  console.log('Spawned', name, ...args)
 
   fd.on('close', (code) => {
-    console.log(`Done spawn ${name} with args`, args)
+    console.log('Done spawn', name, ...args)
     if (code) console.log(`Return code ${code} is NOT ok`)
-    oncedone(code)
+    doneOnce(code)
   })
 
   fd.on('error', onerror)
@@ -62,36 +62,29 @@ function _bash (name, args, events = {}, done = nill) {
     if (err !== 0) {
       const params = args.join(' ')
       onerror(`Call to '${name} ${params}' exit with code ${err}`)
-      rl.close()
-    } else {
-      oncedone(0)
-      // fd.kill()
     }
+    doneOnce(0)
   })
 
   fd.on('disconnect', err => {
     console.error('Disconnect', err)
-    oncedone(err)
+    doneOnce(err)
   })
   const rl = readline.createInterface({
     input: fd.stdout,
     output: fd.stdin
   })
-  rl.on('line', (line) => {
-    console.log('Line:', line)
-    onreadline(line)
+  rl.on('line', onreadline)
+  rl.on('close', () => {
+    console.log('Readline close', name)
+    doneOnce()
   })
-  rl.on('close', (v) => {
-    console.log('Realine close', v)
-    oncedone(v)
-  })
-
   fd.stderr.on('data', err => {
-    console.log(`Error: ${err}`)
+    console.log(`Error from ${name}: ${err}`)
     const error = `${err}`
     const result = stderr(error)
     if (result === 'stop') { // if receive a stop from upper layers
-      oncedone() // send a empty done
+      doneOnce() // send a empty done
       // fd.kill() // also kill the process
     }
   })
