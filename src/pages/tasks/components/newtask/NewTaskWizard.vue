@@ -12,6 +12,7 @@
             v-for="disk in disks" :key="disk.id"
             :selected.sync="selected"/>
         </div>
+        <q-spinner-ios color="loader" v-if="loading"/>
       </q-step>
 
       <q-step :name="2" title="Define" caption="When should run" icon="schedule" :done="hasScheduler">
@@ -77,6 +78,7 @@ export default {
   name: 'newtask',
   data () {
     return {
+      loading: true,
       askuser: false,
       disks: [],
       selected: [],
@@ -151,6 +153,7 @@ export default {
   },
   methods: {
     async getLocalDisks () {
+      this.loading = true
       const disks = await listLocalDisks() || []
       for (const disk of disks) {
         console.log('Local disk:', disk)
@@ -158,6 +161,7 @@ export default {
         const mountpoint = letter.replace(/\\$/, '')
         this.disks.push({ mountpoint, label, uuid, fs, disk, selected: [] })
       }
+      this.loading = false
     },
     cancel () {
       this.$emit('cancel')
