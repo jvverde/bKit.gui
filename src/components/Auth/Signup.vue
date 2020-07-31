@@ -55,11 +55,6 @@ import { required, minLength, email } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
 import { mapGetters } from 'vuex'
 
-function getCurrentAddress () {
-  const { protocol = 'http', port = 80, hostname, path = '' } = window.location
-  const url = `${protocol}//${hostname}:${port}/${path}`
-  return url
-}
 export default {
   name: 'register',
   data () {
@@ -130,8 +125,7 @@ export default {
       console.log('form', this.$v.form)
       if (this.$v.form.invalid) return
       this.submiting = true
-      const { href = '' } = this.$router.resolve({ name: 'signin' })
-      this.form.next = getCurrentAddress() + href
+      this.form.next = 0
       return axios.post('/auth/signup', this.form)
         .then(({ data }) => {
           console.log(data)
