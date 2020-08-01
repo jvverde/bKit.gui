@@ -76,7 +76,7 @@ export default {
         isUnique (value) {
           if (!this.$v.form.username.required || !this.$v.form.username.minLength) return Promise.resolve(false)
           return new Promise((resolve, reject) => {
-            axios.get(`/check/${value}`)
+            axios.get(`${this.serverURL}/check/${value}`)
               .then(({ data: { msg } }) => {
                 console.log(msg)
                 resolve(msg === 'available')
@@ -101,7 +101,7 @@ export default {
   computed: {
     ...mapGetters('global', ['server']),
     serverURL () {
-      return `http//${this.server}:3000/`
+      return `http://${this.server}:3000`
     },
     username () {
       return this.$v.form.username
