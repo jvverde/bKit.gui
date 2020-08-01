@@ -1,6 +1,6 @@
 <template>
   <div class="column absolute-center">
-    <form @submit.prevent="send" v-if="ask">
+    <form @submit.prevent="send">
       <q-input type="text" max-length="16" autofocus
         v-model="form.username"
         label="Username"
@@ -43,6 +43,17 @@
         Sign up
       </q-btn>
     </form>
+    <form @submit.prevent="confirm" v-if="askcode">
+      <q-input type="text" maxlength="6" minlength="6"
+        v-model="code"
+        label="Code"
+        @keyup="confirm"
+        hint="Code received by email">
+        <template v-slot:after>
+          <q-icon v-if="codeinvalid" name="warning" flat color="error"/>
+        </template>
+      </q-input>
+    </form>
     <div v-else>
       {{response}}
     </div>
@@ -51,10 +62,11 @@
 
 <script>
 import axios from 'axios'
-import { required, minLength, email } from 'vuelidate/lib/validators'
+import { required, minLength, maxLength, email } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
 import { mapGetters } from 'vuex'
 
+const mustbedigits = (v = '') => Promise.resolve(v.match(/^\d{6}$/))
 export default {
   name: 'register',
   data () {
@@ -64,11 +76,18 @@ export default {
         password: '',
         email: ''
       },
+      code: undefined,
       submiting: false,
       response: undefined
     }
   },
   validations: {
+    code: {
+      required,
+      minLength: minLength(6),
+      maxLength: maxLength(6),
+      mustbedigits
+    },
     form: {
       username: {
         required,
@@ -115,12 +134,22 @@ export default {
     ready () {
       return this.$v.$invalid === false
     },
-    ask () {
-      return !this.response
+    askcode () {
+      return this || this.code !== undefined
+    },
+    codeinvalid () {
+      return this.code && this.$v.code.minLength && this.$v.code.maxLength && this.$v.code.$invalid
     }
   },
   mixins: [notify],
   methods: {
+    confirm () {
+      this.$v.code.$touch()
+      console.log('invalid', this.$v.code.$invalid)
+      console.log('minLength', this.$v.code.minLength)
+      console.log('maxLength', this.$v.code.maxLength)
+      console.log('Code:', this.code)
+    },
     send () {
       console.log('form', this.$v.form)
       if (this.$v.form.invalid) return
@@ -130,6 +159,7 @@ export default {
         .then(({ data }) => {
           console.log(data)
           this.response = data.msg
+          this.code = null
         })
         .catch((err) => {
           console.warn('Error', err)
