@@ -36,6 +36,7 @@
         </template>
       </q-input>
       <q-btn v-model="submiting" loader
+        v-if="!askcode"
         rounded color="secondary"
         :disabled="!ready"
         @click="send"
@@ -132,30 +133,44 @@ export default {
       return this.$v.form.password
     },
     ready () {
-      return this.$v.$invalid === false
+      return this.$v.form.$invalid === false
     },
     askcode () {
-      return this || this.code !== undefined
+      return this.code !== undefined
     },
     codeinvalid () {
       return this.code && this.$v.code.minLength && this.$v.code.maxLength && this.$v.code.$invalid
+    },
+    confirmdata () {
+      const { code = this.code, password, username, next = 0 } = this.form
+      return { code, password, username, next }
     }
   },
   mixins: [notify],
   methods: {
     confirm () {
       this.$v.code.$touch()
-      console.log('invalid', this.$v.code.$invalid)
-      console.log('minLength', this.$v.code.minLength)
-      console.log('maxLength', this.$v.code.maxLength)
       console.log('Code:', this.code)
+      console.log('data', this.confirmdata)
+      console.log('invalid', this.$v.code.$invalid)
+      if (this.$v.code.$invalid) return
+      return axios.post(`${this.serverURL}/auth/confirmbycode`, this.confirmdata)
+        .then(({ data }) => {
+          console.log(data)
+          this.response = data.msg
+          this.code = undefined
+        })
+        .catch((err) => {
+          console.warn('Error', err)
+          this.catch(err)
+        })
     },
     send () {
       console.log('form', this.$v.form)
       if (this.$v.form.invalid) return
       this.submiting = true
       this.form.next = 0
-      return axios.post('/auth/signup', this.form)
+      return axios.post(`${this.serverURL}/auth/signup`, this.form)
         .then(({ data }) => {
           console.log(data)
           this.response = data.msg
