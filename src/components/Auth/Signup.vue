@@ -1,6 +1,6 @@
 <template>
   <div class="column absolute-center">
-    <form @submit.prevent="send">
+    <form @submit.prevent="send" class="column items-stretch">
       <q-input type="text" max-length="16" autofocus
         v-model="form.username"
         label="Username"
@@ -40,6 +40,7 @@
         rounded color="secondary"
         :disabled="!ready"
         @click="send"
+        class="q-mt-xl"
       >
         Sign up
       </q-btn>
@@ -55,7 +56,7 @@
         </template>
       </q-input>
     </form>
-    <div v-else>
+    <div>
       {{response}}
     </div>
   </div>
