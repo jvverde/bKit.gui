@@ -35,6 +35,18 @@
           <q-icon v-else-if="!$v.form.password.$invalid" name="done" flat color="ok"/>
         </template>
       </q-input>
+      <q-input type="password" max-length="16"
+        v-model="form.passrepeat"
+        label="Repeat Password"
+        hint="Same as password"
+        :error="$v.form.passrepeat.$error"
+        @blur="$v.form.passrepeat.$touch"
+      >
+        <template v-slot:after>
+          <q-icon v-if="$v.form.passrepeat.$error" name="warning" flat color="error"/>
+          <q-icon v-else-if="!$v.form.passrepeat.$invalid && !$v.form.password.$invalid" name="done" flat color="ok"/>
+        </template>
+      </q-input>
       <q-btn v-model="submiting" loader
         v-if="!askcode"
         rounded color="secondary"
@@ -64,11 +76,29 @@
 
 <script>
 import axios from 'axios'
-import { required, minLength, maxLength, email } from 'vuelidate/lib/validators'
+import { required, minLength, maxLength, email, sameAs } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
 import { mapGetters } from 'vuex'
 
+const crypto = require('crypto')
+
+const md5 = (msg) => {
+  const hash = crypto.createHash('md5')
+  hash.update(msg)
+  return hash.digest('hex')
+}
+
+const compose = ({ username, password, email }, extra) => {
+  return {
+    username,
+    email,
+    password: md5(password),
+    ...extra
+  }
+}
+
 const mustbedigits = (v = '') => Promise.resolve(v.match(/^\d{6}$/))
+
 export default {
   name: 'register',
   data () {
@@ -76,6 +106,7 @@ export default {
       form: {
         username: '',
         password: '',
+        passrepeat: '',
         email: ''
       },
       code: undefined,
@@ -99,7 +130,6 @@ export default {
           return new Promise((resolve, reject) => {
             axios.get(`${this.serverURL}/check/${value}`)
               .then(({ data: { msg } }) => {
-                console.log(msg)
                 resolve(msg === 'available')
               })
               .catch((err) => {
@@ -115,7 +145,11 @@ export default {
       },
       password: {
         required,
-        minLength: minLength(6)
+        minLength: minLength(8)
+      },
+      passrepeat: {
+        required,
+        sameAs: sameAs('password')
       }
     }
   },
@@ -141,21 +175,15 @@ export default {
     },
     codeinvalid () {
       return this.code && this.$v.code.minLength && this.$v.code.maxLength && this.$v.code.$invalid
-    },
-    confirmdata () {
-      const { code = this.code, password, username, next = 0 } = this.form
-      return { code, password, username, next }
     }
   },
   mixins: [notify],
   methods: {
     confirm () {
       this.$v.code.$touch()
-      console.log('Code:', this.code)
-      console.log('data', this.confirmdata)
-      console.log('invalid', this.$v.code.$invalid)
-      if (this.$v.code.$invalid) return
-      return axios.post(`${this.serverURL}/auth/confirmbycode`, this.confirmdata)
+      if (this.$v.code.$invalid || this.$v.form.$invalid) return
+      const obj = compose(this.form, { next: 0, code: this.code })
+      return axios.post(`${this.serverURL}/auth/confirmbycode`, obj)
         .then(({ data }) => {
           console.log(data)
           this.response = data.msg
@@ -167,11 +195,10 @@ export default {
         })
     },
     send () {
-      console.log('form', this.$v.form)
-      if (this.$v.form.invalid) return
+      if (this.$v.form.$invalid) return
       this.submiting = true
-      this.form.next = 0
-      return axios.post(`${this.serverURL}/auth/signup`, this.form)
+      const obj = compose(this.form, { next: 0 })
+      return axios.post(`${this.serverURL}/auth/signup`, obj)
         .then(({ data }) => {
           console.log(data)
           this.response = data.msg
