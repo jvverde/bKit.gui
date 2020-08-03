@@ -92,7 +92,7 @@ const compose = ({ username, password, email }, extra) => {
   return {
     username,
     email,
-    password: md5(password),
+    password: md5(`${username}|bKit|${password}`),
     ...extra
   }
 }
@@ -156,7 +156,7 @@ export default {
   computed: {
     ...mapGetters('global', ['server']),
     serverURL () {
-      return `http://${this.server}:3000`
+      return `http://${this.server}:8765`
     },
     username () {
       return this.$v.form.username
