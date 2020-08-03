@@ -37,6 +37,11 @@ const routes = [
         name: 'tasks'
       },
       {
+        path: 'Signup',
+        component: () => import('components/Auth/Signup.vue'),
+        name: 'signup'
+      },
+      {
         path: 'customize',
         component: () => import('pages/Customize.vue'),
         name: 'customize'

@@ -7,8 +7,10 @@ module.exports = function (ctx) {
     // --> boot files are part of "main.js"
     // https://quasar.dev/quasar-cli/cli-documentation/boot-files
     boot: [
+      'notify-defaults',
       'i18n',
-      'notify-defaults'
+      'axios',
+      'vuelidate'
     ],
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-css
@@ -82,7 +84,31 @@ module.exports = function (ctx) {
     devServer: {
       https: false,
       port: 8080,
-      open: true // opens browser window automatically
+      open: true, // opens browser window automatically
+      proxy: {
+        '/info': {
+          target: 'http://10.1.1.4:3000',
+          changeOrigin: true
+        },
+        '/check': {
+          target: 'http://10.1.1.4:3000',
+          changeOrigin: true
+        },
+        '/auth': {
+          target: 'http://10.1.1.4:3000',
+          changeOrigin: true
+        },
+        '/ws': {
+          target: 'ws://10.1.1.4:8765',
+          ws: true,
+          changeOrigin: true
+        }         
+      },
+      headers: {
+         "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
+      }
     },
 
     // animations: 'all', // --- includes all animations
