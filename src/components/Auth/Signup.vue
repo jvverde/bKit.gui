@@ -99,6 +99,10 @@ const compose = ({ username, password, email }, extra) => {
 
 const mustbedigits = (v = '') => Promise.resolve(v.match(/^\d{6}$/))
 
+const keytar = require('keytar')
+keytar.findCredentials('bKit')
+  .then(v => console.log('Cred:', v))
+
 export default {
   name: 'register',
   data () {
@@ -188,6 +192,7 @@ export default {
           console.log(data)
           this.response = data.msg
           this.code = undefined
+          keytar.setPassword('bKit', `${obj.username}@${this.server}'`, obj.password)
         })
         .catch((err) => {
           console.warn('Error', err)
