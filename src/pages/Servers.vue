@@ -1,59 +1,66 @@
 <template>
-  <q-page padding class="relative">
-    <q-list padding class="absolute-center" style="min-width:20em">
-      <q-item v-if="!servers.length">
-        <q-item-section>
-          <q-item-label>For testing purposes we can add the server available on test.bkit.pt</q-item-label>
-        </q-item-section>
-      </q-item>
-      <q-item>
-        <q-item-section>
-          <q-item-label>Change to bKit server:</q-item-label>
-        </q-item-section>
-      </q-item>
-      <q-separator spaced />
-      <q-item clickable v-ripple
-        @click="change(server)"
-        v-for="(server, index) in servers" :key="index">
-        <q-item-section avatar>
-          <q-icon :color="color(server)" name="storage" />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>{{server}}</q-item-label>
-        </q-item-section>
-        <q-item-section side v-show="isSelected(server)">
-          <q-btn label="Go" color="ok" outline no-caps @click.stop="go"/>
-        </q-item-section>
-      </q-item>
-      <q-item>
-        <q-item-section>
-          <q-input rounded outlined dense clearable
-            @keyup.enter="add"
-            @keydown.tab="add"
-            type="url"
-            v-model="newserver"
-            :loading="adding"
-            :error="!!error"
-            :error-message="`Server '${newserver}' not found`"
-            @clear="error=false"
-            placeholder="IP Address or Server Name"
-            hint="Address of a bKit server"
-            label="Add Server">
-            <template v-slot:append>
-              <q-btn outline icon="add" no-caps stack
-                @click="add"
-                v-if="!error && !adding"
-                size="xs"
-                round
-                color="green"/>
-            </template>
-          </q-input>
-        </q-item-section>
-      </q-item>
-    </q-list>
-    <q-inner-loading :showing="loading">
-      <q-spinner-ios size="6em" color="loader"/>
-    </q-inner-loading>
+  <q-page padding class="fit">
+    <div  class="row no-wrap">
+      <div class="relative">
+        <q-list padding class="absolute-center" style="min-width:20em">
+          <q-item v-if="!servers.length">
+            <q-item-section>
+              <q-item-label>For testing purposes we can add the server available on test.bkit.pt</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section>
+              <q-item-label>Change to bKit server:</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-separator spaced />
+          <q-item clickable v-ripple
+            @click="change(server)"
+            v-for="(server, index) in servers" :key="index">
+            <q-item-section avatar>
+              <q-icon :color="color(server)" name="storage" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{server}}</q-item-label>
+            </q-item-section>
+            <q-item-section side v-show="isSelected(server)">
+              <q-btn label="Go" color="ok" outline no-caps @click.stop="go"/>
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section>
+              <q-input rounded outlined dense clearable
+                @keyup.enter="add"
+                @keydown.tab="add"
+                type="url"
+                v-model="newserver"
+                :loading="adding"
+                :error="!!error"
+                :error-message="`Server '${newserver}' not found`"
+                @clear="error=false"
+                placeholder="IP Address or Server Name"
+                hint="Address of a bKit server"
+                label="Add Server">
+                <template v-slot:append>
+                  <q-btn outline icon="add" no-caps stack
+                    @click="add"
+                    v-if="!error && !adding"
+                    size="xs"
+                    round
+                    color="green"/>
+                </template>
+              </q-input>
+            </q-item-section>
+          </q-item>
+        </q-list>
+        <q-inner-loading :showing="loading">
+          <q-spinner-ios size="6em" color="loader"/>
+        </q-inner-loading>
+      </div>
+      <div class="relative">
+        <router-view></router-view>
+      </div>
+    </div>
   </q-page>
 </template>
 
@@ -87,12 +94,14 @@ export default {
       this.$router.push('/backup')
     },
     change (server) {
+      console.log('Change to', server)
       changeServer(server)
         .then(() => this.setServer(server))
         .catch((err) => console.warn('Change server error', err))
     },
     setServer (server) {
       this.$store.commit('global/setServer', server)
+      this.$router.push(`/servers/server/${server}`)
     },
     add () {
       if (!this.newserver) return

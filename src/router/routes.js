@@ -29,7 +29,18 @@ const routes = [
         path: 'servers/:back?',
         component: () => import('pages/Servers.vue'),
         name: 'servers',
-        props: true
+        props: true,
+        children: [
+          {
+            path: '',
+            component: () => import('components/Empty.vue')
+          },
+          {
+            path: 'server/:address',
+            props: true,
+            component: () => import('components/Auth/Signup.vue')
+          }
+        ]
       },
       {
         path: 'tasks',
