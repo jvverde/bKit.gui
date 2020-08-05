@@ -1,5 +1,6 @@
 <template>
   <div class="column absolute-center">
+    server:{{server}}
     <form @submit.prevent="send" class="column items-stretch">
       <q-input type="text" max-length="16" autofocus
         v-model="form.username"
@@ -116,6 +117,7 @@ export default {
       response: undefined
     }
   },
+  props: ['server'],
   validations: {
     code: {
       required,

@@ -1,7 +1,10 @@
 <template>
-  <div>
-    Registered user(s):
-    <span v-for="(user, index) in users" :key="index">{{user}}</span>
+  <div class="q-pa-xl q-gutter-x-sm row items-center full-width self-start">
+    <div>Registered user(s) for server {{server}}:</div>
+    <div v-for="(user, index) in users" :key="index">{{user}}</div>
+    <div style="margin-left:auto" class="q-my-sm">
+      <q-btn icon="add" label="New User" no-caps  @click="add"/>
+    </div>
   </div>
 </template>
 
@@ -18,7 +21,11 @@ export default {
       users: []
     }
   },
+  props: ['server'],
   methods: {
+    add () {
+      this.$router.push(`/servers/${this.server}/new/user`)
+    }
   },
   mounted () {
     keytar.findCredentials('bKit')

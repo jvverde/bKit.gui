@@ -41,7 +41,7 @@ const routes = [
             component: () => import('components/Server/ListUsers.vue')
           },
           {
-            path: 'server/:address',
+            path: ':server/new/user',
             props: true,
             component: () => import('components/Auth/Signup.vue')
           },
