@@ -1,10 +1,11 @@
 <template>
-  <form @submit.prevent="add" class="column items-start q-gutter-y-lg">
-    <label>Add new server located at:</label>
+  <form @submit.prevent="add" class="column items-end q-gutter-y-lg">
+    <label class="self-start" style="margin-left:-2em">Add new server located at:</label>
     <q-input outlined dense clearable standout
+      style="min-width:20em"
       @keyup.enter="add"
       @keydown.tab="add"
-      type="url"
+      type="text"
       v-model="address"
       :loading="adding"
       :error="!!error"
@@ -18,7 +19,6 @@
     </q-input>
     <q-input type="number" max="65335" min="1"
       dense borderless
-      class="self-end"
       v-model.number="port" label="Port Number">
     </q-input>
     <q-btn outline icon="add" label="Add" no-caps

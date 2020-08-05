@@ -32,13 +32,22 @@ const routes = [
         props: true,
         children: [
           {
-            path: '',
-            component: () => import('components/Empty.vue')
+            path: 'new/server',
+            component: () => import('components/Server/AddServer.vue')
+          },
+          {
+            path: ':server/users',
+            props: true,
+            component: () => import('components/Server/ListUsers.vue')
           },
           {
             path: 'server/:address',
             props: true,
             component: () => import('components/Auth/Signup.vue')
+          },
+          {
+            path: '*',
+            component: () => import('components/Empty.vue')
           }
         ]
       },

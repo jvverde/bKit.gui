@@ -1,5 +1,5 @@
 <template>
-  <q-page padding class="fit column no-wrap">
+  <q-page padding class="fit column no-wrap items-center">
     <div class="q-pa-xl row items-center full-width self-start">
       <div>Current server:</div>
       <div @click="change(server)"
@@ -15,41 +15,8 @@
          <q-btn icon="add" label="New Server" no-caps  @click="add"/>
       </div>
     </div>
-    <div v-if="newserver" class="self-end q-mr-lg">
-      <addserver/>
-    </div>
     <div>
-    <!--       <div class="relative">
-        <q-list padding class="absolute-center" style="min-width:20em">
-          <q-item v-if="!servers.length">
-            <q-item-section>
-              <q-item-label>For testing purposes we can add the server available on test.bkit.pt</q-item-label>
-            </q-item-section>
-          </q-item>
-          <q-item>
-            <q-item-section>
-              <q-item-label>Change to bKit server:</q-item-label>
-            </q-item-section>
-          </q-item>
-          <q-separator spaced />
-          <q-item clickable v-ripple
-            @click="change(server)"
-            v-for="(server, index) in servers" :key="index">
-            <q-item-section avatar>
-              <q-icon :color="color(server)" name="storage" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{server}}</q-item-label>
-            </q-item-section>
-            <q-item-section side v-show="isSelected(server)">
-              <q-btn label="Go" color="ok" outline no-caps @click.stop="go"/>
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </div> -->
-      <div class="relative">
-        <router-view></router-view>
-      </div>
+      <router-view></router-view>
     </div>
   </q-page>
 </template>
@@ -57,7 +24,6 @@
 <script>
 import { listServers, getServer, changeServer } from 'src/helpers/bkit'
 // import { warn } from 'src/helpers/notify'
-import addserver from 'src/components/Server/AddServer'
 
 export default {
   name: 'Servers',
@@ -67,14 +33,10 @@ export default {
       loading: false,
       adding: false,
       error: false,
-      newserver: false,
       servers: []
     }
   },
   props: ['back'],
-  components: {
-    addserver
-  },
   watch: {
   },
   methods: {
@@ -94,6 +56,7 @@ export default {
         .then(() => this.setServer(server))
         .catch((err) => console.warn('Change server error', err))
         .finally(() => { this.loading = false })
+      this.$router.push(`/servers/${server}/users`)
     },
     setServer (server) {
       this.$store.commit('global/setServer', server)
@@ -101,7 +64,7 @@ export default {
       this.current = server
     },
     add () {
-      this.newserver = true
+      this.$router.push('/servers/new/server')
     },
     reload () {
       this.loading = true

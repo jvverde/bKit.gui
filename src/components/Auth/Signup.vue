@@ -100,9 +100,7 @@ const compose = ({ username, password, email }, extra) => {
 const mustbedigits = (v = '') => Promise.resolve(v.match(/^\d{6}$/))
 
 const keytar = require('keytar')
-keytar.findCredentials('bKit')
-  .then(v => console.log('Cred:', v))
-  
+
 export default {
   name: 'register',
   data () {
@@ -158,10 +156,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['server']),
-    serverURL () {
-      return `http://${this.server}:8765`
-    },
+    ...mapGetters('global', ['serverURL']),
     username () {
       return this.$v.form.username
     },
