@@ -1,6 +1,6 @@
 <template>
   <q-page padding class="fit column no-wrap">
-    <div class="q-pa-xl row no-wrap items-center full-width">
+    <div class="q-pa-xl row items-center full-width self-start">
       <div>Current server:</div>
       <div @click="change(server)"
         v-for="(server, index) in servers" :key="index">
@@ -11,15 +11,15 @@
       <q-inner-loading :showing="loading">
         <q-spinner-ios color="loader"/>
       </q-inner-loading>
-      <div style="margin-left:auto">
-         <q-btn icon="add" rounded label="New Server" no-caps  @click="add"/>
+      <div style="margin-left:auto" class="q-my-sm">
+         <q-btn icon="add" label="New Server" no-caps  @click="add"/>
       </div>
     </div>
-    <div v-if="newserver">
+    <div v-if="newserver" class="self-end q-mr-lg">
       <addserver/>
     </div>
     <div>
-      <div class="relative">
+    <!--       <div class="relative">
         <q-list padding class="absolute-center" style="min-width:20em">
           <q-item v-if="!servers.length">
             <q-item-section>
@@ -46,7 +46,7 @@
             </q-item-section>
           </q-item>
         </q-list>
-      </div>
+      </div> -->
       <div class="relative">
         <router-view></router-view>
       </div>

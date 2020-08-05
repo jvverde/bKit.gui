@@ -1,6 +1,7 @@
 <template>
-  <form @submit.prevent="add" class="column items-stretch">
-    <q-input rounded outlined dense clearable
+  <form @submit.prevent="add" class="column items-start q-gutter-y-lg">
+    <label>Add new server located at:</label>
+    <q-input outlined dense clearable standout
       @keyup.enter="add"
       @keydown.tab="add"
       type="url"
@@ -11,20 +12,19 @@
       @clear="error=false"
       placeholder="IP Address or Server Name"
       hint="Address of a bKit server"
-      label="Add Server">
+      label="Server address">
       <template v-slot:append>
-        <q-btn outline icon="add" no-caps stack
-          @click="add"
-          v-if="!error && !adding"
-          size="xs"
-          round
-          color="green"/>
       </template>
     </q-input>
     <q-input type="number" max="65335" min="1"
-      rounded outlined dense
+      dense borderless
+      class="self-end"
       v-model.number="port" label="Port Number">
     </q-input>
+    <q-btn outline icon="add" label="Add" no-caps
+      @click="add" :disable="error || adding"
+      class="q-mt-sm self-center"
+      color="green"/>
   </form>
 </template>
 

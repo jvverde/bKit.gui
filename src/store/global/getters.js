@@ -1,3 +1,3 @@
 export function server (state) {
-  return state.server
+  return (state.server || {}).address
 }
