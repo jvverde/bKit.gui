@@ -21,10 +21,13 @@
       dense borderless
       v-model.number="port" label="Port Number">
     </q-input>
-    <q-btn outline icon="add" label="Add" no-caps
-      @click="add" :disable="error || adding"
-      class="q-mt-sm self-center"
-      color="green"/>
+    <div class="q-gutter-x-xl self-center">
+      <q-btn outline icon="cancel" label="Cancel" no-caps
+        @click="cancel" color="red"/>
+      <q-btn icon="add" label="Add" no-caps
+        @click="add" :disable="error || adding"
+        color="green"/>
+    </div>
   </form>
 </template>
 
@@ -56,6 +59,9 @@ export default {
         .finally(() => {
           this.adding = false
         })
+    },
+    cancel () {
+      this.$router.go(-1)
     }
   }
 }

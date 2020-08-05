@@ -9,7 +9,7 @@
         </q-btn>
       </div>
       <q-inner-loading :showing="loading">
-        <q-spinner-ios color="loader"/>
+        <q-spinner-ios size="xl" color="loader"/>
       </q-inner-loading>
       <div style="margin-left:auto" class="q-my-sm">
          <q-btn icon="add" label="New Server" no-caps  @click="add"/>
@@ -36,10 +36,16 @@ export default {
     }
   },
   props: ['back'],
-  watch: {
-  },
   computed: {
     ...mapGetters('global', ['serverAddress', 'servers'])
+  },
+  watch: {
+    serverAddress: {
+      immediate: true,
+      handler (val, old) {
+        if (val && val !== old) this.$router.push(`/servers/${val}/users`)
+      }
+    }
   },
   methods: {
     ...mapMutations('global', ['setServer', 'addServers']),
@@ -59,7 +65,6 @@ export default {
         .then(() => this.setServer(server))
         .catch((err) => console.warn('Change server error', err))
         .finally(() => { this.loading = false })
-      this.$router.push(`/servers/${server.address}/users`)
     },
     add () {
       this.$router.push('/servers/new/server')
