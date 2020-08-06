@@ -36,12 +36,12 @@ const routes = [
             component: () => import('components/Server/AddServer.vue')
           },
           {
-            path: ':server/users',
+            path: ':server/accounts',
             props: true,
-            component: () => import('components/Server/ListUsers.vue')
+            component: () => import('components/Server/ListAccounts.vue')
           },
           {
-            path: ':server/new/user',
+            path: ':server/new/account',
             props: true,
             component: () => import('components/Auth/Signup.vue')
           },

@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="add" class="column items-end q-gutter-y-lg">
+  <form @submit.prevent="add" class="column items-end q-gutter-y-lg absolute-center">
     <label class="self-start" style="margin-left:-2em">Add new server located at:</label>
     <q-input outlined dense clearable standout
       style="min-width:20em"
@@ -22,12 +22,11 @@
       v-model.number="port" label="Port Number">
     </q-input>
     <div class="q-gutter-x-xl self-center">
-      <q-btn outline icon="cancel" label="Cancel" no-caps
-        @click="cancel" color="red"/>
       <q-btn icon="add" label="Add" no-caps
         @click="add" :disable="error || adding"
         color="green"/>
     </div>
+    <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
   </form>
 </template>
 

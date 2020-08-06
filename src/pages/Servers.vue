@@ -1,6 +1,6 @@
 <template>
   <q-page padding class="fit column no-wrap items-center">
-    <div class="q-pa-xl  q-gutter-x-sm row items-center full-width self-start">
+    <div class="q-pa-sm q-mt-sm  q-gutter-x-sm row items-center full-width self-start">
       <div>Current server:</div>
       <div @click="change(server)"
         v-for="(server, index) in servers" :key="index">
@@ -12,7 +12,7 @@
         <q-spinner-ios size="xl" color="loader"/>
       </q-inner-loading>
       <div style="margin-left:auto" class="q-my-sm">
-         <q-btn icon="add" label="New Server" no-caps  @click="add"/>
+         <q-btn icon="add" label="New Server" no-caps  dense @click="add"/>
       </div>
     </div>
     <div class="full-width column items-center">
@@ -43,7 +43,7 @@ export default {
     serverAddress: {
       immediate: true,
       handler (val, old) {
-        if (val && val !== old) this.$router.push(`/servers/${val}/users`)
+        if (val && val !== old) this.$router.push(`/servers/${val}/accounts`)
       }
     }
   },

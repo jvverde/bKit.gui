@@ -2,15 +2,15 @@
   <div class="column absolute-center">
     server:{{server}}
     <form @submit.prevent="send" class="column items-stretch">
-      <q-input type="text" max-length="16" autofocus
+      <q-input type="text" max-length="16"
         v-model="form.username"
         label="Username"
         hint="Choose a username"
         @blur="$v.form.username.$touch"
       >
         <template v-slot:after>
-          <q-icon v-if="$v.form.username.$error" name="warning" flat color="error"/>
-          <q-icon v-else-if="!$v.form.username.$invalid" name="done" flat color="ok"/>
+          <q-icon v-if="$v.form.username.$error" name="warning" flat color="error" size="xs"/>
+          <q-icon v-else-if="!$v.form.username.$invalid" name="done" flat color="ok" size="xs"/>
         </template>
       </q-input>
       <q-input type="email" max-length="50"
@@ -20,8 +20,8 @@
         @blur="$v.form.email.$touch"
       >
         <template v-slot:after>
-          <q-icon v-if="$v.form.email.$error" name="warning" flat color="error"/>
-          <q-icon v-else-if="!$v.form.email.$invalid" name="done" flat color="ok"/>
+          <q-icon v-if="$v.form.email.$error" name="warning" flat color="error" size="xs"/>
+          <q-icon v-else-if="!$v.form.email.$invalid" name="done" flat color="ok" size="xs"/>
         </template>
       </q-input>
       <q-input type="password" max-length="16"
@@ -32,8 +32,8 @@
         @blur="$v.form.password.$touch"
       >
         <template v-slot:after>
-          <q-icon v-if="$v.form.password.$error" name="warning" flat color="error"/>
-          <q-icon v-else-if="!$v.form.password.$invalid" name="done" flat color="ok"/>
+          <q-icon v-if="$v.form.password.$error" name="warning" flat color="error" size="xs"/>
+          <q-icon v-else-if="!$v.form.password.$invalid" name="done" flat color="ok" size="xs"/>
         </template>
       </q-input>
       <q-input type="password" max-length="16"
@@ -44,8 +44,8 @@
         @blur="$v.form.passrepeat.$touch"
       >
         <template v-slot:after>
-          <q-icon v-if="$v.form.passrepeat.$error" name="warning" flat color="error"/>
-          <q-icon v-else-if="!$v.form.passrepeat.$invalid && !$v.form.password.$invalid" name="done" flat color="ok"/>
+          <q-icon v-if="$v.form.passrepeat.$error" name="warning" flat color="error" size="xs"/>
+          <q-icon v-else-if="!$v.form.passrepeat.$invalid && !$v.form.password.$invalid" name="done" flat color="ok" size="xs"/>
         </template>
       </q-input>
       <q-btn v-model="submiting" loader
@@ -65,13 +65,11 @@
         @keyup="confirm"
         hint="Code received by email">
         <template v-slot:after>
-          <q-icon v-if="codeinvalid" name="warning" flat color="error"/>
+          <q-icon v-if="codeinvalid" name="warning" flat color="error" size="xs"/>
         </template>
       </q-input>
     </form>
-    <div>
-      {{response}}
-    </div>
+    <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
   </div>
 </template>
 
@@ -180,6 +178,9 @@ export default {
   },
   mixins: [notify],
   methods: {
+    cancel () {
+      this.$router.go(-1)
+    },
     confirm () {
       this.$v.code.$touch()
       if (this.$v.code.$invalid || this.$v.form.$invalid) return
