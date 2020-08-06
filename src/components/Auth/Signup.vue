@@ -179,7 +179,7 @@ export default {
   mixins: [notify],
   methods: {
     cancel () {
-      this.$router.go(-1)
+      this.$router.back()
     },
     confirm () {
       this.$v.code.$touch()

@@ -1,5 +1,5 @@
 <template>
-  <q-page padding class="fit column no-wrap items-center">
+  <q-page padding class="fit column no-wrap items-center relative-position">
     <div class="q-pa-sm q-mt-sm  q-gutter-x-sm row items-center full-width self-start">
       <div>Current server:</div>
       <div @click="change(server)"
@@ -15,7 +15,7 @@
          <q-btn icon="add" label="New Server" no-caps  dense @click="add"/>
       </div>
     </div>
-    <div class="full-width column items-center">
+    <div class="fit relative-position routerview">
       <router-view></router-view>
     </div>
   </q-page>

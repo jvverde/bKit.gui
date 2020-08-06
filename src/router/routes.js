@@ -33,7 +33,7 @@ const routes = [
         children: [
           {
             path: 'new/server',
-            component: () => import('components/Server/AddServer.vue')
+            component: () => import('components/Server/NewServer.vue')
           },
           {
             path: ':server/accounts',
@@ -43,7 +43,19 @@ const routes = [
           {
             path: ':server/new/account',
             props: true,
-            component: () => import('components/Auth/Signup.vue')
+            component: () => import('components/server/NewAccount.vue'),
+            children: [
+              {
+                path: 'signup',
+                props: true,
+                component: () => import('components/Auth/Signup.vue')
+              },
+              {
+                path: 'signin',
+                props: true,
+                component: () => import('components/Auth/Signin.vue')
+              }
+            ]
           },
           {
             path: '*',

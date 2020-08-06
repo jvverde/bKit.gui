@@ -45,8 +45,8 @@ export default function (/* { store, ssrContext } */) {
   //     }
   //   })
   router.beforeEach((to, from, next) => {
-    console.log('from:', from.path)
-    console.log('to:', to.path)
+    // console.log('from:', from.path)
+    // console.log('to:', to.path)
     next()
   })
 
