@@ -1,13 +1,11 @@
 <template>
   <div class="fit column no-wrap items-center relative-position">
-    <div class="q-ma-xl q-px-xl full-width">
+    <div class="q-my-xl">
       <q-btn-toggle
         v-model="operation"
-        spread
         no-caps
         toggle-color="primary"
-        color="white"
-        text-color="black"
+        flat
         :options="options"
       />
     </div>
@@ -24,7 +22,7 @@ export default {
   name: 'ServerUsers',
   data () {
     return {
-      operation: 'signup',
+      operation: 'signin',
       options: [
         { label: 'Sign-in', value: 'signin' },
         { label: 'Sign-up', value: 'signup' }
