@@ -70,6 +70,19 @@
       </q-input>
     </form>
     <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
+    <q-dialog v-model="waitcode" transition-show="flip-down" transition-hide="flip-up">
+      <q-card>
+        <q-card-section v-if="response.email">
+          A code has been sent to mail address {{response.email}}
+        </q-card-section>
+        <q-card-section>
+          Please check you email and then enter it on field Code bellow
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="OK" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -112,7 +125,7 @@ export default {
       },
       code: undefined,
       submiting: false,
-      response: undefined
+      response: {}
     }
   },
   props: ['server'],
@@ -161,13 +174,17 @@ export default {
       return this.$v.form.$invalid === false
     },
     ready2confirm () {
-      return this.$v.code.$invalid === false && this.$v.form.$invalid == false
+      return this.$v.code.$invalid === false && this.$v.form.$invalid === false
     },
     askcode () {
       return this.code !== undefined
     },
     codeinvalid () {
       return this.code && this.$v.code.minLength && this.$v.code.maxLength && this.$v.code.$invalid
+    },
+    waitcode: {
+      get () { return this.response && this.response.status === 'wait' },
+      set () { this.response.status = 'waitcode' }
     }
   },
   mixins: [notify],
@@ -181,7 +198,7 @@ export default {
       try {
         const obj = compose(this.form, { next: 0, code: this.code })
         const { data } = await axios.post(`${this.serverURL}/auth/confirmbycode`, obj)
-        this.response = data.msg
+        this.response = data
         this.code = undefined
         keytar.setPassword('bKit', `${obj.username}@${this.server}`, obj.password)
         this.$router.back()
@@ -195,7 +212,7 @@ export default {
         this.submiting = true
         const obj = compose(this.form, { next: 0 })
         const { data } = await axios.post(`${this.serverURL}/auth/signup`, obj)
-        this.response = data.msg
+        this.response = data
         this.code = null
       } catch (err) {
         this.catch(err)
