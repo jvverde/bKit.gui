@@ -48,6 +48,21 @@ import { mapGetters } from 'vuex'
 
 const keytar = require('keytar')
 
+const crypto = require('crypto')
+
+const md5 = (msg) => {
+  const hash = crypto.createHash('md5')
+  hash.update(msg)
+  return hash.digest('hex')
+}
+
+const compose = ({ username, password }) => {
+  return {
+    username,
+    password: md5(`${username}|bKit|${password}`)
+  }
+}
+
 export default {
   name: 'Login',
   components: {
@@ -83,11 +98,12 @@ export default {
     send () {
       if (!this.ready) return
       this.submit = true
-      axios.post(`${this.serverURL}/auth/login`, this.form)
+      const cred = compose(this.form)
+      axios.post(`${this.serverURL}/auth/login`, cred)
         .then(response => {
           keytar
-            .setPassword('bKit', `${this.form.username}@${this.server}`, this.form.password)
-            .then(() => this.$router.push(`/servers/${this.server}/accounts`))
+            .setPassword('bKit', `${cred.username}@${this.server}`, cred.password)
+            .then(() => this.$router.back())
         })
         .catch(this.catch)
         .finally(() => {

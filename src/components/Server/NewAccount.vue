@@ -19,7 +19,7 @@
 <script>
 
 export default {
-  name: 'ServerUsers',
+  name: 'NewAccount',
   data () {
     return {
       operation: 'signin',
@@ -34,8 +34,12 @@ export default {
   watch: {
     operation: {
       immediate: true,
-      handler (val, old) {
-        if (val && val !== old) this.$router.replace(`/servers/${this.server}/new/account/${val}`)
+      handler (name, old) {
+        if (!name || name === old) return
+        this.$router.replace({
+          name,
+          params: { server: this.server }
+        })
       }
     }
   },

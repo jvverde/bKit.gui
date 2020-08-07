@@ -24,18 +24,12 @@ export default {
     server: {
       immediate: true,
       handler (val) {
-        this.accounts = []
         keytar.findCredentials('bKit')
           .then((creds = []) => {
-            console.log('server', val)
-            console.log('creds', creds)
-            creds
+            this.accounts = creds
               .map(c => c.account)
               .filter(u => u.endsWith(`@${val}`))
-              .forEach(u => {
-                console.log('u', u)
-                this.accounts.push(u)
-              })
+              .map(u => u.replace(/@[^@]+$/, ''))
           })
       }
     }
@@ -46,13 +40,10 @@ export default {
     }
   },
   mounted () {
-    console.log('Mounted List Accounts')
   },
   beforeUpdate () {
-    console.log('beforeUpdate')
   },
   updated () {
-    console.log('Updated')
   }
 }
 </script>

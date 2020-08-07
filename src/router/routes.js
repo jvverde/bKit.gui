@@ -48,11 +48,13 @@ const routes = [
             children: [
               {
                 path: 'signup',
+                name: 'signup',
                 props: true,
                 component: () => import('components/Auth/Signup.vue')
               },
               {
                 path: 'signin',
+                name: 'signin',
                 props: true,
                 component: () => import('components/Auth/Signin.vue')
               }
