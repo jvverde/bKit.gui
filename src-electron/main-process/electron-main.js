@@ -144,6 +144,16 @@ ipcMain.on('getPath', (event, name) => {
   event.returnValue = app.getPath(name)
 })
 
+const keytar = require('keytar')
+
+ipcMain.on('findCredentials', (event) => {
+  event.returnValue = keytar.findCredentials('bKit')
+})
+
+ipcMain.on('setPassword', async (event, account, password) => {
+  event.returnValue = keytar.setPassword('bKit', account, password)
+})
+
 menu()
 
 say.log('bkit started')

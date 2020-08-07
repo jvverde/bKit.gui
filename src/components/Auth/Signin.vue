@@ -103,7 +103,7 @@ export default {
         .then(response => {
           keytar
             .setPassword('bKit', `${cred.username}@${this.server}`, cred.password)
-            .then(() => this.$router.back())
+          this.$router.back()
         })
         .catch(this.catch)
         .finally(() => {

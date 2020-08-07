@@ -1,7 +1,11 @@
 <template>
   <div class="q-pa-sm q-gutter-x-sm row items-center full-width self-start">
     <div>Registered account(s) for server {{server}}:</div>
-    <div v-for="(account, index) in accounts" :key="index">{{account}}</div>
+    <div v-for="(account, index) in accounts" :key="index">
+      <q-chip removable @remove="remove(account)" icon="person">
+        {{account}}
+      </q-chip>
+    </div>
     <div style="margin-left:auto" class="q-my-sm">
       <q-btn icon="add" label="New Account" no-caps dense @click="add"/>
     </div>
@@ -9,6 +13,8 @@
 </template>
 
 <script>
+
+import notify from 'src/mixins/notify'
 
 const keytar = require('keytar')
 
@@ -31,12 +37,24 @@ export default {
               .filter(u => u.endsWith(`@${val}`))
               .map(u => u.replace(/@[^@]+$/, ''))
           })
+          .catch(this.catch)
       }
     }
   },
+  mixins: [notify],
   methods: {
     add () {
       this.$router.push(`/servers/${this.server}/new/account`)
+    },
+    remove (account) {
+      keytar.deletePassword('bKit', `${account}@${this.server}`)
+        .then(() => {
+          const index = this.accounts.findIndex(u => u === account)
+          if (index < 0) return
+          console.log('remove index', index)
+          this.accounts.splice(index, 1)
+        })
+        .catch(this.catch)
     }
   },
   mounted () {

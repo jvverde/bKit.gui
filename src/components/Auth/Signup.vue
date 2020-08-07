@@ -181,41 +181,35 @@ export default {
     cancel () {
       this.$router.back()
     },
-    confirm () {
+    async confirm () {
       this.$v.code.$touch()
       if (this.$v.code.$invalid || this.$v.form.$invalid) return
-      const obj = compose(this.form, { next: 0, code: this.code })
-      return axios.post(`${this.serverURL}/auth/confirmbycode`, obj)
-        .then(({ data }) => {
-          console.log(data)
-          this.response = data.msg
-          this.code = undefined
-          keytar
-            .setPassword('bKit', `${obj.username}@${this.server}`, obj.password)
-            .then(() => this.$router.back())
-        })
-        .catch((err) => {
-          console.warn('Error', err)
-          this.catch(err)
-        })
+      try {
+        const obj = compose(this.form, { next: 0, code: this.code })
+        const { data } = await axios.post(`${this.serverURL}/auth/confirmbycode`, obj)
+        this.response = data.msg
+        this.code = undefined
+        console.log('signup done')
+        keytar.setPassword('bKit', `${obj.username}@${this.server}`, obj.password)
+        console.log('go back')
+        this.$router.back()
+      } catch (err) {
+        this.catch(err)
+      }
     },
-    send () {
+    async send () {
       if (this.$v.form.$invalid) return
-      this.submiting = true
-      const obj = compose(this.form, { next: 0 })
-      return axios.post(`${this.serverURL}/auth/signup`, obj)
-        .then(({ data }) => {
-          console.log(data)
-          this.response = data.msg
-          this.code = null
-        })
-        .catch((err) => {
-          console.warn('Error', err)
-          this.catch(err)
-        })
-        .finally(() => {
-          this.submiting = false
-        })
+      try {
+        this.submiting = true
+        const obj = compose(this.form, { next: 0 })
+        const { data } = await axios.post(`${this.serverURL}/auth/signup`, obj)
+        this.response = data.msg
+        this.code = null
+      } catch (err) {
+        this.catch(err)
+      } finally {
+        this.submiting = false
+      }
     }
   },
   mounted () {
