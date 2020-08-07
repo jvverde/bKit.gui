@@ -35,7 +35,7 @@
     >Sign In</q-btn>
     <div class="text-center" style="margin:1em">Or</div>
     <q-btn rounded color="secondary"
-      @click="$router.push({ name: 'signup' })"
+      @click="$router.replace({ name: 'signup', params: { server } })"
     >Sign up</q-btn>
   </div>
 </template>
@@ -95,20 +95,19 @@ export default {
     }
   },
   methods: {
-    send () {
+    async send () {
       if (!this.ready) return
       this.submit = true
-      const cred = compose(this.form)
-      axios.post(`${this.serverURL}/auth/login`, cred)
-        .then(response => {
-          keytar
-            .setPassword('bKit', `${cred.username}@${this.server}`, cred.password)
-          this.$router.back()
-        })
-        .catch(this.catch)
-        .finally(() => {
-          this.submit = false
-        })
+      try {
+        const cred = compose(this.form)
+        await axios.post(`${this.serverURL}/auth/login`, cred)
+        keytar.setPassword('bKit', `${cred.username}@${this.server}`, cred.password)
+        this.$router.back()
+      } catch (err) {
+        this.catch(err)
+      } finally {
+        this.submit = false
+      }
     }
   },
   mounted () {

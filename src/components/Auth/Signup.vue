@@ -157,17 +157,11 @@ export default {
   },
   computed: {
     ...mapGetters('global', ['serverURL']),
-    username () {
-      return this.$v.form.username
-    },
-    email () {
-      return this.$v.form.email
-    },
-    password () {
-      return this.$v.form.password
-    },
     ready () {
       return this.$v.form.$invalid === false
+    },
+    ready2confirm () {
+      return this.$v.code.$invalid === false && this.$v.form.$invalid == false
     },
     askcode () {
       return this.code !== undefined
@@ -183,22 +177,20 @@ export default {
     },
     async confirm () {
       this.$v.code.$touch()
-      if (this.$v.code.$invalid || this.$v.form.$invalid) return
+      if (!this.ready2confirm) return
       try {
         const obj = compose(this.form, { next: 0, code: this.code })
         const { data } = await axios.post(`${this.serverURL}/auth/confirmbycode`, obj)
         this.response = data.msg
         this.code = undefined
-        console.log('signup done')
         keytar.setPassword('bKit', `${obj.username}@${this.server}`, obj.password)
-        console.log('go back')
         this.$router.back()
       } catch (err) {
         this.catch(err)
       }
     },
     async send () {
-      if (this.$v.form.$invalid) return
+      if (!this.ready) return
       try {
         this.submiting = true
         const obj = compose(this.form, { next: 0 })
@@ -211,11 +203,6 @@ export default {
         this.submiting = false
       }
     }
-  },
-  mounted () {
-    // const resolved =
-    // console.log('resolved', resolved)
-    console.log('URL:', this.serverURL)
   }
 }
 </script>

@@ -1,8 +1,8 @@
 <template>
   <div class="q-pa-sm q-gutter-x-sm row items-center full-width self-start">
-    <div>Registered account(s) for server {{server}}:</div>
+    <div>Registered account<span v-if="accounts.length > 1">s</span> for server {{server}}:</div>
     <div v-for="(account, index) in accounts" :key="index">
-      <q-chip removable @remove="remove(account)" icon="person">
+      <q-chip clickable @click="manage(account)" removable @remove="remove(account)" icon="person">
         {{account}}
       </q-chip>
     </div>
@@ -55,6 +55,9 @@ export default {
           this.accounts.splice(index, 1)
         })
         .catch(this.catch)
+    },
+    manage (account) {
+      console.log(account)
     }
   },
   mounted () {
