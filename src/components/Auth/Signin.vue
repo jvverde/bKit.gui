@@ -44,6 +44,9 @@
 import axios from 'axios'
 import { required } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
+import { mapGetters } from 'vuex'
+
+const keytar = require('keytar')
 
 export default {
   name: 'Login',
@@ -58,6 +61,7 @@ export default {
       submit: false
     }
   },
+  props: ['server'],
   validations: {
     form: {
       username: {
@@ -70,6 +74,7 @@ export default {
   },
   mixins: [notify],
   computed: {
+    ...mapGetters('global', ['serverURL']),
     ready () {
       return !this.$v.form.$error && this.form.username && this.form.password
     }
@@ -78,15 +83,14 @@ export default {
     send () {
       if (!this.ready) return
       this.submit = true
-      axios.post('/auth/login', this.form)
+      axios.post(`${this.serverURL}/auth/login`, this.form)
         .then(response => {
-          this.$router.replace(this.$route.query.redirect || {
-            path: '/show',
-            query: { msg: response.data.login.msg }
-          })
+          keytar
+            .setPassword('bKit', `${this.form.username}@${this.server}`, this.form.password)
+            .then(() => this.$router.push(`/servers/${this.server}/accounts`))
         })
         .catch(this.catch)
-        .then(() => {
+        .finally(() => {
           this.submit = false
         })
     }

@@ -10,30 +10,49 @@
 
 <script>
 
-// import { mapGetters } from 'vuex'
-
 const keytar = require('keytar')
 
 export default {
-  name: 'ServerUsers',
+  name: 'ListAccounts',
   data () {
     return {
       accounts: []
     }
   },
   props: ['server'],
+  watch: {
+    server: {
+      immediate: true,
+      handler (val) {
+        this.accounts = []
+        keytar.findCredentials('bKit')
+          .then((creds = []) => {
+            console.log('server', val)
+            console.log('creds', creds)
+            creds
+              .map(c => c.account)
+              .filter(u => u.endsWith(`@${val}`))
+              .forEach(u => {
+                console.log('u', u)
+                this.accounts.push(u)
+              })
+          })
+      }
+    }
+  },
   methods: {
     add () {
       this.$router.push(`/servers/${this.server}/new/account`)
     }
   },
   mounted () {
-    keytar.findCredentials('bKit')
-      .then((creds = []) => {
-        creds.map(c => c.account).forEach(u => {
-          this.accounts.push(u)
-        })
-      })
+    console.log('Mounted List Accounts')
+  },
+  beforeUpdate () {
+    console.log('beforeUpdate')
+  },
+  updated () {
+    console.log('Updated')
   }
 }
 </script>

@@ -37,6 +37,7 @@ const routes = [
           },
           {
             path: ':server/accounts',
+            name: 'ListAccounts',
             props: true,
             component: () => import('components/Server/ListAccounts.vue')
           },

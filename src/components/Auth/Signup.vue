@@ -191,6 +191,7 @@ export default {
           this.response = data.msg
           this.code = undefined
           keytar.setPassword('bKit', `${obj.username}@${this.server}`, obj.password)
+          this.$router.push(`/servers/${this.server}/accounts`)
         })
         .catch((err) => {
           console.warn('Error', err)
