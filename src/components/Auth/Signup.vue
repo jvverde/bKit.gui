@@ -91,6 +91,7 @@ import axios from 'axios'
 import { required, minLength, maxLength, email, sameAs } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
 import { mapGetters } from 'vuex'
+import { addAccount } from 'src/helpers/credentials'
 
 const crypto = require('crypto')
 
@@ -110,8 +111,6 @@ const compose = ({ username, password, email }, extra) => {
 }
 
 const mustbedigits = (v = '') => Promise.resolve(v.match(/^\d{6}$/))
-
-const keytar = require('keytar')
 
 export default {
   name: 'register',
@@ -200,7 +199,7 @@ export default {
         const { data } = await axios.post(`${this.serverURL}/auth/confirmbycode`, obj)
         this.response = data
         this.code = undefined
-        keytar.setPassword('bKit', `${obj.username}@${this.server}`, obj.password)
+        addAccount(`${obj.username}@${this.server}`, obj.password)
         this.$router.back()
       } catch (err) {
         this.catch(err)

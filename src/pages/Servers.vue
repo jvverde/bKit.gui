@@ -43,7 +43,7 @@ export default {
     serverAddress: {
       immediate: true,
       handler (val, old) {
-        if (val && val !== old) this.$router.push({ name: 'ListAccounts', params: { server: val } })
+        if (val && val !== old) this.$router.replace({ name: 'ListAccounts', params: { server: val } })
       }
     }
   },

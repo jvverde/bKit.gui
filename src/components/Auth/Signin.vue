@@ -45,8 +45,7 @@ import axios from 'axios'
 import { required } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
 import { mapGetters } from 'vuex'
-
-const keytar = require('keytar')
+import { addAccount } from 'src/helpers/credentials'
 
 const crypto = require('crypto')
 
@@ -101,7 +100,7 @@ export default {
       try {
         const cred = compose(this.form)
         await axios.post(`${this.serverURL}/auth/login`, cred)
-        keytar.setPassword('bKit', `${cred.username}@${this.server}`, cred.password)
+        addAccount(`${cred.username}@${this.server}`, cred.password)
         this.$router.back()
       } catch (err) {
         this.catch(err)

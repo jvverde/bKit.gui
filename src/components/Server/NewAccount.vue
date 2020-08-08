@@ -1,6 +1,7 @@
 <template>
   <div class="fit column no-wrap items-center relative-position">
-    <div class="q-my-xl">
+    <div class="q-mt-xl">Server: {{server}}</div>
+    <div>
       <q-btn-toggle
         v-model="operation"
         no-caps

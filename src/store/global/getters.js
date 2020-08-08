@@ -22,3 +22,16 @@ export function serverURL (state) {
 export function servers (state) {
   return state.servers
 }
+export function serverNames (state) {
+  return state.servers.map(server => server.address)
+}
+
+export function getServerURL (state) {
+  return (name) => {
+    const index = state.servers.findIndex(s => s.address === name)
+    if (index >= 0) {
+      const server = state.servers[index]
+      return `http://${server.address}:${server.hport}`
+    } else return undefined
+  }
+}
