@@ -35,7 +35,6 @@ export default {
       async handler (val) {
         this.loading = true
         try {
-          console.log('findCredentials')
           const accounts = await getAccounts()
           this.accounts = accounts.filter(u => u.endsWith(`@${val}`))
             .map(u => u.replace(/@[^@]+$/, ''))
