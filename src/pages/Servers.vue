@@ -43,12 +43,12 @@ export default {
     serverAddress: {
       immediate: true,
       handler (val, old) {
-        if (val && val !== old) this.$router.push(`/servers/${val}/accounts`)
+        if (val && val !== old) this.$router.push({ name: 'ListAccounts', params: { server: val } })
       }
     }
   },
   methods: {
-    ...mapMutations('global', ['setServer', 'addServers']),
+    ...mapMutations('global', ['selectServer', 'setbkitServer', 'addServers']),
     isSelected (server) {
       return server.address === this.serverAddress
     },
@@ -58,25 +58,27 @@ export default {
     go () {
       this.$router.push('/backup')
     },
-    change (server) {
-      console.log('Change to', server.address)
+    setbkitserver (server) {
+      console.log('Set default bkit server', server.address)
       this.loading = true
       changeServer(server.address)
-        .then(() => this.setServer(server))
+        .then(() => this.setbkitServer(server))
         .catch((err) => console.warn('Change server error', err))
         .finally(() => { this.loading = false })
     },
+    change (server) {
+      this.selectServer(server)
+    },
     add () {
-      this.$router.push('/servers/new/server')
+      this.$router.push({ name: 'NewServer' })
     },
     reload () {
-      // this.loading = true
+      this.loading = true
       const p1 = listServers()
         .then(servers => this.addServers(servers))
 
       const p2 = getServer()
-        .then(server => this.setServer(server))
-      // if (this.back) this.$router.push({ name: this.back })
+        .then(server => this.selectServer(server))
 
       return Promise.all([p1, p2])
         .finally(() => (this.loading = false))

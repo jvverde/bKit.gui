@@ -9,9 +9,14 @@ const makeServer = ({ address, hport = 8765, iport = 8760, bport = 8761, rport =
   }
 }
 
-export function setServer (state, server) {
+export function selectServer (state, server) {
   if (typeof server !== 'object') server = { address: server }
-  state.server = makeServer(server)
+  state.selectedServer = makeServer(server)
+}
+
+export function setbkitServer (state, server) {
+  if (typeof server !== 'object') server = { address: server }
+  state.bkitserver = makeServer(server)
 }
 
 export function addServer (state, server) {

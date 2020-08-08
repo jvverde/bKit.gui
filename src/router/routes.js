@@ -33,6 +33,7 @@ const routes = [
         children: [
           {
             path: 'new/server',
+            name: 'NewServer',
             component: () => import('components/Server/NewServer.vue')
           },
           {
@@ -43,6 +44,7 @@ const routes = [
           },
           {
             path: ':server/new/account',
+            name: 'NewAccount',
             props: true,
             component: () => import('components/Server/NewAccount.vue'),
             children: [

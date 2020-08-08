@@ -65,7 +65,7 @@ export default {
     ...mapGetters('global', ['bkitok', 'server']),
     currentserver: {
       get () { return this.server },
-      set (server) { this.setServer(server) }
+      set (server) { this.setbkitServer(server) }
     },
     user () {
       return this.bkituser
@@ -79,7 +79,7 @@ export default {
     bkitmenu
   },
   methods: {
-    ...mapMutations('global', ['setServer'])
+    ...mapMutations('global', ['setbkitServer'])
   },
   mounted () {
     getServer().then((server) => { this.currentserver = server })

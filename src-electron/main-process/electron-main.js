@@ -146,12 +146,21 @@ ipcMain.on('getPath', (event, name) => {
 
 const keytar = require('keytar')
 
-ipcMain.on('findCredentials', (event) => {
-  event.returnValue = keytar.findCredentials('bKit')
+ipcMain.on('findCredentials', async (event) => {
+  say.log('findCredentials')
+  const credentials = await keytar.findCredentials('bKit')
+  event.returnValue = credentials
 })
 
 ipcMain.on('setPassword', async (event, account, password) => {
-  event.returnValue = keytar.setPassword('bKit', account, password)
+  say.log('setPassword', account)
+  keytar.setPassword('bKit', account, password)
+})
+
+ipcMain.on('deletePassword', async (event, account) => {
+  say.log('deletePassword', account)
+  const result = await keytar.deletePassword('bKit', account)
+  event.returnValue = result
 })
 
 menu()
