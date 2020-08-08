@@ -88,7 +88,10 @@ export default {
   },
   mixins: [notify],
   computed: {
-    ...mapGetters('global', ['serverURL']),
+    ...mapGetters('global', ['getServerURL']),
+    serverURL () {
+      return this.getServerURL(this.server)
+    },
     ready () {
       return !this.$v.form.$error && this.form.username && this.form.password
     }

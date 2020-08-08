@@ -1,6 +1,5 @@
 <template>
   <div class="column absolute-center">
-    server:{{server}}
     <form @submit.prevent="send" class="column items-stretch">
       <q-input type="text" max-length="16"
         v-model="form.username"
@@ -168,7 +167,10 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['serverURL']),
+    ...mapGetters('global', ['getServerURL']),
+    serverURL () {
+      return this.getServerURL(this.server)
+    },
     ready () {
       return this.$v.form.$invalid === false
     },
