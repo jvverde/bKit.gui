@@ -42,9 +42,10 @@ export function setbkitServer (state, server) {
 
 export function addServer (state, server) {
   if (typeof server !== 'object') server = { address: server }
-  const index = state.servers.findIndex(s => s.address === server.address)
+  const index = state.servers.findIndex(s => s.address === server.address && s.account === server.account)
   if (index >= 0) {
-    state.servers.splice(index, 1, makeServer(server))
+    const newserver = { ...state.servers[index], ...makeServer(server) }
+    state.servers.splice(index, 1, newserver)
   } else {
     state.servers.push(makeServer(server))
   }

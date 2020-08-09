@@ -5,7 +5,7 @@
       <div @click="change(server)"
         v-for="(server, index) in servers" :key="index">
         <q-btn flat :color="color(server)" icon="storage" :icon-right="isSelected(server) ? 'done' : ''">
-          <span style="color:black">{{server.address}}</span>
+          <span style="color:black">{{server.address}}{{server.pairing}}</span>
         </q-btn>
       </div>
       <q-inner-loading :showing="loading">
@@ -23,6 +23,7 @@
 
 <script>
 import { listServers, getServer, changeServer } from 'src/helpers/bkit'
+import { getAccounts } from 'src/helpers/credentials'
 import { catched } from 'src/helpers/notify'
 import { mapMutations, mapGetters } from 'vuex'
 
@@ -72,7 +73,20 @@ export default {
     add () {
       this.$router.push({ name: 'NewServer' })
     },
-    async reload () {
+    async loadCredentials () {
+      try {
+        const accounts = await getAccounts()
+        const servers = accounts.map(u => {
+          const [account, address] = u.split('@')
+          return { address, account, credentials: true }
+        })
+        console.log('servers', servers)
+        this.addServers(servers)
+      } catch (err) {
+        this.catch(err)
+      }
+    },
+    async loadServer () {
       this.loading = true
       try {
         const serversList = await listServers('-f')
@@ -93,7 +107,8 @@ export default {
   },
   mounted () {
     console.log('back:', this.back)
-    this.reload()
+    this.loadCredentials()
+    this.loadServer()
   }
 }
 </script>
