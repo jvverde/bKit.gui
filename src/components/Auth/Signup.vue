@@ -1,5 +1,5 @@
 <template>
-  <div class="column absolute-center">
+  <div class="q-px-xl q-py-sm column absolute-center">
     <form @submit.prevent="send" class="column items-stretch">
       <q-input type="text" max-length="16"
         v-model="form.username"

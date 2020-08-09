@@ -11,19 +11,11 @@
     <div v-if="some" style="margin-left:auto" class="q-my-sm">
       <q-btn icon="add" label="New Account" no-caps dense @click="add"/>
     </div>
-    <div v-else class="absolute-center column">
-      <q-card class="">
-        <q-card-section>
-          <div class="text-h6">No accounts</div>
-        </q-card-section>
-        <q-card-sectiom>
-          <div>You don't have any account configured for this seerver, yet</div>
-          <div>Please add a new one</div>
-        </q-card-sectiom>
-        <q-card-actions>
-          <q-btn icon="add" label="New Account" no-caps dense @click="add"/>
-        </q-card-actions>
-      </q-card>
+    <div v-else class="absolute-center column items-center q-gutter-x-sm">
+      <div class="text-h6">No accounts</div>
+      <div>You don't have any account configured for server {{server}}</div>
+      <div>Please add a new one</div>
+      <q-btn class="q-mt-xl" icon="add" outline rounded label="New Account" no-caps @click="add"/>
     </div>
     <q-inner-loading :showing="loading">
       <q-spinner-ios size="xl" color="loader"/>
