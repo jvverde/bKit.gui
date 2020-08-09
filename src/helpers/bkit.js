@@ -55,8 +55,8 @@ export async function changeServer (server) {
   return servers[0]
 }
 
-export async function listServers () {
-  return enqueue2bash('./listservers.sh')
+export async function listServers (...args) {
+  return enqueue2bash('./listservers.sh', [...args])
 }
 
 /* *************************** create task related *************************** */

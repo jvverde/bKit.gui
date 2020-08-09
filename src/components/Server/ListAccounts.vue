@@ -20,6 +20,9 @@
     <q-inner-loading :showing="loading">
       <q-spinner-ios size="xl" color="loader"/>
     </q-inner-loading>
+    <div class="fit relative-position routerview">
+      <router-view></router-view>
+    </div>
   </div>
 </template>
 
@@ -76,6 +79,7 @@ export default {
     },
     manage (account) {
       console.log(account)
+      this.$router.push({ name: 'Account', params: { server: this.server, account } })
     }
   },
   mounted () {

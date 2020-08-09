@@ -37,7 +37,7 @@ const { ipcRenderer, remote: { app } } = require('electron')
 import { getServer, getUser } from 'src/helpers/bkit'
 import { username } from 'src/helpers/bash'
 import { mapMutations, mapGetters } from 'vuex'
-import bkitmenu from './components/Menu'
+import bkitmenu from 'src/components/Menu'
 
 import { colors } from 'quasar'
 

@@ -40,7 +40,15 @@ const routes = [
             path: ':server/accounts',
             name: 'ListAccounts',
             props: true,
-            component: () => import('components/Server/ListAccounts.vue')
+            component: () => import('components/Server/ListAccounts.vue'),
+            children: [
+              {
+                path: ':account',
+                name: 'Account',
+                props: true,
+                component: () => import('components/Server/Account.vue')
+              }
+            ]
           },
           {
             path: ':server/new/account',

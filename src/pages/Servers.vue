@@ -75,7 +75,12 @@ export default {
     async reload () {
       this.loading = true
       try {
-        const servers = await listServers()
+        const serversList = await listServers('-f')
+        const servers = serversList.map(s => {
+          const [account, url] = s.split('@')
+          const [address, , section, iport, bport, rport, uport, aport] = url.split(':')
+          return { address, account, section, iport, bport, rport, uport, aport, pairing: true }
+        })
         this.addServers(servers)
         const server = await getServer()
         this.selectServer(server)

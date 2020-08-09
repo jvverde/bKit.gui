@@ -1,13 +1,26 @@
 import { error } from 'src/helpers/notify'
 
-const makeServer = ({ address, hport = 8765, iport = 8760, bport = 8761, rport = 8762, uport = 8763 }) => {
+const makeServer = ({
+  address,
+  section,
+  account,
+  hport = 8765,
+  iport = 8760,
+  bport = 8761,
+  rport = 8762,
+  uport = 8763,
+  ...extra
+}) => {
   return {
     address,
+    account,
+    section,
     hport,
     iport,
     bport,
     rport,
-    uport
+    uport,
+    ...extra
   }
 }
 
