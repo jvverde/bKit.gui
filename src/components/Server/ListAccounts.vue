@@ -1,13 +1,29 @@
 <template>
   <div class="q-pa-sm q-gutter-x-sm row items-center full-width self-start">
-    <div>Registered account<span v-if="accounts.length > 1">s</span> for server {{server}}:</div>
+    <div v-show="some">
+      Registered account<span v-if="one">s</span> for server {{server}}:
+    </div>
     <div v-for="(account, index) in accounts" :key="index">
       <q-chip clickable @click="manage(account)" removable @remove="remove(account)" icon="person">
         {{account}}
       </q-chip>
     </div>
-    <div style="margin-left:auto" class="q-my-sm">
+    <div v-if="some" style="margin-left:auto" class="q-my-sm">
       <q-btn icon="add" label="New Account" no-caps dense @click="add"/>
+    </div>
+    <div v-else class="absolute-center column">
+      <q-card class="">
+        <q-card-section>
+          <div class="text-h6">No accounts</div>
+        </q-card-section>
+        <q-card-sectiom>
+          <div>You don't have any account configured for this seerver, yet</div>
+          <div>Please add a new one</div>
+        </q-card-sectiom>
+        <q-card-actions>
+          <q-btn icon="add" label="New Account" no-caps dense @click="add"/>
+        </q-card-actions>
+      </q-card>
     </div>
     <q-inner-loading :showing="loading">
       <q-spinner-ios size="xl" color="loader"/>
@@ -27,6 +43,11 @@ export default {
       loading: false,
       accounts: []
     }
+  },
+  computed: {
+    zero () { return this.accounts.length === 0 },
+    one () { return this.accounts.length === 1 },
+    some () { return !this.zero }
   },
   props: ['server'],
   watch: {
