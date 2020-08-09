@@ -23,7 +23,7 @@
 
 <script>
 import { listServers, getServer, changeServer } from 'src/helpers/bkit'
-// import { warn } from 'src/helpers/notify'
+import { catched } from 'src/helpers/notify'
 import { mapMutations, mapGetters } from 'vuex'
 
 export default {
@@ -72,16 +72,18 @@ export default {
     add () {
       this.$router.push({ name: 'NewServer' })
     },
-    reload () {
+    async reload () {
       this.loading = true
-      const p1 = listServers()
-        .then(servers => this.addServers(servers))
-
-      const p2 = getServer()
-        .then(server => this.selectServer(server))
-
-      return Promise.all([p1, p2])
-        .finally(() => (this.loading = false))
+      try {
+        const servers = await listServers()
+        this.addServers(servers)
+        const server = await getServer()
+        this.selectServer(server)
+      } catch (e) {
+        catched(e)
+      } finally {
+        this.loading = false
+      }
     }
   },
   mounted () {

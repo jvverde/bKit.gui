@@ -1,3 +1,5 @@
+import { error } from 'src/helpers/notify'
+
 const makeServer = ({ address, hport = 8765, iport = 8760, bport = 8761, rport = 8762, uport = 8763 }) => {
   return {
     address,
@@ -11,7 +13,13 @@ const makeServer = ({ address, hport = 8765, iport = 8760, bport = 8761, rport =
 
 export function selectServer (state, server) {
   if (typeof server !== 'object') server = { address: server }
-  state.selectedServer = makeServer(server)
+  const index = state.servers.findIndex(s => s.address === server.address)
+  if (index >= 0) {
+    state.selectedServer = state.servers[index]
+  } else {
+    error(`Server ${server.address} not found`)
+    return {}
+  }
 }
 
 export function setbkitServer (state, server) {

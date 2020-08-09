@@ -41,7 +41,7 @@ export async function getDiskName (uuid) {
 }
 
 export async function getServer () {
-  const servers = await enqueue2bash('./server.sh')
+  const servers = await enqueue2bash('./server.sh', ['-r'])
   return servers[0]
 }
 

@@ -29,15 +29,6 @@
         <q-item-label caption>Manage Servers</q-item-label>
       </q-item-section>
     </q-item>
-    <q-item :clickable="current !== 'signup'" @click="$router.push({ name: 'signup' })">
-      <q-item-section avatar>
-        <q-icon color="menu" name="storage" />
-      </q-item-section>
-      <q-item-section>
-        <q-item-label>Signup</q-item-label>
-        <q-item-label caption>Manage Servers</q-item-label>
-      </q-item-section>
-    </q-item>
     <q-item :clickable="current !== 'tasks'" @click="$router.push({ name: 'tasks' })">
       <q-item-section avatar>
         <q-icon color="menu" name="assignment" />

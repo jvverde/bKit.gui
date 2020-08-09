@@ -31,8 +31,10 @@
 </template>
 
 <script>
-import { changeServer } from 'src/helpers/bkit'
+import axios from 'axios'
+// import { changeServer } from 'src/helpers/bkit'
 import { warn } from 'src/helpers/notify'
+import { mapMutations } from 'vuex'
 
 export default {
   name: 'Servers',
@@ -45,19 +47,41 @@ export default {
     }
   },
   methods: {
-    add () {
-      if (!this.address) return
-      this.error = null
-      this.adding = true
-      changeServer(this.address)
-        .then(() => this.$emit('done', this.address))
-        .catch(err => {
-          this.error = err
-          warn(err)
-        })
-        .finally(() => {
-          this.adding = false
-        })
+    // add () {
+    //   if (!this.address) return
+    //   this.error = null
+    //   this.adding = true
+    //   changeServer(this.address)
+    //     .then(() => this.$emit('done', this.address))
+    //     .catch(err => {
+    //       this.error = err
+    //       warn(err)
+    //     })
+    //     .finally(() => {
+    //       this.adding = false
+    //     })
+    // },
+    ...mapMutations('global', ['addServer', 'selectServer']),
+    async add () {
+      const url = `http://${this.address}:${this.port}/info`
+      try {
+        this.adding = true
+        const { data } = await axios.get(url)
+        console.log('data', data)
+        const server = {
+          address: this.address,
+          hport: this.port,
+          iport: data.iport,
+          bport: data.bport
+        }
+        console.log('server', server)
+        this.addServer(server)
+        this.selectServer(server)
+      } catch (err) {
+        warn(err)
+      } finally {
+        this.adding = false
+      }
     },
     cancel () {
       this.$router.back()
