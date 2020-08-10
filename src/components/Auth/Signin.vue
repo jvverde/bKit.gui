@@ -44,8 +44,7 @@
 import axios from 'axios'
 import { required } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
-import { mapGetters } from 'vuex'
-import { addAccount } from 'src/helpers/credentials'
+import { mapGetters, mapActions } from 'vuex'
 
 const crypto = require('crypto')
 
@@ -89,6 +88,7 @@ export default {
   mixins: [notify],
   computed: {
     ...mapGetters('global', ['getServerURL']),
+    ...mapActions('global', ['addAccount']),
     serverURL () {
       return this.getServerURL(this.server)
     },
@@ -103,7 +103,7 @@ export default {
       try {
         const cred = compose(this.form)
         await axios.post(`${this.serverURL}/auth/login`, cred)
-        addAccount(`${cred.username}@${this.server}`, cred.password)
+        this.addAccount({ user: cred.username, address: this.server, password: cred.password })
         this.$router.back()
       } catch (err) {
         this.catch(err)

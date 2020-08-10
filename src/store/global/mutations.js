@@ -37,8 +37,10 @@ export function addServer (state, server) {
   if (index >= 0) {
     const newserver = { ...state.servers[index], ...makeServer(server) }
     state.servers.splice(index, 1, newserver)
+    console.log('updateServer', state.servers[index])
   } else {
     state.servers.push(makeServer(server))
+    console.log('addServer', state.servers.slice(-1)[0])
   }
 }
 

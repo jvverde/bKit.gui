@@ -23,9 +23,9 @@
 
 <script>
 import { listServers, getServer, changeServer } from 'src/helpers/bkit'
-import { getAccounts } from 'src/helpers/credentials'
+// import { getAccounts } from 'src/helpers/credentials'
 import { catched } from 'src/helpers/notify'
-import { mapMutations, mapGetters } from 'vuex'
+import { mapMutations, mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'Servers',
@@ -50,6 +50,7 @@ export default {
   },
   methods: {
     ...mapMutations('global', ['selectServer', 'setbkitServer', 'addServers']),
+    ...mapActions('global', ['loadCredentials']),
     isSelected (servername) {
       return servername === this.selectedServer
     },
@@ -73,27 +74,14 @@ export default {
     add () {
       this.$router.push({ name: 'NewServer' })
     },
-    async loadCredentials () {
-      try {
-        const accounts = await getAccounts()
-        const servers = accounts.map(u => {
-          const [user, address] = u.split('@')
-          return { address, user, credentials: true }
-        })
-        console.log('servers', servers)
-        this.addServers(servers)
-      } catch (err) {
-        this.catch(err)
-      }
-    },
     async loadServer () {
       this.loading = true
       try {
         const serversList = await listServers('-f')
         const servers = serversList.map(s => {
           const [user, url] = s.split('@')
-          const [address, , section, iport, bport, rport, uport, aport] = url.split(':')
-          return { address, user, section, iport, bport, rport, uport, aport, pairing: true }
+          const [address, , section, iport, bport, rport, uport, hport] = url.split(':')
+          return { address, user, section, iport, bport, rport, uport, hport, pairing: true }
         })
         this.addServers(servers)
         const server = await getServer()
