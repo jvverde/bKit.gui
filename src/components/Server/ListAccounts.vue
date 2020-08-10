@@ -5,7 +5,7 @@
     </div>
     <div v-for="(account, index) in accounts" :key="index">
       <q-chip clickable @click="manage(account)" removable @remove="remove(account)" icon="person">
-        {{account}}
+        {{account.user}}
       </q-chip>
     </div>
     <div v-if="some" style="margin-left:auto" class="q-my-sm">
@@ -29,39 +29,24 @@
 <script>
 
 import notify from 'src/mixins/notify'
-import { getAccounts, deleteAccount } from 'src/helpers/credentials'
+import { deleteAccount } from 'src/helpers/credentials'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'ListAccounts',
   data () {
     return {
-      loading: false,
-      accounts: []
+      loading: false
     }
   },
   computed: {
+    ...mapGetters('global', ['getAccountsByServer']),
+    accounts () { return this.getAccountsByServer(this.server) },
     zero () { return this.accounts.length === 0 },
     one () { return this.accounts.length === 1 },
     some () { return !this.zero }
   },
   props: ['server'],
-  watch: {
-    server: {
-      immediate: true,
-      async handler (val) {
-        this.loading = true
-        try {
-          const accounts = await getAccounts()
-          this.accounts = accounts.filter(u => u.endsWith(`@${val}`))
-            .map(u => u.replace(/@[^@]+$/, ''))
-        } catch (err) {
-          this.catch(err)
-        } finally {
-          this.loading = false
-        }
-      }
-    }
-  },
   mixins: [notify],
   methods: {
     add () {

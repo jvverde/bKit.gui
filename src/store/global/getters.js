@@ -10,28 +10,37 @@ export function bkitBPort (state) {
 export function bkitIPort (state) {
   return state.bkitserver.iport
 }
+
 export function selectedServer (state) {
   return state.selectedServer
 }
-export function serverAddress (state) {
-  return state.selectedServer.address
-}
-export function serverURL (state) {
-  return `http://${state.selectedServer.address}:${state.selectedServer.hport}`
-}
+
 export function servers (state) {
   return state.servers
 }
+export function serverAddresses (state) {
+  return [...new Set(state.servers.map(s => s.address))]
+}
 export function serverNames (state) {
-  return state.servers.map(server => server.address)
+  return serverAddresses(state)
+}
+
+export function getAccountsByServer (state) {
+  return (name) => {
+    return state.servers.filter(s => s.address === name)
+  }
+}
+
+export function getAccountNames (state) {
+  return (name) => {
+    return state.servers.filter(s => s.address === name)
+      .map(s => s.account)
+  }
 }
 
 export function getServerURL (state) {
   return (name) => {
-    const index = state.servers.findIndex(s => s.address === name)
-    if (index >= 0) {
-      const server = state.servers[index]
-      return `http://${server.address}:${server.hport}`
-    } else return undefined
+    const server = state.servers.filter(s => s.address === name)[0]
+    return `http://${server.address}:${server.hport}`
   }
 }

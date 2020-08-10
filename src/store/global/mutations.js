@@ -1,9 +1,7 @@
-import { error } from 'src/helpers/notify'
-
 const makeServer = ({
   address,
   section,
-  account,
+  user,
   hport = 8765,
   iport = 8760,
   bport = 8761,
@@ -13,7 +11,7 @@ const makeServer = ({
 }) => {
   return {
     address,
-    account,
+    user,
     section,
     hport,
     iport,
@@ -24,15 +22,8 @@ const makeServer = ({
   }
 }
 
-export function selectServer (state, server) {
-  if (typeof server !== 'object') server = { address: server }
-  const index = state.servers.findIndex(s => s.address === server.address)
-  if (index >= 0) {
-    state.selectedServer = state.servers[index]
-  } else {
-    error(`Server ${server.address} not found`)
-    return {}
-  }
+export function selectServer (state, servername) {
+  state.selectedServer = servername
 }
 
 export function setbkitServer (state, server) {
@@ -42,7 +33,7 @@ export function setbkitServer (state, server) {
 
 export function addServer (state, server) {
   if (typeof server !== 'object') server = { address: server }
-  const index = state.servers.findIndex(s => s.address === server.address && s.account === server.account)
+  const index = state.servers.findIndex(s => s.address === server.address && s.user === server.user)
   if (index >= 0) {
     const newserver = { ...state.servers[index], ...makeServer(server) }
     state.servers.splice(index, 1, newserver)

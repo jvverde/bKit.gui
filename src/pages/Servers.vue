@@ -3,9 +3,9 @@
     <div class="q-pa-sm q-mt-sm  q-gutter-x-sm row items-center full-width self-start">
       <div>Current server:</div>
       <div @click="change(server)"
-        v-for="(server, index) in servers" :key="index">
+        v-for="(server, index) in serverAddresses" :key="index">
         <q-btn flat :color="color(server)" icon="storage" :icon-right="isSelected(server) ? 'done' : ''">
-          <span style="color:black">{{server.address}}{{server.pairing}}</span>
+          <span style="color:black">{{server}}</span>
         </q-btn>
       </div>
       <q-inner-loading :showing="loading">
@@ -38,10 +38,10 @@ export default {
   },
   props: ['back'],
   computed: {
-    ...mapGetters('global', ['serverAddress', 'servers'])
+    ...mapGetters('global', ['selectedServer', 'serverAddresses', 'getServer'])
   },
   watch: {
-    serverAddress: {
+    selectedServer: {
       immediate: true,
       handler (val, old) {
         if (val && val !== old) this.$router.replace({ name: 'ListAccounts', params: { server: val } })
@@ -50,25 +50,25 @@ export default {
   },
   methods: {
     ...mapMutations('global', ['selectServer', 'setbkitServer', 'addServers']),
-    isSelected (server) {
-      return server.address === this.serverAddress
+    isSelected (servername) {
+      return servername === this.selectedServer
     },
-    color (server) {
-      return this.isSelected(server) ? 'green' : 'black'
+    color (servername) {
+      return this.isSelected(servername) ? 'green' : 'black'
     },
     go () {
       this.$router.push('/backup')
     },
-    setbkitserver (server) {
-      console.log('Set default bkit server', server.address)
-      this.loading = true
-      changeServer(server.address)
-        .then(() => this.setbkitServer(server))
-        .catch((err) => console.warn('Change server error', err))
-        .finally(() => { this.loading = false })
+    setbkitserver (servername) {
+      // console.log('Set default bkit server', server.address)
+      // this.loading = true
+      changeServer(servername)
+      //   .then(() => this.setbkitServer(server))
+      //   .catch((err) => console.warn('Change server error', err))
+      //   .finally(() => { this.loading = false })
     },
-    change (server) {
-      this.selectServer(server)
+    change (servername) {
+      this.selectServer(servername)
     },
     add () {
       this.$router.push({ name: 'NewServer' })
@@ -77,8 +77,8 @@ export default {
       try {
         const accounts = await getAccounts()
         const servers = accounts.map(u => {
-          const [account, address] = u.split('@')
-          return { address, account, credentials: true }
+          const [user, address] = u.split('@')
+          return { address, user, credentials: true }
         })
         console.log('servers', servers)
         this.addServers(servers)
@@ -91,9 +91,9 @@ export default {
       try {
         const serversList = await listServers('-f')
         const servers = serversList.map(s => {
-          const [account, url] = s.split('@')
+          const [user, url] = s.split('@')
           const [address, , section, iport, bport, rport, uport, aport] = url.split(':')
-          return { address, account, section, iport, bport, rport, uport, aport, pairing: true }
+          return { address, user, section, iport, bport, rport, uport, aport, pairing: true }
         })
         this.addServers(servers)
         const server = await getServer()
