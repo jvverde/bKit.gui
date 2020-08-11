@@ -29,8 +29,7 @@
 <script>
 
 import notify from 'src/mixins/notify'
-import { deleteAccount } from 'src/helpers/credentials'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'ListAccounts',
@@ -49,18 +48,13 @@ export default {
   props: ['server'],
   mixins: [notify],
   methods: {
+    ...mapActions('global', ['delCredentials']),
     add () {
       this.$router.push({ name: 'NewAccount', params: { server: this.server } })
     },
     remove (account) {
-      deleteAccount(`${account}@${this.server}`)
-        .then(() => {
-          const index = this.accounts.findIndex(u => u === account)
-          if (index < 0) return
-          console.log('remove index', index)
-          this.accounts.splice(index, 1)
-        })
-        .catch(this.catch)
+      console.log('remove', account)
+      if (account.credentials) this.delCredentials(account)
     },
     manage (account) {
       console.log(account)

@@ -88,7 +88,6 @@ export default {
   mixins: [notify],
   computed: {
     ...mapGetters('global', ['getServerURL']),
-    ...mapActions('global', ['addAccount']),
     serverURL () {
       return this.getServerURL(this.server)
     },
@@ -97,13 +96,14 @@ export default {
     }
   },
   methods: {
+    ...mapActions('global', ['addAccount']),
     async send () {
       if (!this.ready) return
       this.submit = true
       try {
         const cred = compose(this.form)
         await axios.post(`${this.serverURL}/auth/login`, cred)
-        this.addAccount({ user: cred.username, address: this.server, password: cred.password })
+        this.addAccount({ user: cred.username, server: this.server, password: cred.password })
         this.$router.back()
       } catch (err) {
         this.catch(err)

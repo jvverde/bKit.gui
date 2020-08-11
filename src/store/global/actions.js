@@ -2,13 +2,25 @@
 export function someAction (context) {
 }
 */
-import { getAccounts, addAccount as addCredentials } from 'src/helpers/credentials'
+import { getAccounts, addAccount as addCredentials, deleteAccount } from 'src/helpers/credentials'
 
-export function addAccount ({ commit }, { user, address, password }) {
+export function addAccount ({ commit }, { user, server, password }) {
   return new Promise(async (resolve, reject) => {
     try {
-      await addCredentials(`${user}@${address}`, password)
-      commit('addServer', { address, user, credentials: true })
+      await addCredentials(`${user}@${server}`, password)
+      commit('addServer', { address: server, user, credentials: true })
+      resolve(true)
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
+
+export function delCredentials ({ commit }, { user, address }) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await deleteAccount(`${user}@${address}`)
+      commit('delServer', { address, user })
       resolve(true)
     } catch (err) {
       reject(err)

@@ -40,7 +40,7 @@ export function getAccountNames (state) {
 
 export function getServerURL (state) {
   return (name) => {
-    const server = state.servers.filter(s => s.address === name)[0]
+    const server = state.servers.filter(s => s.address === name)[0] || { address: name, hport: 8765 }
     return `http://${server.address}:${server.hport}`
   }
 }

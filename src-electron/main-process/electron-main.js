@@ -155,6 +155,7 @@ ipcMain.on('findCredentials', async (event) => {
 ipcMain.on('setPassword', async (event, account, password) => {
   say.log('setPassword', account)
   keytar.setPassword('bKit', account, password)
+  event.returnValue = true
 })
 
 ipcMain.on('deletePassword', async (event, account) => {

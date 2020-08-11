@@ -8,5 +8,5 @@ export const deleteAccount = async (name) => {
   return ipcRenderer.sendSync('deletePassword', name)
 }
 export const addAccount = async (name, pass) => {
-  ipcRenderer.send('setPassword', name, pass)
+  return ipcRenderer.sendSync('setPassword', name, pass)
 }

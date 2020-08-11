@@ -43,6 +43,14 @@ export function addServer (state, server) {
     console.log('addServer', state.servers.slice(-1)[0])
   }
 }
+export function delServer (state, server) {
+  const index = state.servers.findIndex(s => s.address === server.address && s.user === server.user)
+  if (index >= 0) {
+    return state.servers.splice(index, 1)
+  } else {
+    return undefined
+  }
+}
 
 export function addServers (state, servers) {
   servers.forEach(server => addServer(state, server))

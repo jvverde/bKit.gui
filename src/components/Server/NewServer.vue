@@ -74,9 +74,7 @@ export default {
           iport: data.iport,
           bport: data.bport
         }
-        console.log('server', server)
-        this.addServer(server)
-        this.selectServer(server)
+        this.selectServer(server.address)
       } catch (err) {
         warn(err)
       } finally {
