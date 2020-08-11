@@ -11,9 +11,23 @@
         />
 
         <q-toolbar-title>
-          <span v-if="server">
-            bKit at {{server}}
-          </span>
+          <div v-if="server && server.address" class="row no-wrap">
+            <span>bKit Account:</span>
+             <q-btn flat dense no-caps :label="`${server.user}@${server.address}`">
+                <q-menu v-if="accounts.length > 1"
+                  transition-show="jump-down"
+                  transition-hide="jump-up">
+                  <q-list v-for="(account, index) in accounts" :key="index">
+                    <q-item clickable dense v-close-popup :active="account.current">
+                      <q-item-section>{{account.user}}@{{account.address}}</q-item-section>
+                      <q-item-section side v-if="account.current">
+                        <q-icon name="done" color="active"/>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+             </q-btn>
+          </div>
         </q-toolbar-title>
 
         <div><span v-html="user"/> @ {{hostname}} | v{{version}}</div>
@@ -34,9 +48,10 @@
 
 const os = require('os')
 const { ipcRenderer, remote: { app } } = require('electron')
-import { getServer, getUser } from 'src/helpers/bkit'
+import { getUser } from 'src/helpers/bkit'
 import { username } from 'src/helpers/bash'
-import { mapMutations, mapGetters } from 'vuex'
+import { catched } from 'src/helpers/notify'
+import { mapMutations, mapGetters, mapActions } from 'vuex'
 import bkitmenu from 'src/components/Menu'
 
 import { colors } from 'quasar'
@@ -50,6 +65,18 @@ ipcRenderer.on('message', (event, text) => {
   console.log('Message:', text)
 })
 
+const compareByUser = (a, b) => {
+  if (a.user < b.user) return -1
+  if (a.user > b.user) return 1
+  return 0
+}
+const compareByAddr = (a, b) => {
+  if (a.address < b.address) return -1
+  if (a.address > b.address) return 1
+  return compareByUser(a, b)
+}
+const compare = compareByAddr
+
 export default {
   name: 'MainLayout',
 
@@ -62,28 +89,32 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['bkitok', 'server']),
-    currentserver: {
-      get () { return this.server },
-      set (server) { this.setbkitServer(server) }
-    },
+    ...mapGetters('global', ['bkitok', 'server', 'servers']),
     user () {
       return this.bkituser
         ? this.bkituser === username
           ? username
           : `${username}<i> as </i>${this.bkituser}`
         : `<i>${username}</i>`
+    },
+    accounts () {
+      return [...this.servers].sort(compare)
     }
   },
   components: {
     bkitmenu
   },
   methods: {
-    ...mapMutations('global', ['setbkitServer'])
+    ...mapMutations('global', ['setbkitServer']),
+    ...mapActions('global', ['getCurrentServer'])
   },
-  mounted () {
-    getServer().then((server) => { this.currentserver = server })
-    getUser().then((user) => { this.bkituser = user })
+  async mounted () {
+    try {
+      this.getCurrentServer()
+      this.bkituser = await getUser()
+    } catch (err) {
+      catched(err)
+    }
   }
 }
 </script>

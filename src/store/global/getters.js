@@ -1,5 +1,5 @@
 export function server (state) {
-  return state.bkitserver.address
+  return currentServer(state) || {}
 }
 export function bkitAddress (state) {
   return state.bkitserver.address
@@ -18,6 +18,11 @@ export function selectedServer (state) {
 export function servers (state) {
   return state.servers
 }
+
+export function currentServer (state) {
+  return state.servers.filter(s => s.current === true)[0]
+}
+
 export function serverAddresses (state) {
   return [...new Set(state.servers.map(s => s.address))]
 }

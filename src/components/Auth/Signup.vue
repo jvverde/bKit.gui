@@ -5,6 +5,7 @@
         v-model="form.username"
         label="Username"
         hint="Choose a username"
+        @keyup.enter="send"
         @blur="$v.form.username.$touch"
       >
         <template v-slot:after>
@@ -16,6 +17,7 @@
         v-model="form.email"
         label="Email"
         hint="Give a email to confirm"
+        @keyup.enter="send"
         @blur="$v.form.email.$touch"
       >
         <template v-slot:after>
@@ -27,6 +29,7 @@
         v-model="form.password"
         label="Password"
         hint="Give a least 8 characters"
+        @keyup.enter="send"
         :error="$v.form.password.$error"
         @blur="$v.form.password.$touch"
       >
@@ -39,6 +42,7 @@
         v-model="form.passrepeat"
         label="Repeat Password"
         hint="Same as password"
+        @keyup.enter="send"
         :error="$v.form.passrepeat.$error"
         @blur="$v.form.passrepeat.$touch"
       >
@@ -60,6 +64,7 @@
     <form @submit.prevent="confirm" v-if="askcode">
       <q-input type="text" maxlength="6" minlength="6"
         v-model="code"
+        autofocus
         label="Code"
         @keyup="confirm"
         hint="Code received by email">
@@ -82,6 +87,9 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-inner-loading :showing="submiting">
+      <q-spinner-ios size="xl" color="loader"/>
+    </q-inner-loading>
   </div>
 </template>
 
@@ -168,7 +176,6 @@ export default {
   },
   computed: {
     ...mapGetters('global', ['getServerURL']),
-    ...mapActions('global', ['addAccount']),
     serverURL () {
       return this.getServerURL(this.server)
     },
@@ -191,6 +198,7 @@ export default {
   },
   mixins: [notify],
   methods: {
+    ...mapActions('global', ['addAccount']),
     cancel () {
       this.$router.back()
     },
@@ -198,6 +206,7 @@ export default {
       this.$v.code.$touch()
       if (!this.ready2confirm) return
       try {
+        this.submiting = true
         const obj = compose(this.form, { next: 0, code: this.code })
         const { data } = await axios.post(`${this.serverURL}/auth/confirmbycode`, obj)
         this.response = data
@@ -206,6 +215,8 @@ export default {
         this.$router.back()
       } catch (err) {
         this.catch(err)
+      } finally {
+        this.submiting = false
       }
     },
     async send () {

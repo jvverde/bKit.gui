@@ -40,8 +40,8 @@ export async function getDiskName (uuid) {
   return enqueue2bash('./lib/getdev.sh', [uuid], queue4Local)
 }
 
-export async function getServer () {
-  const servers = await enqueue2bash('./server.sh', ['-r'])
+export async function getServer (...args) {
+  const servers = await enqueue2bash('./server.sh', ['-r', ...args])
   return servers[0]
 }
 

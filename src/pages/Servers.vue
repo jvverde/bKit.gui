@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { listServers, getServer, changeServer } from 'src/helpers/bkit'
+import { changeServer } from 'src/helpers/bkit'
 // import { getAccounts } from 'src/helpers/credentials'
 import { catched } from 'src/helpers/notify'
 import { mapMutations, mapGetters, mapActions } from 'vuex'
@@ -50,7 +50,7 @@ export default {
   },
   methods: {
     ...mapMutations('global', ['selectServer', 'setbkitServer', 'addServers']),
-    ...mapActions('global', ['loadCredentials']),
+    ...mapActions('global', ['loadCredentials', 'loadServers', 'getCurrentServer']),
     isSelected (servername) {
       return servername === this.selectedServer
     },
@@ -74,18 +74,14 @@ export default {
     add () {
       this.$router.push({ name: 'NewServer' })
     },
-    async loadServer () {
+    async load () {
       this.loading = true
       try {
-        const serversList = await listServers('-f')
-        const servers = serversList.map(s => {
-          const [user, url] = s.split('@')
-          const [address, , section, iport, bport, rport, uport, hport] = url.split(':')
-          return { address, user, section, iport, bport, rport, uport, hport, pairing: true }
-        })
-        this.addServers(servers)
-        const server = await getServer()
-        this.selectServer(server)
+        const p1 = this.loadCredentials()
+        const p2 = this.loadServers()
+        await Promise.all([p1, p2])
+        const c = await this.getCurrentServer()
+        console.log('current', c)
       } catch (e) {
         catched(e)
       } finally {
@@ -94,9 +90,7 @@ export default {
     }
   },
   mounted () {
-    console.log('back:', this.back)
-    this.loadCredentials()
-    this.loadServer()
+    this.load()
   }
 }
 </script>
