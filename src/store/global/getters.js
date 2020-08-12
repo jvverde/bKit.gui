@@ -11,10 +11,6 @@ export function bkitIPort (state) {
   return state.bkitserver.iport
 }
 
-export function selectedServer (state) {
-  return state.selectedServer
-}
-
 export function servers (state) {
   return state.servers
 }

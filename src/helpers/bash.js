@@ -80,7 +80,7 @@ function _bash (name, args, events = {}, done = nill) {
     doneOnce()
   })
   fd.stderr.on('data', err => {
-    console.log(`Error from ${name}: ${err}`)
+    // console.warn(`Read on stderr from ${name}: ${err}`)
     const error = `${err}`
     const result = stderr(error)
     if (result === 'stop') { // if receive a stop from upper layers

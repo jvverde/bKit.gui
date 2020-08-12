@@ -22,17 +22,8 @@ const makeServer = ({
   }
 }
 
-export function selectServer (state, servername) {
-  state.selectedServer = servername
-}
-
-export function setbkitServer (state, server) {
-  if (typeof server !== 'object') server = { address: server }
-  state.bkitserver = makeServer(server)
-}
-
 export function addServer (state, server) {
-  if (typeof server !== 'object') server = { address: server }
+  if (!server || !server.address || !server.user) throw new Error("Server dont' have a field address or field user, or both")
   const index = state.servers.findIndex(s => s.address === server.address && s.user === server.user)
   if (index >= 0) {
     const newserver = { ...state.servers[index], ...makeServer(server) }

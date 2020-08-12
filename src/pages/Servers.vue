@@ -1,7 +1,7 @@
 <template>
   <q-page padding class="fit column no-wrap items-center relative-position">
     <div class="q-pa-sm q-mt-sm  q-gutter-x-sm row items-center full-width self-start">
-      <div>Current server:</div>
+      <div>Manage server:</div>
       <div @click="change(server)"
         v-for="(server, index) in serverAddresses" :key="index">
         <q-btn flat :color="color(server)" icon="storage" :icon-right="isSelected(server) ? 'done' : ''">
@@ -24,12 +24,13 @@
 <script>
 // import { getAccounts } from 'src/helpers/credentials'
 import { catched } from 'src/helpers/notify'
-import { mapMutations, mapGetters, mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
   name: 'Servers',
   data () {
     return {
+      selectedServer: undefined,
       loading: false,
       adding: false,
       error: false
@@ -37,7 +38,7 @@ export default {
   },
   props: ['back'],
   computed: {
-    ...mapGetters('global', ['selectedServer', 'serverAddresses', 'getServer'])
+    ...mapGetters('global', ['serverAddresses'])
   },
   watch: {
     selectedServer: {
@@ -48,7 +49,6 @@ export default {
     }
   },
   methods: {
-    ...mapMutations('global', ['selectServer', 'setbkitServer', 'addServers']),
     ...mapActions('global', ['loadCredentials', 'loadServers', 'getCurrentServer']),
     isSelected (servername) {
       return servername === this.selectedServer
@@ -60,7 +60,7 @@ export default {
       this.$router.push('/backup')
     },
     change (servername) {
-      this.selectServer(servername)
+      this.selectedServer = servername
     },
     add () {
       this.$router.push({ name: 'NewServer' })
@@ -68,11 +68,10 @@ export default {
     async load () {
       this.loading = true
       try {
-        const p1 = this.loadCredentials()
-        const p2 = this.loadServers()
-        await Promise.all([p1, p2])
-        const c = await this.getCurrentServer()
-        console.log('current', c)
+        this.loadCredentials()
+        this.loadServers()
+        const cserver = await this.getCurrentServer()
+        this.change(cserver.address)
       } catch (e) {
         catched(e)
       } finally {

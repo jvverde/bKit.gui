@@ -51,7 +51,7 @@ const { ipcRenderer, remote: { app } } = require('electron')
 import { getUser } from 'src/helpers/bkit'
 import { username } from 'src/helpers/bash'
 import { catched } from 'src/helpers/notify'
-import { mapMutations, mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import bkitmenu from 'src/components/Menu'
 
 import { colors } from 'quasar'
@@ -102,12 +102,18 @@ export default {
       return [...this.serversInitialized].sort(compare)
     }
   },
+  watch: {
+    serversInitialized (val) {
+      if (val && val.length === 0) {
+        this.$router.push({ name: 'servers' })
+      }
+    }
+  },
   components: {
     bkitmenu
   },
   methods: {
-    ...mapMutations('global', ['setbkitServer']),
-    ...mapActions('global', ['setCurrentServer']),
+    ...mapActions('global', ['setCurrentServer', 'loadCurrentServer', 'loadServers']),
     async changeserver (account) {
       this.loading = true
       await this.setCurrentServer(account)
@@ -116,7 +122,8 @@ export default {
   },
   async mounted () {
     try {
-      this.setCurrentServer()
+      this.loadCurrentServer()
+      this.loadServers()
       this.bkituser = await getUser()
     } catch (err) {
       catched(err)

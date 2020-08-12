@@ -47,6 +47,7 @@ export function loadCredentials ({ commit }) {
 }
 
 const line2server = (line) => {
+  if (!line) return {}
   const [user, url] = line.split('@')
   const [address, , section, iport, bport, rport, uport, hport] = url.split(':')
   return { address, user, section, iport, bport, rport, uport, hport, initialized: true }
@@ -91,11 +92,7 @@ export function getCurrentServer ({ commit, getters }) {
   })
 }
 
-export function setCurrentServer ({ commit, getters }, account) {
-  if (!account) {
-    return getCurrentServer({ commit, getters })
-  }
-
+export function setCurrentServer ({ commit }, account) {
   return new Promise(async (resolve, reject) => {
     try {
       const line = await changeServer(account)
@@ -106,4 +103,12 @@ export function setCurrentServer ({ commit, getters }, account) {
       reject(e)
     }
   })
+}
+
+export function currentServer ({ commit, getters }, account) {
+  if (!account) {
+    return getCurrentServer({ commit, getters })
+  } else {
+    return getCurrentServer({ commit }, account)
+  }
 }
