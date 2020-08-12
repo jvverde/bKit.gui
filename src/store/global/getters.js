@@ -18,6 +18,12 @@ export function selectedServer (state) {
 export function servers (state) {
   return state.servers
 }
+export function serversWithCred (state) {
+  return state.servers.filter(s => s.credentials === true)
+}
+export function serversInitialized (state) {
+  return state.servers.filter(s => s.initialized === true)
+}
 
 export function currentServer (state) {
   return state.servers.filter(s => s.current === true)[0]

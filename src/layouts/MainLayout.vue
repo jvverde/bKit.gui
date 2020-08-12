@@ -13,12 +13,12 @@
         <q-toolbar-title>
           <div v-if="server && server.address" class="row no-wrap">
             <span>bKit Account:</span>
-             <q-btn flat dense no-caps :label="`${server.user}@${server.address}`">
-                <q-menu v-if="accounts.length > 1"
+             <q-btn flat dense no-caps :label="`${server.user}@${server.address}`" :loading="loading">
+                <q-menu v-if="accounts.length > 0"
                   transition-show="jump-down"
                   transition-hide="jump-up">
                   <q-list v-for="(account, index) in accounts" :key="index">
-                    <q-item clickable dense v-close-popup :active="account.current">
+                    <q-item clickable dense v-close-popup :active="account.current" @click="changeserver(account)">
                       <q-item-section>{{account.user}}@{{account.address}}</q-item-section>
                       <q-item-section side v-if="account.current">
                         <q-icon name="done" color="active"/>
@@ -82,6 +82,7 @@ export default {
 
   data () {
     return {
+      loading: false,
       leftDrawerOpen: false,
       bkituser: undefined,
       version: app.getVersion(),
@@ -89,7 +90,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['bkitok', 'server', 'servers']),
+    ...mapGetters('global', ['bkitok', 'server', 'serversInitialized']),
     user () {
       return this.bkituser
         ? this.bkituser === username
@@ -98,7 +99,7 @@ export default {
         : `<i>${username}</i>`
     },
     accounts () {
-      return [...this.servers].sort(compare)
+      return [...this.serversInitialized].sort(compare)
     }
   },
   components: {
@@ -106,11 +107,16 @@ export default {
   },
   methods: {
     ...mapMutations('global', ['setbkitServer']),
-    ...mapActions('global', ['getCurrentServer'])
+    ...mapActions('global', ['setCurrentServer']),
+    async changeserver (account) {
+      this.loading = true
+      await this.setCurrentServer(account)
+      this.loading = false
+    }
   },
   async mounted () {
     try {
-      this.getCurrentServer()
+      this.setCurrentServer()
       this.bkituser = await getUser()
     } catch (err) {
       catched(err)

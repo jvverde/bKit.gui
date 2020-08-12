@@ -51,7 +51,7 @@ export async function getUser () {
 }
 
 export async function changeServer (server) {
-  const servers = await enqueue2bash('./server.sh', ['-s', server])
+  const servers = await enqueue2bash('./server.sh', ['--no-ask', '-s', '-f', '-u', server.user, server.address, server.iport])
   return servers[0]
 }
 

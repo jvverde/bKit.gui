@@ -3,7 +3,7 @@ export function someAction (context) {
 }
 */
 import { getAccounts, addAccount as addCredentials, deleteAccount } from 'src/helpers/credentials'
-import { listServers, getServer } from 'src/helpers/bkit'
+import { listServers, getServer, changeServer } from 'src/helpers/bkit'
 
 export function addAccount ({ commit }, { user, server, password }) {
   return new Promise(async (resolve, reject) => {
@@ -46,14 +46,18 @@ export function loadCredentials ({ commit }) {
   })
 }
 
+const line2server = (line) => {
+  const [user, url] = line.split('@')
+  const [address, , section, iport, bport, rport, uport, hport] = url.split(':')
+  return { address, user, section, iport, bport, rport, uport, hport, initialized: true }
+}
+
 export function loadServers ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
       const serversList = await listServers('-f')
-      const servers = serversList.map(s => {
-        const [user, url] = s.split('@')
-        const [address, , section, iport, bport, rport, uport, hport] = url.split(':')
-        return { address, user, section, iport, bport, rport, uport, hport, pairing: true }
+      const servers = serversList.map(line => {
+        return line2server(line)
       })
       commit('addServers', servers)
       resolve(servers)
@@ -66,11 +70,9 @@ export function loadServers ({ commit }) {
 export function loadCurrentServer ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
-      const info = await getServer('-f')
-      const [user, url] = info.split('@')
-      const [address, , section, iport, bport, rport, uport, hport] = url.split(':')
-      const server = { address, user, section, iport, bport, rport, uport, hport, pairing: true, current: true }
-      commit('addServer', server)
+      const line = await getServer('-f')
+      const server = line2server(line)
+      commit('setCurrentServer', server)
       resolve(server)
     } catch (e) {
       reject(e)
@@ -82,6 +84,23 @@ export function getCurrentServer ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
       const server = getters.currentServer || await loadCurrentServer({ commit })
+      resolve(server)
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+export function setCurrentServer ({ commit, getters }, account) {
+  if (!account) {
+    return getCurrentServer({ commit, getters })
+  }
+
+  return new Promise(async (resolve, reject) => {
+    try {
+      const line = await changeServer(account)
+      const server = line2server(line)
+      commit('setCurrentServer', server)
       resolve(server)
     } catch (e) {
       reject(e)

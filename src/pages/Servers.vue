@@ -22,7 +22,6 @@
 </template>
 
 <script>
-import { changeServer } from 'src/helpers/bkit'
 // import { getAccounts } from 'src/helpers/credentials'
 import { catched } from 'src/helpers/notify'
 import { mapMutations, mapGetters, mapActions } from 'vuex'
@@ -59,14 +58,6 @@ export default {
     },
     go () {
       this.$router.push('/backup')
-    },
-    setbkitserver (servername) {
-      // console.log('Set default bkit server', server.address)
-      // this.loading = true
-      changeServer(servername)
-      //   .then(() => this.setbkitServer(server))
-      //   .catch((err) => console.warn('Change server error', err))
-      //   .finally(() => { this.loading = false })
     },
     change (servername) {
       this.selectServer(servername)

@@ -41,6 +41,7 @@ export function addServer (state, server) {
     state.servers.push(makeServer(server))
   }
 }
+
 export function delServer (state, server) {
   const index = state.servers.findIndex(s => s.address === server.address && s.user === server.user)
   if (index >= 0) {
@@ -52,4 +53,9 @@ export function delServer (state, server) {
 
 export function addServers (state, servers) {
   servers.forEach(server => addServer(state, server))
+}
+
+export function setCurrentServer (state, server) {
+  state.servers.filter(s => s.current).forEach(s => (s.current = false))
+  addServer(state, { ...server, current: true })
 }

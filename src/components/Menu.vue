@@ -26,7 +26,7 @@
       </q-item-section>
       <q-item-section>
         <q-item-label>Servers</q-item-label>
-        <q-item-label caption>Manage Servers</q-item-label>
+        <q-item-label caption>Manage Accounts</q-item-label>
       </q-item-section>
     </q-item>
     <q-item :clickable="current !== 'tasks'" @click="$router.push({ name: 'tasks' })">
