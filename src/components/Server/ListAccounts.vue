@@ -57,8 +57,7 @@ export default {
       if (account.credentials) this.delCredentials(account)
     },
     manage (account) {
-      console.log(account)
-      this.$router.push({ name: 'Account', params: { server: this.server, account } })
+      this.$router.push({ name: 'Account', params: { server: this.server, user: account.user } })
     }
   },
   mounted () {

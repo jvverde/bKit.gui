@@ -1,6 +1,6 @@
 <template>
   <div class="fit column no-wrap items-center relative-position">
-    <div class="q-mt-xl">Manage account: {{account}}@{{server}}</div>
+    <div class="q-mt-xl">Manage account: {{user}}@{{server}}</div>
     <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
   </div>
 </template>
@@ -13,7 +13,7 @@ export default {
     return {
     }
   },
-  props: ['server', 'account'],
+  props: ['server', 'user'],
   watch: {
   },
   methods: {
