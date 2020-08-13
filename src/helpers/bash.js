@@ -29,27 +29,30 @@ export function shell () {
 }
 
 // Spawn a bash script
-function _bash (name, args, events = {}, done = nill) {
-  const warn = (err) => console.warn(`Received on stderr from bash script ${name}: ${err}`)
+function _bash (name, args = [], events = {}, done = nill) {
+  const scriptname = typeof name === 'object' ? name.script : name
+  const warn = (err) => console.warn(`Received on stderr from bash script ${scriptname}: ${err}`)
 
   const { onreadline = nill, onerror = nill, stderr = warn, oncespawn = nill } = events
   let doneOnce = (code) => {
     doneOnce = nill
-    console.log('Done', name, ...args)
+    console.log('Done', scriptname, ...args)
     done(code)
     fd.kill()
   }
   const bKitPath = getbkitlocation()
-  console.log(`Try spawn ${name} on ${bKitPath} `)
+  console.log(`Try spawn ${scriptname} on ${bKitPath} `)
+  const options = { cwd: bKitPath, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] }
+  if (name.env) options.env = name.env
   const fd = spawn(
     BASH,
-    ['./run.sh', name, ...args],
-    { cwd: bKitPath, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] }
+    ['./run.sh', scriptname, ...args],
+    options
   )
-  console.log('Spawned', name, ...args)
+  console.log('Spawned', scriptname, ...args)
 
   fd.on('close', (code) => {
-    console.log('Done spawn', name, ...args)
+    console.log('Done spawn', scriptname, ...args)
     if (code) console.log(`Return code ${code} is NOT ok`)
     doneOnce(code)
   })
@@ -57,11 +60,11 @@ function _bash (name, args, events = {}, done = nill) {
   fd.on('error', onerror)
 
   fd.on('exit', err => {
-    console.log(`Receive exit for spawn ${name} with value ${err}`)
+    console.log(`Receive exit for spawn ${scriptname} with value ${err}`)
     err = 0 | err
     if (err !== 0) {
       const params = args.join(' ')
-      onerror(`Call to '${name} ${params}' exit with code ${err}`)
+      onerror(`Call to '${scriptname} ${params}' exit with code ${err}`)
     }
     doneOnce(0)
   })
@@ -76,11 +79,11 @@ function _bash (name, args, events = {}, done = nill) {
   })
   rl.on('line', onreadline)
   rl.on('close', () => {
-    console.log('Readline close', name)
+    console.log('Readline close', scriptname)
     doneOnce()
   })
   fd.stderr.on('data', err => {
-    // console.warn(`Read on stderr from ${name}: ${err}`)
+    // console.warn(`Read on stderr from ${scriptname}: ${err}`)
     const error = `${err}`
     const result = stderr(error)
     if (result === 'stop') { // if receive a stop from upper layers
@@ -91,13 +94,13 @@ function _bash (name, args, events = {}, done = nill) {
   oncespawn(fd)
 }
 
-export function bash (scriptname, args = [], events = {}) {
+export function bash (name, args = [], events = {}) {
   const {
-    onclose = () => console.log('Close', scriptname),
+    onclose = () => console.log('Close', name),
     onreadline = () => false,
-    onerror = (err) => warn(`Error calling script ${scriptname}: ${err}`, true)
+    onerror = (err) => warn(`Error calling script ${name}: ${err}`, true)
   } = events
-  return _bash(scriptname, args, { ...events, onreadline, onerror }, onclose)
+  return _bash(name, args, { ...events, onreadline, onerror }, onclose)
 }
 
 // Provide a promise to invoke bash
@@ -116,3 +119,6 @@ export function killtree (pid) {
     _bash('./killtree.sh', [pid], { onerror: reject }, resolve)
   })
 }
+
+// _bash({ script: 't.sh', env: { XPTO: 'vvvvvv' } }, [], { onreadline: (arg) => console.log('t.sh:', arg) })
+// _bash('t.sh', [], { onreadline: (arg) => console.log('t.sh:', arg) })
