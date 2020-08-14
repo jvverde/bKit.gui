@@ -13,7 +13,7 @@
     <div class="fit relative-position routerview">
       <router-view></router-view>
     </div>
-    <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
+    <!--q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" /-->
   </div>
 </template>
 

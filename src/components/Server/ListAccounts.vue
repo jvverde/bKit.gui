@@ -10,7 +10,7 @@
         </q-chip>
       </div>
       <div v-if="some" style="margin-left:auto" class="q-my-sm">
-        <q-btn icon="add" label="New Account" no-caps dense @click="add"/>
+        <q-btn class="q-px-sm" icon="add" label="New Account" outline rounded no-caps dense @click="add"/>
       </div>
       <div v-else class="absolute-center column items-center q-gutter-x-sm">
         <div class="text-h6">No accounts</div>
@@ -43,6 +43,7 @@ export default {
   computed: {
     ...mapGetters('global', ['getAccountsByServer']),
     accounts () { return this.getAccountsByServer(this.server) },
+    sortAccounts () { return [...this.accounts].sort() },
     zero () { return this.accounts.length === 0 },
     one () { return this.accounts.length === 1 },
     some () { return !this.zero }

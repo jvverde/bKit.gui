@@ -3,7 +3,7 @@
     <div class="q-pa-sm q-mt-sm  q-gutter-x-sm row items-center full-width self-start">
       <div>Manage server:</div>
       <div @click="change(server)"
-        v-for="(server, index) in serverAddresses" :key="index">
+        v-for="(server, index) in sortAddress" :key="index">
         <q-btn flat :color="color(server)" icon="storage" :icon-right="isSelected(server) ? 'done' : ''">
           <span style="color:black">{{server}}</span>
         </q-btn>
@@ -12,7 +12,7 @@
         <q-spinner-ios size="xl" color="loader"/>
       </q-inner-loading>
       <div style="margin-left:auto" class="q-my-sm">
-         <q-btn icon="add" label="New Server" no-caps  dense @click="add"/>
+         <q-btn class="q-px-sm" rounded outline icon="add" label="New Server" no-caps dense @click="add"/>
       </div>
     </div>
     <div class="fit relative-position routerview">
@@ -38,7 +38,8 @@ export default {
   },
   props: ['back'],
   computed: {
-    ...mapGetters('global', ['serverAddresses'])
+    ...mapGetters('global', ['serverAddresses']),
+    sortAddress () { return [...this.serverAddresses].sort() }
   },
   watch: {
     selectedServer: {

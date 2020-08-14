@@ -1,59 +1,61 @@
 <template>
-  <div class="fit column no-wrap items-center relative-position">
-    <q-list flat class="q-mt-xl">
-      <q-item>
-        <q-item-section>
-          Manage account
-        </q-item-section>
-        <q-item-section side>
-          {{user}}@{{server}}
-        </q-item-section>
-      </q-item>
-      <q-item>
-        <q-item-section>
-          Backup Port
-        </q-item-section>
-        <q-item-section side>
-          {{account.bport}}
-        </q-item-section>
-      </q-item>
-      <q-item>
-        <q-item-section>
-          Backup area ID
-        </q-item-section>
-        <q-item-section side>
-          {{account.section}}
-        </q-item-section>
-      </q-item>
-      <q-item>
-        <q-item-section>
-          Initialized
-        </q-item-section>
-        <q-item-section side>
-          <q-toggle
-            v-model="initialized"
-            icon-color="red"
-            checked-icon="check"
-            color="done"
-            unchecked-icon="clear"
-          />
-        </q-item-section>
-      </q-item>
-      <q-item>
-        <q-item-section>
-          Credentials
-        </q-item-section>
-        <q-item-section side>
-          <q-toggle
-            v-model="credentials"
-            icon-color="red"
-            checked-icon="check"
-            color="done"
-            unchecked-icon="clear"
-          />
-        </q-item-section>
-      </q-item>
-    </q-list>
+  <div class="fit relative-position">
+    <div class="absolute-center">
+      <q-list flat class="q-mt-xl">
+        <q-item>
+          <q-item-section>
+            Manage account
+          </q-item-section>
+          <q-item-section side>
+            {{user}}@{{server}}
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            Backup Port
+          </q-item-section>
+          <q-item-section side>
+            {{account.bport}}
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            Backup area ID
+          </q-item-section>
+          <q-item-section side>
+            {{account.section}}
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            Initialized
+          </q-item-section>
+          <q-item-section side>
+            <q-toggle
+              v-model="initialized"
+              icon-color="red"
+              checked-icon="check"
+              color="done"
+              unchecked-icon="clear"
+            />
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            Credentials
+          </q-item-section>
+          <q-item-section side>
+            <q-toggle
+              v-model="credentials"
+              icon-color="red"
+              checked-icon="check"
+              color="done"
+              unchecked-icon="clear"
+            />
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </div>
     <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
   </div>
 </template>

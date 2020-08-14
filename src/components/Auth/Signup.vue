@@ -52,7 +52,7 @@
             <q-icon v-else-if="!$v.form.passrepeat.$invalid && !$v.form.password.$invalid" name="done" flat color="ok" size="xs"/>
           </template>
         </q-input>
-        <q-btn v-model="submiting" loader
+        <q-btn
           v-if="!askcode"
           rounded color="secondary"
           :disabled="!ready"

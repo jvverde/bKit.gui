@@ -1,7 +1,7 @@
 <template>
   <div class="fit relative-position">
     <div class="q-px-xl q-py-sm q-gutter-y-xl column items-stretch absolute-center">
-      <form @submit.prevent="send" class="column items-stretch">
+      <form @submiting.prevent="send" class="column items-stretch">
         <q-input
           :readonly="specificUser"
           type="text"
@@ -24,8 +24,6 @@
           @keyup.enter="send"
         />
         <q-btn
-          v-model="submit"
-          loader
           rounded color="secondary"
           :disabled="!ready"
           @click="send"
@@ -45,6 +43,9 @@
         >Sign up</q-btn>
       </div>
     </div>
+    <q-inner-loading :showing="submiting">
+      <q-spinner-ios size="xl" color="loader"/>
+    </q-inner-loading>
     <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
   </div>
 </template>
@@ -80,7 +81,7 @@ export default {
         username: '',
         password: ''
       },
-      submit: false
+      submiting: false
     }
   },
   props: ['server', 'user'],
@@ -114,7 +115,7 @@ export default {
     },
     async send () {
       if (!this.ready) return
-      this.submit = true
+      this.submiting = true
       try {
         const cred = compose(this.form)
         await axios.post(`${this.serverURL}/auth/login`, cred)
@@ -123,7 +124,7 @@ export default {
       } catch (err) {
         this.catch(err)
       } finally {
-        this.submit = false
+        this.submiting = false
       }
     }
   },

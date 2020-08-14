@@ -1,33 +1,35 @@
 <template>
-  <form @submit.prevent="add" class="column items-end q-gutter-y-lg absolute-center">
-    <label class="self-start" style="margin-left:-2em">Add new server located at:</label>
-    <q-input outlined dense clearable standout
-      style="min-width:20em"
-      @keyup.enter="add"
-      @keydown.tab="add"
-      type="text"
-      v-model="address"
-      :loading="adding"
-      :error="!!error"
-      :error-message="`Server '${address}' not found`"
-      @clear="error=false"
-      placeholder="IP Address or Server Name"
-      hint="Address of a bKit server"
-      label="Server address">
-      <template v-slot:append>
-      </template>
-    </q-input>
-    <q-input type="number" max="65335" min="1"
-      dense borderless
-      v-model.number="port" label="Port Number">
-    </q-input>
-    <div class="q-gutter-x-xl self-center">
-      <q-btn icon="add" label="Add" no-caps
-        @click="add" :disable="error || adding"
-        color="green"/>
-    </div>
+  <div class="fit relative-position">
+    <form @submit.prevent="add" class="column items-end q-gutter-y-lg absolute-center">
+      <label class="self-start" style="margin-left:-2em">Add new server located at:</label>
+      <q-input outlined dense clearable standout
+        style="min-width:20em"
+        @keyup.enter="add"
+        @keydown.tab="add"
+        type="text"
+        v-model="address"
+        :loading="adding"
+        :error="!!error"
+        :error-message="`Server '${address}' not found`"
+        @clear="error=false"
+        placeholder="IP Address or Server Name"
+        hint="Address of a bKit server"
+        label="Server address">
+        <template v-slot:append>
+        </template>
+      </q-input>
+      <q-input type="number" max="65335" min="1"
+        dense borderless
+        v-model.number="port" label="Port Number">
+      </q-input>
+      <div class="q-gutter-x-xl self-center">
+        <q-btn icon="add" label="Add" no-caps
+          @click="add" :disable="error || adding"
+          color="green"/>
+      </div>
+    </form>
     <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
-  </form>
+  </div>
 </template>
 
 <script>
