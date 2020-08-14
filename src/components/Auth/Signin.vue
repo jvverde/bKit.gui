@@ -1,42 +1,51 @@
 <template>
-  <div class="column absolute-center">
-    <q-input
-      type="text"
-      max-length="16"
-      autofocus
-      v-model="form.username"
-      float-label="Username"
-      :error="$v.form.username.$error"
-      @blur="$v.form.username.$touch"
-      @keyup.enter="send"
-    />
-    <q-input
-      type="password"
-      max-length="16"
-      v-model="form.password"
-      float-label="Password"
-      :error="$v.form.password.$error"
-      @blur="$v.form.password.$touch"
-      @keyup.enter="send"
-    />
-    <router-link
-      to="/reset_pass"
-      class="thin-paragraph text-right"
-      style="margin:.5em 0"
-    >
-      <small>Forgot Password?</small>
-    </router-link>
-    <q-btn
-      v-model="submit"
-      loader
-      rounded color="secondary"
-      :disabled="!ready"
-      @click="send"
-    >Sign In</q-btn>
-    <div class="text-center" style="margin:1em">Or</div>
-    <q-btn rounded color="secondary"
-      @click="$router.replace({ name: 'signup', params: { server } })"
-    >Sign up</q-btn>
+  <div class="fit relative-position">
+    <div class="q-px-xl q-py-sm q-gutter-y-xl column items-stretch absolute-center">
+      <form @submit.prevent="send" class="column items-stretch">
+        <q-input
+          :readonly="specificUser"
+          type="text"
+          max-length="16"
+          :autofocus="!specificUser"
+          v-model="form.username"
+          float-label="Username"
+          :error="$v.form.username.$error"
+          @blur="$v.form.username.$touch"
+          @keyup.enter="send"
+        />
+        <q-input
+          type="password"
+          max-length="16"
+          v-model="form.password"
+          :autofocus="specificUser"
+          float-label="Password"
+          :error="$v.form.password.$error"
+          @blur="$v.form.password.$touch"
+          @keyup.enter="send"
+        />
+        <q-btn
+          v-model="submit"
+          loader
+          rounded color="secondary"
+          :disabled="!ready"
+          @click="send"
+        >Sign In</q-btn>
+        <router-link
+          to="/reset_pass"
+          class="thin-paragraph text-right"
+          style="margin:.5em 0"
+        >
+          <small>Forgot Password?</small>
+        </router-link>
+      </form>
+      <div v-if="!user" class="row items-center full-width q-gutter-x-sm">
+        <div>Or</div>
+        <q-btn rounded outline color="secondary" style="flex-grow: 1"
+          @click="$router.replace({ name: 'signup', params: { server } })"
+        >Sign up</q-btn>
+      </div>
+    </div>
+    <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
   </div>
 </template>
 
@@ -74,7 +83,7 @@ export default {
       submit: false
     }
   },
-  props: ['server'],
+  props: ['server', 'user'],
   validations: {
     form: {
       username: {
@@ -93,10 +102,16 @@ export default {
     },
     ready () {
       return !this.$v.form.$error && this.form.username && this.form.password
+    },
+    specificUser () {
+      return this.user && this.user.length > 0
     }
   },
   methods: {
     ...mapActions('global', ['addAccount']),
+    cancel () {
+      this.$router.back()
+    },
     async send () {
       if (!this.ready) return
       this.submit = true
@@ -113,6 +128,7 @@ export default {
     }
   },
   mounted () {
+    this.form.username = this.user || ''
   }
 }
 </script>

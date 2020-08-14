@@ -18,11 +18,13 @@ export function addAccount ({ commit }, { user, server, password }) {
   })
 }
 
-export function delCredentials ({ commit }, { user, address }) {
+export function delCredentials ({ commit, getters }, { user, address }) {
   return new Promise(async (resolve, reject) => {
     try {
       await deleteAccount(`${user}@${address}`)
-      commit('delServer', { address, user })
+      // Get is a copy with credentials property set to false
+      const server = { ...getters.getAccount(address, user), credentials: false }
+      commit('addServer', server)
       resolve(true)
     } catch (err) {
       reject(err)

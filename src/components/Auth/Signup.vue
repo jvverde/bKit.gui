@@ -1,95 +1,97 @@
 <template>
-  <div class="q-px-xl q-py-sm column absolute-center">
-    <form @submit.prevent="send" class="column items-stretch">
-      <q-input type="text" max-length="16"
-        v-model="form.username"
-        label="Username"
-        hint="Choose a username"
-        @keyup.enter="send"
-        @blur="$v.form.username.$touch"
-      >
-        <template v-slot:after>
-          <q-icon v-if="$v.form.username.$error" name="warning" flat color="error" size="xs"/>
-          <q-icon v-else-if="!$v.form.username.$invalid" name="done" flat color="ok" size="xs"/>
-        </template>
-      </q-input>
-      <q-input type="email" max-length="50"
-        v-model="form.email"
-        label="Email"
-        hint="Give a email to confirm"
-        @keyup.enter="send"
-        @blur="$v.form.email.$touch"
-      >
-        <template v-slot:after>
-          <q-icon v-if="$v.form.email.$error" name="warning" flat color="error" size="xs"/>
-          <q-icon v-else-if="!$v.form.email.$invalid" name="done" flat color="ok" size="xs"/>
-        </template>
-      </q-input>
-      <q-input type="password" max-length="16"
-        v-model="form.password"
-        label="Password"
-        hint="Give a least 8 characters"
-        @keyup.enter="send"
-        :error="$v.form.password.$error"
-        @blur="$v.form.password.$touch"
-      >
-        <template v-slot:after>
-          <q-icon v-if="$v.form.password.$error" name="warning" flat color="error" size="xs"/>
-          <q-icon v-else-if="!$v.form.password.$invalid" name="done" flat color="ok" size="xs"/>
-        </template>
-      </q-input>
-      <q-input type="password" max-length="16"
-        v-model="form.passrepeat"
-        label="Repeat Password"
-        hint="Same as password"
-        @keyup.enter="send"
-        :error="$v.form.passrepeat.$error"
-        @blur="$v.form.passrepeat.$touch"
-      >
-        <template v-slot:after>
-          <q-icon v-if="$v.form.passrepeat.$error" name="warning" flat color="error" size="xs"/>
-          <q-icon v-else-if="!$v.form.passrepeat.$invalid && !$v.form.password.$invalid" name="done" flat color="ok" size="xs"/>
-        </template>
-      </q-input>
-      <q-btn v-model="submiting" loader
-        v-if="!askcode"
-        rounded color="secondary"
-        :disabled="!ready"
-        @click="send"
-        class="q-mt-xl"
-      >
-        Sign up
-      </q-btn>
-    </form>
-    <form @submit.prevent="confirm" v-if="askcode">
-      <q-input type="text" maxlength="6" minlength="6"
-        v-model="code"
-        autofocus
-        label="Code"
-        @keyup="confirm"
-        hint="Code received by email">
-        <template v-slot:after>
-          <q-icon v-if="codeinvalid" name="warning" flat color="error" size="xs"/>
-        </template>
-      </q-input>
-    </form>
-    <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
-    <q-dialog v-model="waitcode" transition-show="flip-down" transition-hide="flip-up">
-      <q-card>
-        <q-card-section v-if="response.email">
-          A code has been sent to mail address {{response.email}}
-        </q-card-section>
-        <q-card-section>
-          Please check you email and then enter it on field Code bellow
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="OK" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-    <q-inner-loading :showing="submiting">
-      <q-spinner-ios size="xl" color="loader"/>
-    </q-inner-loading>
+  <div class="fit relative-position">
+    <div class="q-px-xl q-py-sm column absolute-center">
+      <form @submit.prevent="send" class="column items-stretch">
+        <q-input type="text" max-length="16"
+          v-model="form.username"
+          label="Username"
+          hint="Choose a username"
+          @keyup.enter="send"
+          @blur="$v.form.username.$touch"
+        >
+          <template v-slot:after>
+            <q-icon v-if="$v.form.username.$error" name="warning" flat color="error" size="xs"/>
+            <q-icon v-else-if="!$v.form.username.$invalid" name="done" flat color="ok" size="xs"/>
+          </template>
+        </q-input>
+        <q-input type="email" max-length="50"
+          v-model="form.email"
+          label="Email"
+          hint="Give a email to confirm"
+          @keyup.enter="send"
+          @blur="$v.form.email.$touch"
+        >
+          <template v-slot:after>
+            <q-icon v-if="$v.form.email.$error" name="warning" flat color="error" size="xs"/>
+            <q-icon v-else-if="!$v.form.email.$invalid" name="done" flat color="ok" size="xs"/>
+          </template>
+        </q-input>
+        <q-input type="password" max-length="16"
+          v-model="form.password"
+          label="Password"
+          hint="Give a least 8 characters"
+          @keyup.enter="send"
+          :error="$v.form.password.$error"
+          @blur="$v.form.password.$touch"
+        >
+          <template v-slot:after>
+            <q-icon v-if="$v.form.password.$error" name="warning" flat color="error" size="xs"/>
+            <q-icon v-else-if="!$v.form.password.$invalid" name="done" flat color="ok" size="xs"/>
+          </template>
+        </q-input>
+        <q-input type="password" max-length="16"
+          v-model="form.passrepeat"
+          label="Repeat Password"
+          hint="Same as password"
+          @keyup.enter="send"
+          :error="$v.form.passrepeat.$error"
+          @blur="$v.form.passrepeat.$touch"
+        >
+          <template v-slot:after>
+            <q-icon v-if="$v.form.passrepeat.$error" name="warning" flat color="error" size="xs"/>
+            <q-icon v-else-if="!$v.form.passrepeat.$invalid && !$v.form.password.$invalid" name="done" flat color="ok" size="xs"/>
+          </template>
+        </q-input>
+        <q-btn v-model="submiting" loader
+          v-if="!askcode"
+          rounded color="secondary"
+          :disabled="!ready"
+          @click="send"
+          class="q-mt-xl"
+        >
+          Sign up
+        </q-btn>
+      </form>
+      <form @submit.prevent="confirm" v-if="askcode">
+        <q-input type="text" maxlength="6" minlength="6"
+          v-model="code"
+          autofocus
+          label="Code"
+          @keyup="confirm"
+          hint="Code received by email">
+          <template v-slot:after>
+            <q-icon v-if="codeinvalid" name="warning" flat color="error" size="xs"/>
+          </template>
+        </q-input>
+      </form>
+      <q-dialog v-model="waitcode" transition-show="flip-down" transition-hide="flip-up">
+        <q-card>
+          <q-card-section v-if="response.email">
+            A code has been sent to mail address {{response.email}}
+          </q-card-section>
+          <q-card-section>
+            Please check you email and then enter it on field Code bellow
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat label="OK" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+      <q-inner-loading :showing="submiting">
+        <q-spinner-ios size="xl" color="loader"/>
+      </q-inner-loading>
+    </div>
+  <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
   </div>
 </template>
 

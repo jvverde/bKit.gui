@@ -32,6 +32,11 @@ export function serverNames (state) {
   return serverAddresses(state)
 }
 
+export function getAccount (state) {
+  return (address, user) => {
+    return state.servers.filter(s => s.address === address && s.user === user)[0]
+  }
+}
 export function getAccountsByServer (state) {
   return (name) => {
     return state.servers.filter(s => s.address === name)

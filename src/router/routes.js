@@ -42,8 +42,14 @@ const routes = [
             props: true,
             component: () => import('components/Server/ListAccounts.vue'),
             children: [
+              { // This almost duplicated route is a workaround rto deal wit push named route
+                path: 'login/:user',
+                name: 'login',
+                props: true,
+                component: () => import('components/Auth/Signin.vue')
+              },
               {
-                path: ':user',
+                path: 'show/:user',
                 name: 'Account',
                 props: true,
                 component: () => import('components/Server/Account.vue')
