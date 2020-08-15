@@ -158,6 +158,12 @@ ipcMain.on('setPassword', async (event, account, password) => {
   event.returnValue = true
 })
 
+ipcMain.on('getPassword', async (event, account) => {
+  say.log('getPassword', account)
+  const pass = await keytar.getPassword('bKit', account)
+  event.returnValue = pass
+})
+
 ipcMain.on('deletePassword', async (event, account) => {
   say.log('deletePassword', account)
   const result = await keytar.deletePassword('bKit', account)

@@ -5,7 +5,7 @@ import { Store } from 'src/store'
 
 const path = require('path')
 const nill = () => null
-const server = () => Store.getters['global/server']
+const currentServer = () => Store.getters['global/currentServer']
 
 /* ------------------ define queues and proxis/caches --------------- */
 import Queue, { QueueLast, QueueByKey } from './queue'
@@ -20,7 +20,8 @@ function enqueue2bash (name, args = [], events = {}, queue = defaultQueue) {
     queue = events
     events = {}
   }
-  const key = [name, ...args, server()].join('|')
+  const cserver = currentServer() || {}
+  const key = [name, ...args, cserver.address].join('|')
   // console.log('Key for enqueue2bash', key)
   return queue.enqueue(() => asyncBash(name, args, events), key)
 }
@@ -54,6 +55,13 @@ export async function changeServer (server) {
   const servers = await enqueue2bash('./server.sh', ['--no-ask', '-s', '-f', '-u', server.user, server.address, server.iport])
   return servers[0]
 }
+export async function initServer (server, pass) {
+  const servers = await enqueue2bash({
+    script: './server.sh',
+    env: { BKIT_PASSWORD: pass }
+  }, ['-f', '-u', server.user, server.address, server.iport])
+  return servers[0]
+}
 
 export async function listServers (...args) {
   return enqueue2bash('./listservers.sh', [...args])
@@ -76,7 +84,7 @@ const backupQueue = new Queue() // Dedicated queue for restore requests
 // Enqueue  scripts
 function _Queue (name, args, events = {}, queue = restoreQueue) {
   const { enqueued = nill } = events
-  const key = Date.now() + Math.random().toString(36).slice(1) + server()
+  const key = Date.now() + Math.random().toString(36).slice(1) + currentServer()
   enqueued({
     dismiss: () => queue.dismiss(key),
     position: () => queue.position(key)
@@ -400,7 +408,7 @@ export async function listsnap (path, snap, rvid, {
   args = [],
   queue = listdirQueue
 } = {}) {
-  const key = rvid + path + args.join('') + server()
+  const key = rvid + path + args.join('') + currentServer()
   args = [`--rvid=${rvid}`, ...args]
   if (snap) args.push(`--snap=${snap}`)
   const promise = () => listdirs(path, args) // A future promise as required by queue.enqueue
@@ -412,7 +420,7 @@ export async function diffsnap (path, snap, {
   queue = dkitQueue,
   invalidateCache = false
 } = {}) {
-  const key = path + args.join('') + server()
+  const key = path + args.join('') + currentServer()
   if (snap) args.push(`--snap=${snap}`)
   if (invalidateCache) {
     // In this case it needs to go directly to the proxy/cache to invalidade it
@@ -445,7 +453,7 @@ export async function refreshsnap (path, snap, {
   queue = queue4last,
   invalidateCache = false
 } = {}) {
-  const key = 'refreshsnap' + server()
+  const key = 'refreshsnap' + currentServer()
   if (snap) args.push(`--snap=${snap}`)
   if (invalidateCache) {
     // In this case it needs to go directly to the proxy/cache to invalidade it

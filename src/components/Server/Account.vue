@@ -61,11 +61,17 @@
 </template>
 
 <script>
+
 import { mapGetters, mapActions } from 'vuex'
+import { getPassword } from 'src/helpers/credentials'
+import { initServer } from 'src/helpers/bkit'
+import { catched } from 'src/helpers/notify'
+
 export default {
   name: 'Account',
   data () {
     return {
+      loading: false
       // initialized: false,
       // credentials: false
     }
@@ -75,7 +81,15 @@ export default {
     ...mapGetters('global', ['getAccount']),
     initialized: {
       get () { return this.account.initialized === true },
-      set (val) { console.log('set init to', val) }
+      set (val) {
+        if (val) {
+          console.log('Init', this.user, this.server)
+          this.init()
+        } else {
+          console.log('Delete profile for', this.user, this.server)
+          this.clear()
+        }
+      }
     },
     credentials: {
       get () { return this.account.credentials === true },
@@ -96,9 +110,27 @@ export default {
   watch: {
   },
   methods: {
-    ...mapActions('global', ['delCredentials']),
+    ...mapActions('global', ['delCredentials', 'loadServers']),
     cancel () {
       this.$router.back()
+    },
+    async init () {
+      console.log('init')
+      try {
+        if (this.credentials) {
+          const pass = await getPassword(`${this.user}@${this.server}`)
+          this.loading = false
+          await initServer(this.account, pass)
+          this.loadServers()
+        }
+      } catch (err) {
+        catched(err)
+      } finally {
+        this.loading = false
+      }
+    },
+    clear () {
+      console.log('clear')
     },
     setcred () {
       const params = { server: this.server, user: this.user }
