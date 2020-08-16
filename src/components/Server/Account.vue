@@ -22,27 +22,13 @@
           <q-item-section>
             Backup area ID
           </q-item-section>
-          <q-item-section side>
+          <q-item-section side style="min-width:20em">
             {{account.section}}
           </q-item-section>
         </q-item>
         <q-item>
           <q-item-section>
-            Initialized
-          </q-item-section>
-          <q-item-section side>
-            <q-toggle
-              v-model="initialized"
-              icon-color="red"
-              checked-icon="check"
-              color="done"
-              unchecked-icon="clear"
-            />
-          </q-item-section>
-        </q-item>
-        <q-item>
-          <q-item-section>
-            Credentials
+            Logged-in
           </q-item-section>
           <q-item-section side>
             <q-toggle
@@ -54,9 +40,28 @@
             />
           </q-item-section>
         </q-item>
+        <q-item>
+          <q-item-section>
+            Joined
+          </q-item-section>
+          <q-item-section side>
+            <q-toggle
+              v-model="initialized"
+              icon-color="red"
+              checked-icon="check"
+              color="done"
+              unchecked-icon="clear"
+              :disable="!credentials"
+            />
+          </q-item-section>
+        </q-item>
       </q-list>
     </div>
     <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
+    <q-inner-loading :showing="loading">
+      <q-spinner-ios size="xl" color="loader"/>
+      <span>{{msg}}</span>
+    </q-inner-loading>
   </div>
 </template>
 
@@ -64,14 +69,13 @@
 
 import { mapGetters, mapActions } from 'vuex'
 import { getPassword } from 'src/helpers/credentials'
-import { initServer } from 'src/helpers/bkit'
 import { catched } from 'src/helpers/notify'
 
 export default {
   name: 'Account',
   data () {
     return {
-      loading: false
+      msg: undefined
       // initialized: false,
       // credentials: false
     }
@@ -79,6 +83,7 @@ export default {
   props: ['server', 'user'],
   computed: {
     ...mapGetters('global', ['getAccount']),
+    loading () { return this.msg && this.msg.length > 0 },
     initialized: {
       get () { return this.account.initialized === true },
       set (val) {
@@ -103,34 +108,40 @@ export default {
         }
       }
     },
-    account () { return this.getAccount(this.server, this.user) }
+    account () { return this.getAccount(this.server, this.user) || {} }
     // initialized () { return this.account.initialized === true },
     // credentials () { return this.account.credentials === true },
   },
   watch: {
   },
   methods: {
-    ...mapActions('global', ['delCredentials', 'loadServers']),
+    ...mapActions('global', ['delCredentials', 'loadServers', 'deleteProfile', 'initProfile']),
     cancel () {
       this.$router.back()
     },
     async init () {
       console.log('init')
       try {
+        this.msg = 'Changing keys with server'
         if (this.credentials) {
           const pass = await getPassword(`${this.user}@${this.server}`)
-          this.loading = false
-          await initServer(this.account, pass)
-          this.loadServers()
+          await this.initProfile({ account: this.account, pass })
         }
       } catch (err) {
         catched(err)
       } finally {
-        this.loading = false
+        this.msg = undefined
       }
     },
-    clear () {
-      console.log('clear')
+    async clear () {
+      try {
+        this.msg = 'Deleting profile'
+        await this.deleteProfile(this.account)
+      } catch (err) {
+        catched(err)
+      } finally {
+        this.msg = undefined
+      }
     },
     setcred () {
       const params = { server: this.server, user: this.user }

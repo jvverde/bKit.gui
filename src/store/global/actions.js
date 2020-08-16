@@ -3,7 +3,7 @@ export function someAction (context) {
 }
 */
 import { getAccounts, addAccount as addCredentials, deleteAccount } from 'src/helpers/credentials'
-import { listServers, getServer, changeServer } from 'src/helpers/bkit'
+import { listServers, getServer, changeServer, deleteServer, initServer } from 'src/helpers/bkit'
 
 export function addAccount ({ commit }, { user, server, password }) {
   return new Promise(async (resolve, reject) => {
@@ -48,11 +48,11 @@ export function loadCredentials ({ commit }) {
   })
 }
 
-const line2server = (line) => {
+const line2server = (line, initialized = true) => {
   if (!line) return {}
   const [user, url] = line.split('@')
   const [address, , section, iport, bport, rport, uport, hport] = url.split(':')
-  return { address, user, section, iport, bport, rport, uport, hport, initialized: true }
+  return { address, user, section, iport, bport, rport, uport, hport, initialized }
 }
 
 export function loadServers ({ commit }) {
@@ -64,6 +64,33 @@ export function loadServers ({ commit }) {
       })
       commit('addServers', servers)
       resolve(servers)
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+export function deleteProfile ({ commit }, account) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await deleteServer(account)
+      const unserv = { ...account, initialized: false }
+      commit('addServer', unserv)
+      resolve(unserv)
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+export function initProfile ({ commit }, { account, pass }) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await deleteServer(account)
+      const answer = await initServer(account, pass)
+      const server = line2server(answer)
+      commit('addServer', server)
+      resolve(server)
     } catch (e) {
       reject(e)
     }

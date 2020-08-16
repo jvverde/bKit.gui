@@ -5,7 +5,13 @@
         Registered account<span v-if="one">s</span> for server {{server}}:
       </div>
       <div v-for="(account, index) in accounts" :key="index">
-        <q-chip clickable @click="manage(account)" removable @remove="remove(account)" icon="person">
+        <q-chip clickable
+          @click="manage(account)"
+          removable
+          @remove="remove(account)"
+          :color="color(account)"
+          :outline="isCurrent(account)"
+          icon="person">
           {{account.user}}
         </q-chip>
       </div>
@@ -30,18 +36,26 @@
 
 <script>
 
-import notify from 'src/mixins/notify'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'ListAccounts',
   data () {
     return {
+      currentOf: {},
       loading: false
     }
   },
   computed: {
     ...mapGetters('global', ['getAccountsByServer']),
+    current: {
+      get () {
+        return this.currentOf[this.server]
+      },
+      set (val) {
+        this.$set(this.currentOf, this.server, val)
+      }
+    },
     accounts () { return this.getAccountsByServer(this.server) },
     sortAccounts () { return [...this.accounts].sort() },
     zero () { return this.accounts.length === 0 },
@@ -49,9 +63,29 @@ export default {
     some () { return !this.zero }
   },
   props: ['server'],
-  mixins: [notify],
+  watch: {
+    server: {
+      immediate: true,
+      handler (val, oldval) {
+        this.current = this.current || this.accounts[0]
+      }
+    },
+    current: {
+      immediate: true,
+      handler (account, oldval) {
+        if (!account || !account.user) return
+        this.$router.push({
+          name: 'Account',
+          params: {
+            server: this.server,
+            user: account.user
+          }
+        })
+      }
+    }
+  },
   methods: {
-    ...mapActions('global', ['delCredentials']),
+    ...mapActions('global', ['delCredentials', 'getCurrentServer']),
     add () {
       this.$router.push({ name: 'NewAccount', params: { server: this.server } })
     },
@@ -59,11 +93,20 @@ export default {
       console.log('remove', account)
       if (account.credentials) this.delCredentials(account)
     },
+    isCurrent (account) {
+      return account && this.current && account.address === this.current.address && account.user === this.current.user
+    },
+    color (account) {
+      return this.isCurrent(account) ? 'active' : ''
+    },
     manage (account) {
-      this.$router.push({ name: 'Account', params: { server: this.server, user: account.user } })
+      this.current = account
     }
   },
-  mounted () {
+  async mounted () {
+    const current = await this.getCurrentServer()
+    console.log('Current account', current.address, current.user)
+    this.current = current
   },
   beforeUpdate () {
   },

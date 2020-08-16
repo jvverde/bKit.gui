@@ -55,11 +55,15 @@ export async function changeServer (server) {
   const servers = await enqueue2bash('./server.sh', ['--no-ask', '-s', '-f', '-u', server.user, server.address, server.iport])
   return servers[0]
 }
+export async function deleteServer (server) {
+  const servers = await enqueue2bash('./server.sh', ['--no-ask', '--delete', '-f', '-u', server.user, server.address])
+  return servers[0]
+}
 export async function initServer (server, pass) {
   const servers = await enqueue2bash({
     script: './server.sh',
     env: { BKIT_PASSWORD: pass }
-  }, ['-f', '-u', server.user, server.address, server.iport])
+  }, ['--no-ask', '-f', '-u', server.user, server.address, server.iport])
   return servers[0]
 }
 

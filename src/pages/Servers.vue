@@ -8,9 +8,6 @@
           <span style="color:black">{{server}}</span>
         </q-btn>
       </div>
-      <q-inner-loading :showing="loading">
-        <q-spinner-ios size="xl" color="loader"/>
-      </q-inner-loading>
       <div style="margin-left:auto" class="q-my-sm">
          <q-btn class="q-px-sm" rounded outline icon="add" label="New Server" no-caps dense @click="add"/>
       </div>
@@ -18,6 +15,10 @@
     <div class="fit relative-position routerview">
       <router-view></router-view>
     </div>
+    <q-inner-loading :showing="loading">
+      <q-spinner-ios size="xl" color="loader"/>
+      <span>{{msg}}</span>
+    </q-inner-loading>
   </q-page>
 </template>
 
@@ -31,7 +32,7 @@ export default {
   data () {
     return {
       selectedServer: undefined,
-      loading: false,
+      msg: undefined,
       adding: false,
       error: false
     }
@@ -39,6 +40,7 @@ export default {
   props: ['back'],
   computed: {
     ...mapGetters('global', ['serverAddresses']),
+    loading () { return this.msg && this.msg.length > 0 },
     sortAddress () { return [...this.serverAddresses].sort() }
   },
   watch: {
@@ -55,7 +57,7 @@ export default {
       return servername === this.selectedServer
     },
     color (servername) {
-      return this.isSelected(servername) ? 'green' : 'black'
+      return this.isSelected(servername) ? 'active' : ''
     },
     go () {
       this.$router.push('/backup')
@@ -67,16 +69,18 @@ export default {
       this.$router.push({ name: 'NewServer' })
     },
     async load () {
-      this.loading = true
       try {
-        this.loadCredentials()
-        this.loadServers()
+        this.msg = 'Loading profiles'
+        await this.loadServers()
+        this.msg = 'Loading credentials'
+        await this.loadCredentials()
+        this.msg = 'Get Current Server'
         const cserver = await this.getCurrentServer()
         this.change(cserver.address)
       } catch (e) {
         catched(e)
       } finally {
-        this.loading = false
+        this.msg = undefined
       }
     }
   },

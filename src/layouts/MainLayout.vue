@@ -41,6 +41,10 @@
         <router-view/>
       </keep-alive>
     </q-page-container>
+    <q-inner-loading :showing="loading">
+      <q-spinner-ios size="xl" color="loader"/>
+      <span>{{msg}}</span>
+    </q-inner-loading>
   </q-layout>
 </template>
 
@@ -82,7 +86,7 @@ export default {
 
   data () {
     return {
-      loading: false,
+      msg: undefined,
       leftDrawerOpen: false,
       bkituser: undefined,
       version: app.getVersion(),
@@ -91,6 +95,7 @@ export default {
   },
   computed: {
     ...mapGetters('global', ['bkitok', 'server', 'serversInitialized']),
+    loading () { return this.msg && this.msg.length > 0 },
     user () {
       return this.bkituser
         ? this.bkituser === username
@@ -115,18 +120,28 @@ export default {
   methods: {
     ...mapActions('global', ['setCurrentServer', 'loadCurrentServer', 'loadServers']),
     async changeserver (account) {
-      this.loading = true
-      await this.setCurrentServer(account)
-      this.loading = false
+      try {
+        this.msg = `Change to server ${account.user}@${account.address}`
+        await this.setCurrentServer(account)
+      } catch (err) {
+        catched(err)
+      } finally {
+        this.msg = undefined
+      }
     }
   },
   async mounted () {
     try {
-      this.loadCurrentServer()
-      this.loadServers()
+      this.msg = 'Find current server'
+      await this.loadCurrentServer()
+      this.msg = 'Loaging profiles'
+      await this.loadServers()
+      this.msg = 'Get local user'
       this.bkituser = await getUser()
     } catch (err) {
       catched(err)
+    } finally {
+      this.msg = undefined
     }
   }
 }
