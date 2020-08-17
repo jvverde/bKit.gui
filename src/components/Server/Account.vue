@@ -1,8 +1,14 @@
 <template>
   <div class="fit relative-position">
     <div class="absolute-center">
-      <q-list flat class="q-mt-xl">
+      <q-list flat>
         <q-item>
+          <q-item-section>
+            <q-radio v-model="isDefault" :val="true" label="Set as default" :disable="!initialized" />
+          </q-item-section>
+        </q-item>
+        <q-separator />
+        <q-item class="q-mt-xl">
           <q-item-section>
             Manage account
           </q-item-section>
@@ -51,8 +57,13 @@
               checked-icon="check"
               color="done"
               unchecked-icon="clear"
-              :disable="!credentials"
+              :disable="(!initialized && !credentials) || (initialized && isDefault)"
             />
+          </q-item-section>
+        </q-item>
+        <q-item>
+          <q-item-section>
+            <q-btn icon="cancel" flat label="Remove Account" @click="remove"  color="red" size="sm" :disable="isDefault"/>
           </q-item-section>
         </q-item>
       </q-list>
@@ -82,7 +93,7 @@ export default {
   },
   props: ['server', 'user'],
   computed: {
-    ...mapGetters('global', ['getAccount']),
+    ...mapGetters('global', ['getAccount', 'currentServer']),
     loading () { return this.msg && this.msg.length > 0 },
     initialized: {
       get () { return this.account.initialized === true },
@@ -92,7 +103,7 @@ export default {
           this.init()
         } else {
           console.log('Delete profile for', this.user, this.server)
-          this.clear()
+          this.removeProfile()
         }
       }
     },
@@ -101,23 +112,41 @@ export default {
       set (val) {
         if (val) {
           console.log('set credentials to', val)
-          this.setcred()
+          this.setCredentails()
         } else {
-          console.log('clear credentials to', val)
-          this.clearcred()
+          console.log('Unset credentials to', val)
+          this.removeCredentials()
         }
       }
     },
-    account () { return this.getAccount(this.server, this.user) || {} }
+    account () { return this.getAccount(this.server, this.user) || {} },
+    isDefault: {
+      get () {
+        return this.currentServer.address === this.account.address && this.currentServer.user === this.account.user
+      },
+      set (val) {
+        if (val) this.setAccountAsDefault()
+      }
+    }
     // initialized () { return this.account.initialized === true },
     // credentials () { return this.account.credentials === true },
   },
   watch: {
   },
   methods: {
-    ...mapActions('global', ['delCredentials', 'loadServers', 'deleteProfile', 'initProfile']),
+    ...mapActions('global', ['delCredentials', 'loadServers', 'deleteProfile', 'initProfile', 'setCurrentServer', 'removeAccount']),
     cancel () {
       this.$router.back()
+    },
+    async setAccountAsDefault () {
+      try {
+        this.msg = `Change to server ${this.account.user}@${this.account.address}`
+        await this.setCurrentServer(this.account)
+      } catch (err) {
+        catched(err)
+      } finally {
+        this.msg = undefined
+      }
     },
     async init () {
       console.log('init')
@@ -133,7 +162,7 @@ export default {
         this.msg = undefined
       }
     },
-    async clear () {
+    async removeProfile () {
       try {
         this.msg = 'Deleting profile'
         await this.deleteProfile(this.account)
@@ -143,13 +172,18 @@ export default {
         this.msg = undefined
       }
     },
-    setcred () {
+    setCredentails () {
       const params = { server: this.server, user: this.user }
       this.$router.push({ name: 'login', params })
     },
-    clearcred () {
+    async removeCredentials () {
       const { user, server: address } = this
       this.delCredentials({ user, address })
+    },
+    async remove () {
+      console.log('Remove account', this.account)
+      await this.removeAccount(this.account)
+      this.cancel()
     }
   }
 }

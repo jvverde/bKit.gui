@@ -83,6 +83,19 @@ export function deleteProfile ({ commit }, account) {
   })
 }
 
+export function removeAccount ({ commit }, account) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (account.initialized) await deleteServer(account)
+      if (account.credentials) await deleteAccount(`${account.user}@${account.address}`)
+      commit('delServer', account)
+      resolve(true)
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
 export function initProfile ({ commit }, { account, pass }) {
   return new Promise(async (resolve, reject) => {
     try {

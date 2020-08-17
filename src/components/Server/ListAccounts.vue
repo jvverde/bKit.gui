@@ -7,8 +7,6 @@
       <div v-for="(account, index) in accounts" :key="index">
         <q-chip clickable
           @click="manage(account)"
-          removable
-          @remove="remove(account)"
           :color="color(account)"
           :outline="isCurrent(account)"
           icon="person">
@@ -88,10 +86,6 @@ export default {
     ...mapActions('global', ['delCredentials', 'getCurrentServer']),
     add () {
       this.$router.push({ name: 'NewAccount', params: { server: this.server } })
-    },
-    remove (account) {
-      console.log('remove', account)
-      if (account.credentials) this.delCredentials(account)
     },
     isCurrent (account) {
       return account && this.current && account.address === this.current.address && account.user === this.current.user
