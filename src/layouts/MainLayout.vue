@@ -134,10 +134,10 @@ export default {
     try {
       this.msg = 'Find current server'
       await this.loadCurrentServer()
-      this.msg = 'Loaging profiles'
-      await this.loadServers()
       this.msg = 'Get local user'
       this.bkituser = await getUser()
+      this.msg = 'Loading profiles'
+      await this.loadServers()
     } catch (err) {
       catched(err)
     } finally {
