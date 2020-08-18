@@ -54,7 +54,7 @@ export default {
         this.$set(this.currentOf, this.server, val)
       }
     },
-    accounts () { return this.getAccountsByServer(this.server) },
+    accounts () { return this.getAccountsByServer(this.server).filter(a => a.user) },
     sortAccounts () { return [...this.accounts].sort() },
     zero () { return this.accounts.length === 0 },
     one () { return this.accounts.length === 1 },
@@ -66,7 +66,6 @@ export default {
       console.log('accounts change')
       if (this.selected && accounts.find(account => account.user === this.selected.user)) return
       this.selected = accounts[0]
-      console.log('Set selected to', this.selected.user)
     },
     server: {
       immediate: true,
@@ -104,9 +103,9 @@ export default {
     }
   },
   async mounted () {
-    const selected = await this.getCurrentServer()
-    console.log('selected account', selected.address, selected.user)
-    this.selected = selected
+    const cserver = await this.getCurrentServer()
+    console.log('selected account', cserver.address, cserver.user)
+    if (cserver.address === this.server) this.selected = selected
   },
   beforeUpdate () {
   },

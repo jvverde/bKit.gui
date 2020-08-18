@@ -44,11 +44,11 @@ export default function (/* { store, ssrContext } */) {
   //       next()
   //     }
   //   })
-  // router.beforeEach((to, from, next) => {
-  //   console.log('from:', from.path)
-  //   console.log('to:', to.path)
-  //   next()
-  // })
+  router.beforeEach((to, from, next) => {
+    console.log('from:', from.path)
+    console.log('to:', to.path)
+    next()
+  })
 
   return router
 }

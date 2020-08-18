@@ -23,7 +23,7 @@ const makeServer = ({
 }
 
 export function addServer (state, server) {
-  if (!server || !server.address || !server.user) throw new Error("Server dont' have a field address or field user, or both")
+  if (!server || !server.address || !('user' in server)) throw new Error("Server dont' have a field address or field user, or both")
   const index = state.servers.findIndex(s => s.address === server.address && s.user === server.user)
   if (index >= 0) {
     const newserver = { ...state.servers[index], ...makeServer(server) }

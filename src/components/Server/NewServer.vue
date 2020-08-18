@@ -63,7 +63,7 @@ export default {
     //       this.adding = false
     //     })
     // },
-    ...mapMutations('global', ['addServer', 'selectServer']),
+    ...mapMutations('global', ['addServer']),
     async add () {
       const url = `http://${this.address}:${this.port}/info`
       try {
@@ -72,11 +72,12 @@ export default {
         console.log('data', data)
         const server = {
           address: this.address,
+          user: undefined,
           hport: this.port,
           iport: data.iport,
           bport: data.bport
         }
-        this.selectServer(server.address)
+        this.addServer(server)
       } catch (err) {
         warn(err)
       } finally {

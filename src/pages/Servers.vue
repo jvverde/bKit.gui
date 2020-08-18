@@ -49,6 +49,10 @@ export default {
       handler (val, old) {
         if (val && val !== old) this.$router.replace({ name: 'ListAccounts', params: { server: val } })
       }
+    },
+    sortAddress (addresses) {
+      if (this.selectedServer && addresses.includes(this.selectedServer)) return
+      this.change2current()
     }
   },
   methods: {
@@ -68,6 +72,10 @@ export default {
     add () {
       this.$router.push({ name: 'NewServer' })
     },
+    change2current () {
+      return this.getCurrentServer()
+        .then(cserver => this.change(cserver.address))
+    },
     async load () {
       try {
         this.msg = 'Loading profiles'
@@ -75,8 +83,7 @@ export default {
         this.msg = 'Loading credentials'
         await this.loadCredentials()
         this.msg = 'Get Current Server'
-        const cserver = await this.getCurrentServer()
-        this.change(cserver.address)
+        this.change2current()
       } catch (e) {
         catched(e)
       } finally {

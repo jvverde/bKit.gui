@@ -10,10 +10,10 @@
         <q-separator />
         <q-item class="q-mt-xl">
           <q-item-section>
-            Manage account
+            Manage account s={{server}}:u={{user}}
           </q-item-section>
           <q-item-section side>
-            {{user}}@{{server}}
+            {{account.user}}@{{account.address}}
           </q-item-section>
         </q-item>
         <q-item>
@@ -122,7 +122,7 @@ export default {
     account () { return this.getAccount(this.server, this.user) || {} },
     isDefault: {
       get () {
-        return this.currentServer.address === this.account.address && this.currentServer.user === this.account.user
+        return this.currentServer && this.currentServer.address === this.account.address && this.currentServer.user === this.account.user
       },
       set (val) {
         if (val) this.setAccountAsDefault()
