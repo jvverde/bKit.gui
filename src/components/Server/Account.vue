@@ -182,8 +182,7 @@ export default {
     },
     async remove () {
       console.log('Remove account', this.account)
-      await this.removeAccount(this.account)
-      this.cancel()
+      this.removeAccount(this.account)
     }
   }
 }

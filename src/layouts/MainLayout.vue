@@ -94,7 +94,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['bkitok', 'server', 'serversInitialized']),
+    ...mapGetters('global', ['server', 'serversInitialized']),
     loading () { return this.msg && this.msg.length > 0 },
     user () {
       return this.bkituser

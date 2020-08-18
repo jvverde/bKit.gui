@@ -46,7 +46,7 @@ export default {
   },
   computed: {
     ...mapGetters('global', ['getAccountsByServer']),
-    current: {
+    selected: {
       get () {
         return this.currentOf[this.server]
       },
@@ -62,13 +62,19 @@ export default {
   },
   props: ['server'],
   watch: {
+    accounts (accounts) {
+      console.log('accounts change')
+      if (this.selected && accounts.find(account => account.user === this.selected.user)) return
+      this.selected = accounts[0]
+      console.log('Set selected to', this.selected.user)
+    },
     server: {
       immediate: true,
       handler (val, oldval) {
-        this.current = this.current || this.accounts[0]
+        this.selected = this.selected || this.accounts[0]
       }
     },
-    current: {
+    selected: {
       immediate: true,
       handler (account, oldval) {
         if (!account || !account.user) return
@@ -88,19 +94,19 @@ export default {
       this.$router.push({ name: 'NewAccount', params: { server: this.server } })
     },
     isCurrent (account) {
-      return account && this.current && account.address === this.current.address && account.user === this.current.user
+      return account && this.selected && account.address === this.selected.address && account.user === this.selected.user
     },
     color (account) {
       return this.isCurrent(account) ? 'active' : ''
     },
     manage (account) {
-      this.current = account
+      this.selected = account
     }
   },
   async mounted () {
-    const current = await this.getCurrentServer()
-    console.log('Current account', current.address, current.user)
-    this.current = current
+    const selected = await this.getCurrentServer()
+    console.log('selected account', selected.address, selected.user)
+    this.selected = selected
   },
   beforeUpdate () {
   },
