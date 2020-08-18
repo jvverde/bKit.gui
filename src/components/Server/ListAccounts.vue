@@ -16,7 +16,7 @@
       <div v-if="some" style="margin-left:auto" class="q-my-sm">
         <q-btn class="q-px-sm" icon="add" label="New Account" outline rounded no-caps dense @click="add"/>
       </div>
-      <div v-else class="absolute-center column items-center q-gutter-x-sm">
+      <div v-else class="absolute-center column items-center q-gutter-x-sm z-top">
         <div class="text-h6">No accounts</div>
         <div>You don't have any account configured for server {{server}}</div>
         <div>Please add a new one</div>
@@ -33,6 +33,12 @@
 </template>
 
 <script>
+
+const compbyuser = (a, b) => {
+  if (a.user < b.user) return -1
+  if (a.user > b.user) return 1
+  return 0
+}
 
 import { mapGetters, mapActions } from 'vuex'
 
@@ -54,7 +60,9 @@ export default {
         this.$set(this.currentOf, this.server, val)
       }
     },
-    accounts () { return this.getAccountsByServer(this.server).filter(a => a.user) },
+    accounts () {
+      return [...this.getAccountsByServer(this.server).filter(a => a.user)].sort(compbyuser)
+    },
     sortAccounts () { return [...this.accounts].sort() },
     zero () { return this.accounts.length === 0 },
     one () { return this.accounts.length === 1 },
@@ -70,7 +78,7 @@ export default {
     server: {
       immediate: true,
       handler (val, oldval) {
-        this.selected = this.selected || this.accounts[0]
+        if (!this.selected) this.selectOne()
       }
     },
     selected: {
@@ -83,7 +91,13 @@ export default {
             server: this.server,
             user: account.user
           }
-        })
+        }, () => {}) // from https://stackoverflow.com/a/61111771
+      }
+    },
+    '$route' (to, from) {
+      if (to.name === 'Account' && to.params && to.params.user) {
+        console.log('User', to.params.user)
+        this.selected = this.accounts.find(a => a.user === to.params.user)
       }
     }
   },
@@ -100,12 +114,18 @@ export default {
     },
     manage (account) {
       this.selected = account
+    },
+    async selectOne () {
+      const cserver = await this.getCurrentServer()
+      if (cserver.address === this.server) {
+        this.selected = cserver
+      } else {
+        this.selected = this.accounts[0]
+      }
+      console.log('Selected account', this.selected.address, this.selected.user)
     }
   },
   async mounted () {
-    const cserver = await this.getCurrentServer()
-    console.log('selected account', cserver.address, cserver.user)
-    if (cserver.address === this.server) this.selected = selected
   },
   beforeUpdate () {
   },

@@ -65,6 +65,7 @@ export default {
     // },
     ...mapMutations('global', ['addServer']),
     async add () {
+      if (!this.address || !this.port) return
       const url = `http://${this.address}:${this.port}/info`
       try {
         this.adding = true
@@ -77,7 +78,8 @@ export default {
           iport: data.iport,
           bport: data.bport
         }
-        this.addServer(server)
+        await this.addServer(server)
+        this.$router.replace({ name: 'ListAccounts', params: { server: server.address } })
       } catch (err) {
         warn(err)
       } finally {

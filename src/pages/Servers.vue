@@ -2,10 +2,10 @@
   <q-page padding class="fit column no-wrap items-center relative-position">
     <div class="q-pa-sm q-mt-sm  q-gutter-x-sm row items-center full-width self-start">
       <div>Manage server:</div>
-      <div @click="change(server)"
-        v-for="(server, index) in sortAddress" :key="index">
-        <q-btn flat :color="color(server)" icon="storage" :icon-right="isSelected(server) ? 'done' : ''">
-          <span style="color:black">{{server}}</span>
+      <div @click="change(srvname)"
+        v-for="(srvname, index) in srvnames" :key="index">
+        <q-btn flat :color="color(srvname)" icon="storage" :icon-right="isSelected(srvname) ? 'done' : ''">
+          <span style="color:black">{{srvname}}</span>
         </q-btn>
       </div>
       <div style="margin-left:auto" class="q-my-sm">
@@ -41,16 +41,24 @@ export default {
   computed: {
     ...mapGetters('global', ['serverAddresses']),
     loading () { return this.msg && this.msg.length > 0 },
-    sortAddress () { return [...this.serverAddresses].sort() }
+    srvnames () { return [...this.serverAddresses].sort() }
   },
   watch: {
     selectedServer: {
       immediate: true,
-      handler (val, old) {
-        if (val && val !== old) this.$router.replace({ name: 'ListAccounts', params: { server: val } })
+      handler (srvname, oldname) {
+        if (srvname && srvname !== oldname) {
+          this.$router.push({ name: 'ListAccounts', params: { server: srvname } })
+        }
       }
     },
-    sortAddress (addresses) {
+    // '$route' (to, from) {
+    //   if (to.name === 'ListAccounts' && to.params && to.params.server) {
+    //     console.log('server', to.params.server)
+    //     this.selectedServer = to.params.server
+    //   }
+    // },
+    srvnames (addresses) {
       if (this.selectedServer && addresses.includes(this.selectedServer)) return
       this.change2current()
     }
