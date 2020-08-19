@@ -63,42 +63,16 @@ export default {
     accounts () {
       return [...this.getAccountsByServer(this.server).filter(a => a.user)].sort(compbyuser)
     },
-    sortAccounts () { return [...this.accounts].sort() },
     zero () { return this.accounts.length === 0 },
     one () { return this.accounts.length === 1 },
     some () { return !this.zero }
   },
   props: ['server'],
   watch: {
-    accounts (accounts) {
-      console.log('Accounts change')
-      if (this.selected && this.selected.address !== this.server) {
-        this.SelectOne()
-      } else if (this.selected && accounts.find(account => account.user === this.selected.user)) {
-        /* In case the selected is pointing to one existing account, do nothing */
-      } else {
-        console.log('Go back on Accounts change', this.selected)
-        this.$router.back()
-      }
-    },
-    server: {
-      immediate: true,
-      handler (servername) {
-        console.log('server change', servername, (this.selected || {}).address)
-        if (!this.selected || this.selected.address !== servername) this.selectOne()
-      }
-    },
-    selected: {
-      immediate: true,
-      handler (account) {
-        console.log('Selected change', (account || {}).user)
-        if (!account || !account.user) return
-        this.manage(account)
-      }
-    },
     $route (to, from) {
+      console.log('Watch $route')
       if (this.some && to.name === 'Account' && to.params && to.params.user) {
-        console.log('User', to.params.user)
+        console.log('Route to User', to.params.user)
         const selected = this.accounts.find(a => a.user === to.params.user)
         if (selected) {
           console.log('Yes, set select to', selected.address, selected.user)
@@ -110,6 +84,39 @@ export default {
       } else if (to.name === 'ListAccounts') {
         console.log('Unset selected')
         this.selected = undefined
+      }
+    },
+    server: {
+      immediate: true,
+      handler (servername) {
+        console.log('Watch server')
+        console.log('Server change to', servername, ', selected address', (this.selected || {}).address)
+        if (!this.selected || this.selected.address !== servername) this.selectOne()
+      }
+    },
+    selected: {
+      immediate: true,
+      handler (account) {
+        console.log('Watch selected')
+        console.log('Selected change to account:', (account || {}).address, (account || {}).user)
+        if (!account || !account.user) return
+        this.manage(account)
+      }
+    },
+    accounts (accounts) {
+      console.log('Watch Accounts')
+      if (!this.selected) {
+        console.log('No selected: Go to selectOne')
+        this.selectOne()
+      } else if (this.selected.address !== this.server) {
+        console.log('Old selected, Go to selectOne')
+        this.selectOne()
+      } else if (accounts.find(account => account.user === this.selected.user)) {
+        console.log('do nothing')
+        /* In case the selected is pointing to one existing account, do nothing */
+      } else {
+        console.log('Go back on Accounts change', this.selected)
+        this.$router.back()
       }
     }
   },
