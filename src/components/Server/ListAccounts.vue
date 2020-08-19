@@ -6,7 +6,7 @@
       </div>
       <div v-for="(account, index) in accounts" :key="index">
         <q-chip clickable
-          @click="manage(account)"
+          @click="selected = account"
           :color="color(account)"
           :outline="isCurrent(account)"
           icon="person">
@@ -71,33 +71,45 @@ export default {
   props: ['server'],
   watch: {
     accounts (accounts) {
-      console.log('accounts change')
-      if (this.selected && accounts.find(account => account.user === this.selected.user)) return
-      this.selected = accounts[0]
+      console.log('Accounts change')
+      if (this.selected && this.selected.address !== this.server) {
+        this.SelectOne()
+      } else if (this.selected && accounts.find(account => account.user === this.selected.user)) {
+        /* In case the selected is pointing to one existing account, do nothing */
+      } else {
+        console.log('Go back on Accounts change', this.selected)
+        this.$router.back()
+      }
     },
     server: {
       immediate: true,
-      handler (val, oldval) {
-        if (!this.selected) this.selectOne()
+      handler (servername) {
+        console.log('server change', servername, (this.selected || {}).address)
+        if (!this.selected || this.selected.address !== servername) this.selectOne()
       }
     },
     selected: {
       immediate: true,
-      handler (account, oldval) {
+      handler (account) {
+        console.log('Selected change', (account || {}).user)
         if (!account || !account.user) return
-        this.$router.push({
-          name: 'Account',
-          params: {
-            server: this.server,
-            user: account.user
-          }
-        }, () => {}) // from https://stackoverflow.com/a/61111771
+        this.manage(account)
       }
     },
-    '$route' (to, from) {
-      if (to.name === 'Account' && to.params && to.params.user) {
+    $route (to, from) {
+      if (this.some && to.name === 'Account' && to.params && to.params.user) {
         console.log('User', to.params.user)
-        this.selected = this.accounts.find(a => a.user === to.params.user)
+        const selected = this.accounts.find(a => a.user === to.params.user)
+        if (selected) {
+          console.log('Yes, set select to', selected.address, selected.user)
+          this.selected = selected
+        } else {
+          console.log('NO, go back', this.server)
+          this.$router.back()
+        }
+      } else if (to.name === 'ListAccounts') {
+        console.log('Unset selected')
+        this.selected = undefined
       }
     }
   },
@@ -113,16 +125,31 @@ export default {
       return this.isCurrent(account) ? 'active' : ''
     },
     manage (account) {
-      this.selected = account
+      // Edit account
+      const location = {
+        name: 'Account',
+        params: {
+          server: this.server,
+          user: account.user
+        }
+      }
+      const { route } = this.$router.resolve(location)
+      console.log('compare', route.path, this.$route.path)
+      if (route.path === this.$route.path) return
+      // There are a alternative way to the above check https://stackoverflow.com/a/61111771
+      console.log('Allow to Go', route.path)
+      this.$router.push(location)
     },
     async selectOne () {
+      console.log('SelectOne')
       const cserver = await this.getCurrentServer()
       if (cserver.address === this.server) {
+        console.log('Go to current Server')
         this.selected = cserver
       } else {
+        console.log('Go to first account')
         this.selected = this.accounts[0]
       }
-      console.log('Selected account', this.selected.address, this.selected.user)
     }
   },
   async mounted () {

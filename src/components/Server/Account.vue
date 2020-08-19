@@ -10,7 +10,7 @@
         <q-separator />
         <q-item class="q-mt-xl">
           <q-item-section>
-            Manage account s={{server}}:u={{user}}
+            Manage account
           </q-item-section>
           <q-item-section side>
             {{account.user}}@{{account.address}}

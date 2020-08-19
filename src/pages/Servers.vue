@@ -48,6 +48,7 @@ export default {
       immediate: true,
       handler (srvname, oldname) {
         if (srvname && srvname !== oldname) {
+          console.log('Change to ListAccounts of ', srvname)
           this.$router.push({ name: 'ListAccounts', params: { server: srvname } })
         }
       }
