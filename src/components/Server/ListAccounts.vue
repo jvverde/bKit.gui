@@ -40,6 +40,16 @@ const compbyuser = (a, b) => {
   return 0
 }
 
+const findNewElePosition = (a, b) => {
+  // find the position of the first of new elements
+  // assuming a.length > b.length
+  for (let i = 0; i < b.length; i++) {
+    const ae = a[i]
+    if (!b.find(be => be.user === ae.user && be.address === ae.address)) return i
+  }
+  return b.length
+}
+
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
@@ -63,8 +73,9 @@ export default {
     accounts () {
       return [...this.getAccountsByServer(this.server).filter(a => a.user)].sort(compbyuser)
     },
-    zero () { return this.accounts.length === 0 },
-    one () { return this.accounts.length === 1 },
+    length () { return this.accounts.length },
+    zero () { return this.length === 0 },
+    one () { return this.length === 1 },
     some () { return !this.zero }
   },
   props: ['server'],
@@ -81,7 +92,8 @@ export default {
           console.log('NO, go back', this.server)
           this.$router.back()
         }
-      } else if (to.name === 'ListAccounts') {
+      } else if (to.name === 'ListAccounts' && from.path.includes(to.path)) {
+        // When came back from an account page (on same server), select none
         console.log('Unset selected')
         this.selected = undefined
       }
@@ -90,33 +102,48 @@ export default {
       immediate: true,
       handler (servername) {
         console.log('Watch server')
-        console.log('Server change to', servername, ', selected address', (this.selected || {}).address)
+        console.log('Server change to', servername)
         if (!this.selected || this.selected.address !== servername) this.selectOne()
       }
     },
     selected: {
-      immediate: true,
+      immediate: false,
       handler (account) {
         console.log('Watch selected')
-        console.log('Selected change to account:', (account || {}).address, (account || {}).user)
         if (!account || !account.user) return
-        this.manage(account)
+        console.log('Selected change to account:', account.user)
+        this.show(account)
       }
     },
-    accounts (accounts) {
-      console.log('Watch Accounts')
-      if (!this.selected) {
-        console.log('No selected: Go to selectOne')
-        this.selectOne()
-      } else if (this.selected.address !== this.server) {
-        console.log('Old selected, Go to selectOne')
-        this.selectOne()
-      } else if (accounts.find(account => account.user === this.selected.user)) {
-        console.log('do nothing')
-        /* In case the selected is pointing to one existing account, do nothing */
-      } else {
-        console.log('Go back on Accounts change', this.selected)
-        this.$router.back()
+    accounts: {
+      immediate: false,
+      deep: true,
+      handler (accounts, old) {
+        console.log('Watch Accounts')
+        if (!(accounts && old && accounts[0] && old[0] && accounts[0].address === old[0].address)) {
+          console.log('Change from a diferent server, so do nothing. Let the others do they work')
+        } else if (!this.selected) {
+          console.log('No selected yet, so do nothing. Leave it to selectd watch')
+        } else if (this.selected.address !== this.server) {
+          console.log('Selected still pointed to old server, so do nothing. Leave it to selectd or server watch')
+        } else if (accounts.length > old.length) {
+          console.log('Detected a new account')
+          const index = findNewElePosition(accounts, old)
+          console.log('The new element is at position', index)
+          this.selected = accounts[index]
+        } else if (accounts.find(a => a.user === this.selected.user)) {
+          console.log('Selected still pointer to a existing account, so do nothing!!!')
+        } else {
+          const index = old.findIndex(a => a.user === this.selected.user)
+          if (index === -1) {
+            console.log('aqui')
+            this.selectOne()
+          } else if (index >= accounts.length) {
+            this.selected = accounts[accounts.length - 1]
+          } else {
+            this.selected = accounts[index]
+          }
+        }
       }
     }
   },
@@ -131,20 +158,20 @@ export default {
     color (account) {
       return this.isCurrent(account) ? 'active' : ''
     },
-    manage (account) {
-      // Edit account
+    show (account) {
+      // Show and edit account
       const location = {
         name: 'Account',
         params: {
-          server: this.server,
+          server: account.address,
           user: account.user
         }
       }
       const { route } = this.$router.resolve(location)
-      console.log('compare', route.path, this.$route.path)
+      console.log('Compare', route.path, this.$route.path)
       if (route.path === this.$route.path) return
       // There are a alternative way to the above check https://stackoverflow.com/a/61111771
-      console.log('Allow to Go', route.path)
+      console.log('Go to', route.path)
       this.$router.push(location)
     },
     async selectOne () {

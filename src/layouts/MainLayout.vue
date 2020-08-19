@@ -29,7 +29,9 @@
              </q-btn>
           </div>
         </q-toolbar-title>
-
+        <div style="margin-right: 1em;">
+          <q-btn icon="home" dense flat @click="$router.push({ name: 'home' })"/>
+        </div>
         <div><span v-html="user"/> @ {{hostname}} | v{{version}}</div>
       </q-toolbar>
     </q-header>
