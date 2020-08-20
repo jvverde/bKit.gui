@@ -64,7 +64,7 @@ export default {
     //       this.adding = false
     //     })
     // },
-    ...mapMutations('global', ['addServer']),
+    ...mapMutations('global', ['addAccount']),
     async add () {
       if (!this.address || !this.port) return
       const url = `http://${this.address}:${this.port}/info`
@@ -79,7 +79,7 @@ export default {
           iport: data.iport,
           bport: data.bport
         }
-        await this.addServer(server)
+        await this.addAccount(server)
         this.$router.replace({ name: 'ListAccounts', params: { server: server.address } })
       } catch (err) {
         warn(err)

@@ -10,7 +10,7 @@ export function addAccount ({ commit }, { user, server, password }) {
     try {
       console.log('Add account', user, server)
       await addCredentials(`${user}@${server}`, password)
-      commit('addServer', { address: server, user, credentials: true })
+      commit('addAccount', { address: server, user, credentials: true })
       resolve(true)
     } catch (err) {
       reject(err)
@@ -24,7 +24,7 @@ export function delCredentials ({ commit, getters }, { user, address }) {
       await deleteAccount(`${user}@${address}`)
       // Get is a copy with credentials property set to false
       const server = { ...getters.getAccount(address, user), credentials: false }
-      commit('addServer', server)
+      commit('addAccount', server)
       resolve(true)
     } catch (err) {
       reject(err)
@@ -40,7 +40,7 @@ export function loadCredentials ({ commit }) {
         const [user, address] = u.split('@')
         return { address, user, credentials: true }
       })
-      commit('addServers', servers)
+      commit('addAccounts', servers)
       resolve(servers)
     } catch (err) {
       reject(err)
@@ -62,7 +62,7 @@ export function loadServers ({ commit }) {
       const servers = serversList.map(line => {
         return line2server(line)
       })
-      commit('addServers', servers)
+      commit('addAccounts', servers)
       resolve(servers)
     } catch (e) {
       reject(e)
@@ -75,7 +75,7 @@ export function deleteProfile ({ commit }, account) {
     try {
       await deleteServer(account)
       const unserv = { ...account, initialized: false }
-      commit('addServer', unserv)
+      commit('addAccount', unserv)
       resolve(unserv)
     } catch (e) {
       reject(e)
@@ -102,7 +102,7 @@ export function initProfile ({ commit }, { account, pass }) {
       await deleteServer(account)
       const answer = await initServer(account, pass)
       const server = line2server(answer)
-      commit('addServer', server)
+      commit('addAccount', server)
       resolve(server)
     } catch (e) {
       reject(e)
