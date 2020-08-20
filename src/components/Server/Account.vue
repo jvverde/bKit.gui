@@ -38,7 +38,7 @@
           </q-item-section>
           <q-item-section side>
             <q-toggle
-              v-model="credentials"
+              v-model="autorized"
               icon-color="red"
               checked-icon="check"
               color="done"
@@ -57,7 +57,7 @@
               checked-icon="check"
               color="done"
               unchecked-icon="clear"
-              :disable="(!profile && !credentials) || (profile && isDefault)"
+              :disable="(!profile && !autorized) || (profile && isDefault)"
             />
           </q-item-section>
         </q-item>
@@ -88,7 +88,7 @@ export default {
     return {
       msg: undefined
       // profile: false,
-      // credentials: false
+      // autorized: false
     }
   },
   props: ['server', 'user'],
@@ -107,8 +107,8 @@ export default {
         }
       }
     },
-    credentials: {
-      get () { return this.account.credentials === true },
+    autorized: {
+      get () { return this.account.autorized === true },
       set (val) {
         if (val) {
           console.log('set credentials to', val)
@@ -129,7 +129,7 @@ export default {
       }
     }
     // profile () { return this.account.profile === true },
-    // credentials () { return this.account.credentials === true },
+    // credentials () { return this.account.autorized === true },
   },
   watch: {
   },
@@ -152,7 +152,7 @@ export default {
       console.log('init')
       try {
         this.msg = 'Changing keys with server'
-        if (this.credentials) {
+        if (this.autorized) {
           const pass = await getPassword(`${this.user}@${this.server}`)
           await this.initProfile({ account: this.account, pass })
         }

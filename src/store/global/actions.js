@@ -10,7 +10,7 @@ export function addAccount ({ commit }, { user, server, password }) {
     try {
       console.log('Add account', user, server)
       await addCredentials(`${user}@${server}`, password)
-      commit('addAccount', { address: server, user, credentials: true })
+      commit('addAccount', { address: server, user, autorized: true })
       resolve(true)
     } catch (err) {
       reject(err)
@@ -23,7 +23,7 @@ export function delCredentials ({ commit, getters }, { user, address }) {
     try {
       await deleteAccount(`${user}@${address}`)
       // Get is a copy with credentials property set to false
-      const server = { ...getters.getAccount(address, user), credentials: false }
+      const server = { ...getters.getAccount(address, user), autorized: false }
       commit('addAccount', server)
       resolve(true)
     } catch (err) {
@@ -38,7 +38,7 @@ export function loadCredentials ({ commit }) {
       const accounts = await getAccounts()
       const servers = accounts.map(u => {
         const [user, address] = u.split('@')
-        return { address, user, credentials: true }
+        return { address, user, autorized: true }
       })
       commit('addAccounts', servers)
       resolve(servers)
@@ -87,7 +87,7 @@ export function removeAccount ({ commit }, account) {
   return new Promise(async (resolve, reject) => {
     try {
       if (account.profile) await deleteServer(account)
-      if (account.credentials) await deleteAccount(`${account.user}@${account.address}`)
+      if (account.autorized) await deleteAccount(`${account.user}@${account.address}`)
       commit('delAccount', account)
       resolve(true)
     } catch (e) {

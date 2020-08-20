@@ -3,7 +3,7 @@ export function account (state) {
 }
 
 export function currentAuthorized (state) {
-  return state.accounts.filter(s => s.credentials === true)
+  return state.accounts.filter(s => s.autorized === true)
 }
 export function currentProfiles (state) {
   return state.accounts.filter(s => s.profile === true)
