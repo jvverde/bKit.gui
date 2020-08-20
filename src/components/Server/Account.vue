@@ -4,7 +4,7 @@
       <q-list flat>
         <q-item>
           <q-item-section>
-            <q-radio v-model="isDefault" :val="true" label="Set as default" :disable="!initialized" />
+            <q-radio v-model="isDefault" :val="true" label="Set as default" :disable="!profile" />
           </q-item-section>
         </q-item>
         <q-separator />
@@ -52,12 +52,12 @@
           </q-item-section>
           <q-item-section side>
             <q-toggle
-              v-model="initialized"
+              v-model="profile"
               icon-color="red"
               checked-icon="check"
               color="done"
               unchecked-icon="clear"
-              :disable="(!initialized && !credentials) || (initialized && isDefault)"
+              :disable="(!profile && !credentials) || (profile && isDefault)"
             />
           </q-item-section>
         </q-item>
@@ -87,7 +87,7 @@ export default {
   data () {
     return {
       msg: undefined
-      // initialized: false,
+      // profile: false,
       // credentials: false
     }
   },
@@ -95,8 +95,8 @@ export default {
   computed: {
     ...mapGetters('global', ['getAccount', 'currentAccount']),
     loading () { return this.msg && this.msg.length > 0 },
-    initialized: {
-      get () { return this.account.initialized === true },
+    profile: {
+      get () { return this.account.profile === true },
       set (val) {
         if (val) {
           console.log('Init', this.user, this.server)
@@ -128,7 +128,7 @@ export default {
         if (val) this.setAccountAsDefault()
       }
     }
-    // initialized () { return this.account.initialized === true },
+    // profile () { return this.account.profile === true },
     // credentials () { return this.account.credentials === true },
   },
   watch: {

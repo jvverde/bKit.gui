@@ -48,11 +48,11 @@ export function loadCredentials ({ commit }) {
   })
 }
 
-const line2server = (line, initialized = true) => {
+const line2Account = (line, profile = true) => {
   if (!line) return {}
   const [user, url] = line.split('@')
   const [address, , section, iport, bport, rport, uport, hport] = url.split(':')
-  return { address, user, section, iport, bport, rport, uport, hport, initialized }
+  return { address, user, section, iport, bport, rport, uport, hport, profile }
 }
 
 export function loadServers ({ commit }) {
@@ -60,7 +60,7 @@ export function loadServers ({ commit }) {
     try {
       const serversList = await listServers('-f')
       const servers = serversList.map(line => {
-        return line2server(line)
+        return line2Account(line)
       })
       commit('addAccounts', servers)
       resolve(servers)
@@ -74,7 +74,7 @@ export function deleteProfile ({ commit }, account) {
   return new Promise(async (resolve, reject) => {
     try {
       await deleteServer(account)
-      const unserv = { ...account, initialized: false }
+      const unserv = { ...account, profile: false }
       commit('addAccount', unserv)
       resolve(unserv)
     } catch (e) {
@@ -86,9 +86,9 @@ export function deleteProfile ({ commit }, account) {
 export function removeAccount ({ commit }, account) {
   return new Promise(async (resolve, reject) => {
     try {
-      if (account.initialized) await deleteServer(account)
+      if (account.profile) await deleteServer(account)
       if (account.credentials) await deleteAccount(`${account.user}@${account.address}`)
-      commit('delServer', account)
+      commit('delAccount', account)
       resolve(true)
     } catch (e) {
       reject(e)
@@ -101,7 +101,7 @@ export function initProfile ({ commit }, { account, pass }) {
     try {
       await deleteServer(account)
       const answer = await initServer(account, pass)
-      const server = line2server(answer)
+      const server = line2Account(answer)
       commit('addAccount', server)
       resolve(server)
     } catch (e) {
@@ -114,7 +114,7 @@ export function loadCurrentServer ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
       const line = await getServer('-f')
-      const server = line2server(line)
+      const server = line2Account(line)
       commit('setCurrentServer', server)
       resolve(server)
     } catch (e) {
@@ -138,7 +138,7 @@ export function setCurrentServer ({ commit }, account) {
   return new Promise(async (resolve, reject) => {
     try {
       const line = await changeServer(account)
-      const server = line2server(line)
+      const server = line2Account(line)
       commit('setCurrentServer', server)
       resolve(server)
     } catch (e) {

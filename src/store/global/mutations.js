@@ -22,19 +22,19 @@ const uAccount = ({ // Uniformization
   }
 }
 
-export function addAccount (state, server) {
-  if (!server || !server.address || !('user' in server)) throw new Error("Server dont' have a field address or field user, or both")
-  const index = state.accounts.findIndex(s => s.address === server.address && (s.user === server.user || !s.user))
+export function addAccount (state, account) {
+  if (!account || !account.address || !('user' in account)) throw new Error("Account dont' have a field address or field user, or both")
+  const index = state.accounts.findIndex(s => s.address === account.address && (s.user === account.user || !s.user))
   if (index >= 0) {
-    const newserver = { ...state.accounts[index], ...uAccount(server) }
-    state.accounts.splice(index, 1, newserver)
+    const newaccount = { ...state.accounts[index], ...uAccount(account) }
+    state.accounts.splice(index, 1, newaccount)
   } else {
-    state.accounts.push(uAccount(server))
+    state.accounts.push(uAccount(account))
   }
 }
 
-export function delServer (state, server) {
-  const index = state.accounts.findIndex(s => s.address === server.address && s.user === server.user)
+export function delAccount (state, account) {
+  const index = state.accounts.findIndex(s => s.address === account.address && s.user === account.user)
   if (index >= 0) {
     return state.accounts.splice(index, 1)
   } else {
@@ -42,11 +42,11 @@ export function delServer (state, server) {
   }
 }
 
-export function addAccounts (state, servers) {
-  servers.forEach(server => addAccount(state, server))
+export function addAccounts (state, accounts) {
+  accounts.forEach(account => addAccount(state, account))
 }
 
-export function setCurrentServer (state, server) {
+export function setCurrentServer (state, account) {
   state.accounts.filter(s => s.current).forEach(s => (s.current = false))
-  addAccount(state, { ...server, current: true })
+  addAccount(state, { ...account, current: true })
 }

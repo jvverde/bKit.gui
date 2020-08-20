@@ -96,7 +96,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['account', 'serversInitialized']),
+    ...mapGetters('global', ['account', 'currentProfiles']),
     loading () { return this.msg && this.msg.length > 0 },
     user () {
       return this.bkituser
@@ -106,11 +106,11 @@ export default {
         : `<i>${username}</i>`
     },
     accounts () {
-      return [...this.serversInitialized].sort(compare)
+      return [...this.currentProfiles].sort(compare)
     }
   },
   watch: {
-    serversInitialized (val) {
+    currentProfiles (val) {
       if (val && val.length === 0) {
         this.$router.push({ name: 'servers' })
       }

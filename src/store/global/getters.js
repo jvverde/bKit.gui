@@ -2,14 +2,11 @@ export function account (state) {
   return currentAccount(state) || {}
 }
 
-export function servers (state) {
-  return state.accounts
-}
-export function serversWithCred (state) {
+export function currentAuthorized (state) {
   return state.accounts.filter(s => s.credentials === true)
 }
-export function serversInitialized (state) {
-  return state.accounts.filter(s => s.initialized === true)
+export function currentProfiles (state) {
+  return state.accounts.filter(s => s.profile === true)
 }
 
 export function currentAccount (state) {
