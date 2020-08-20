@@ -27,7 +27,7 @@ export function serverName (state) {
 }
 export function accountName (state) {
   const account = currentAccount(state)
-  return account ? `${account.user}@${account.address}` : undefined 
+  return account ? `${account.user}@${account.address}` : undefined
 }
 
 export function getAccount (state) {

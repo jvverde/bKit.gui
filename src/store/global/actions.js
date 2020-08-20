@@ -147,7 +147,7 @@ export function setCurrentServer ({ commit }, account) {
   })
 }
 
-export function currentServer ({ commit, getters }, account) {
+export function currentAccount ({ commit, getters }, account) {
   if (!account) {
     return getCurrentServer({ commit, getters })
   } else {

@@ -93,7 +93,7 @@ export default {
   },
   props: ['server', 'user'],
   computed: {
-    ...mapGetters('global', ['getAccount', 'currentServer']),
+    ...mapGetters('global', ['getAccount', 'currentAccount']),
     loading () { return this.msg && this.msg.length > 0 },
     initialized: {
       get () { return this.account.initialized === true },
@@ -122,7 +122,7 @@ export default {
     account () { return this.getAccount(this.server, this.user) || {} },
     isDefault: {
       get () {
-        return this.currentServer && this.currentServer.address === this.account.address && this.currentServer.user === this.account.user
+        return this.currentAccount && this.currentAccount.address === this.account.address && this.currentAccount.user === this.account.user
       },
       set (val) {
         if (val) this.setAccountAsDefault()
