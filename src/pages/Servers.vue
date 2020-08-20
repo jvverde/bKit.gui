@@ -49,16 +49,16 @@ export default {
       handler (srvname, oldname) {
         if (srvname && srvname !== oldname) {
           console.log('Change to ListAccounts of ', srvname)
-          this.$router.push({ name: 'ListAccounts', params: { server: srvname } })
+          this.$router.push({ name: 'ListAccounts', params: { server: srvname } }).catch(() => {})
         }
       }
     },
-    // '$route' (to, from) {
-    //   if (to.name === 'ListAccounts' && to.params && to.params.server) {
-    //     console.log('server', to.params.server)
-    //     this.selectedServer = to.params.server
-    //   }
-    // },
+    '$route' (to, from) {
+      if (to.name === 'ListAccounts' && to.params && to.params.server) {
+        console.log('Route to server', to.params.server)
+        this.selectedServer = to.params.server
+      }
+    },
     srvnames (addresses) {
       if (this.selectedServer && addresses.includes(this.selectedServer)) return
       this.change2current()

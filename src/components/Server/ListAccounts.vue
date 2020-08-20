@@ -96,7 +96,7 @@ export default {
     $route: {
       immediate: true,
       handler (to, from) {
-        console.log('Watch $route')
+        console.log('Watch $route', to.name)
         if (to && to.params && to.name === 'Account') {
           this.selected = this.accounts.find(a => a.address === to.params.server && a.user === to.params.user)
         }
@@ -109,7 +109,7 @@ export default {
         // Here we are only interested on changes in the number of accounts (new or removed) under same server
         console.log('Watch Accounts')
         if (accounts && old && accounts.length !== old.length) {
-          const selected = this.selected
+          const selected = this.selected || {}
           setTimeout(() => { // wait a while and let any pending transition to occur first
             console.log('Process Watch')
             if (accounts.length === 0) {
@@ -150,21 +150,8 @@ export default {
       return this.isCurrent(account) ? 'active' : ''
     },
     load (account) {
-      // Show and edit account
       if (!account || !account.address || !account.user) return
-      const location = {
-        name: 'Account',
-        params: {
-          server: account.address,
-          user: account.user
-        }
-      }
-      const { route } = this.$router.resolve(location)
-      // console.log('Compare', route.path, this.$route.path)
-      if (route.path === this.$route.path) return // avoid jump to same route <= not throw an error
-      // There are a alternative way to the above check https://stackoverflow.com/a/61111771
-      // console.log('Go to', route.path)
-      this.$router.push(location)
+      this.$router.push({ name: 'Account', params: { server: account.address, user: account.user } }).catch(() => {})
     },
     async selectOne () {
       console.log('SelectOne')

@@ -24,7 +24,7 @@ const makeServer = ({
 
 export function addServer (state, server) {
   if (!server || !server.address || !('user' in server)) throw new Error("Server dont' have a field address or field user, or both")
-  const index = state.servers.findIndex(s => s.address === server.address && s.user === server.user)
+  const index = state.servers.findIndex(s => s.address === server.address && (s.user === server.user || !s.user))
   if (index >= 0) {
     const newserver = { ...state.servers[index], ...makeServer(server) }
     state.servers.splice(index, 1, newserver)
