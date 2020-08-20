@@ -4,6 +4,7 @@
       <label class="self-start" style="margin-left:-2em">Add new server located at:</label>
       <q-input outlined dense clearable standout
         style="min-width:20em"
+        autofocus
         @keyup.enter="add"
         @keydown.tab="add"
         type="text"

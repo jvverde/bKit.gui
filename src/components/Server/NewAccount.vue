@@ -27,8 +27,7 @@ export default {
       options: [
         { label: 'Sign-in', value: 'signin' },
         { label: 'Sign-up', value: 'signup' }
-      ],
-      hCnt: 1
+      ]
     }
   },
   props: ['server'],

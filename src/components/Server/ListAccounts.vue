@@ -1,26 +1,26 @@
 <template>
   <div class="fit relative-position column no-wrap">
     <div class="q-pa-sm q-gutter-x-sm row items-center full-width self-start">
-      <div v-show="some">
+      <div v-if="some">
         Registered account<span v-if="one">s</span> for server {{server}}:
       </div>
       <div v-for="(account, index) in accounts" :key="index">
         <q-chip clickable
-          @click="selected = account"
+          @click="load(account)"
           :color="color(account)"
           :outline="isCurrent(account)"
           icon="person">
           {{account.user}}
         </q-chip>
       </div>
-      <div v-if="some" style="margin-left:auto" class="q-my-sm">
-        <q-btn class="q-px-sm" icon="add" label="New Account" outline rounded no-caps dense @click="add"/>
-      </div>
-      <div v-else class="absolute-center column items-center q-gutter-x-sm z-top">
+      <div v-if="noChildren && zero" class="absolute-center column items-center q-gutter-x-sm z-top">
         <div class="text-h6">No accounts</div>
         <div>You don't have any account configured for server {{server}}</div>
         <div>Please add a new one</div>
         <q-btn class="q-mt-xl" icon="add" outline rounded label="New Account" no-caps @click="add"/>
+      </div>
+      <div v-else-if="some" style="margin-left:auto" class="q-my-sm">
+        <q-btn class="q-px-sm" icon="add" label="New Account" outline rounded no-caps dense @click="add"/>
       </div>
     </div>
     <q-inner-loading :showing="loading">
@@ -76,74 +76,65 @@ export default {
     length () { return this.accounts.length },
     zero () { return this.length === 0 },
     one () { return this.length === 1 },
-    some () { return !this.zero }
+    some () { return !this.zero },
+    currentAccount () {
+      return this.$route.name === 'Account' ? {
+        user: this.$route.params.user,
+        servername: this.$route.params.server
+      } : {}
+    },
+    noChildren () { return this.$route.name === 'ListAccounts' }
   },
   props: ['server'],
   watch: {
-    $route (to, from) {
-      console.log('Watch $route')
-      if (this.some && to.name === 'Account' && to.params && to.params.user) {
-        console.log('Route to User', to.params.user)
-        const selected = this.accounts.find(a => a.user === to.params.user)
-        if (selected) {
-          console.log('Yes, set select to', selected.address, selected.user)
-          this.selected = selected
-        } else {
-          console.log('NO, go back', this.server)
-          this.$router.back()
-        }
-      } else if (to.name === 'ListAccounts' && from.path.includes(to.path)) {
-        // When came back from an account page (on same server), select none
-        console.log('Unset selected')
-        this.selected = undefined
-      }
-    },
     server: {
       immediate: true,
-      handler (servername) {
-        console.log('Watch server')
-        console.log('Server change to', servername)
-        if (!this.selected || this.selected.address !== servername) this.selectOne()
+      handler (servername, old) {
+        this.selectOne()
       }
     },
-    selected: {
-      immediate: false,
-      handler (account) {
-        console.log('Watch selected')
-        if (!account || !account.user) return
-        console.log('Selected change to account:', account.user)
-        this.show(account)
+    $route: {
+      immediate: true,
+      handler (to, from) {
+        console.log('Watch $route')
+        if (to && to.params && to.name === 'Account') {
+          this.selected = this.accounts.find(a => a.address === to.params.server && a.user === to.params.user)
+        }
       }
     },
     accounts: {
       immediate: false,
       deep: true,
       handler (accounts, old) {
+        // Here we are only interested on changes in the number of accounts (new or removed) under same server
         console.log('Watch Accounts')
-        if (!(accounts && old && accounts[0] && old[0] && accounts[0].address === old[0].address)) {
-          console.log('Change from a diferent server, so do nothing. Let the others do they work')
-        } else if (!this.selected) {
-          console.log('No selected yet, so do nothing. Leave it to selectd watch')
-        } else if (this.selected.address !== this.server) {
-          console.log('Selected still pointed to old server, so do nothing. Leave it to selectd or server watch')
-        } else if (accounts.length > old.length) {
-          console.log('Detected a new account')
-          const index = findNewElePosition(accounts, old)
-          console.log('The new element is at position', index)
-          this.selected = accounts[index]
-        } else if (accounts.find(a => a.user === this.selected.user)) {
-          console.log('Selected still pointer to a existing account, so do nothing!!!')
-        } else {
-          const index = old.findIndex(a => a.user === this.selected.user)
-          if (index === -1) {
-            console.log('aqui')
-            this.selectOne()
-          } else if (index >= accounts.length) {
-            this.selected = accounts[accounts.length - 1]
-          } else {
-            this.selected = accounts[index]
-          }
-        }
+        if (accounts && old && accounts.length !== old.length) {
+          const selected = this.selected
+          setTimeout(() => { // wait a while and let any pending transition to occur first
+            console.log('Process Watch')
+            if (accounts.length === 0) {
+              console.log('There is no more accounts')
+              this.$router.push({ name: 'ListAccounts', params: { server: this.server } }).catch(() => {})
+            } else if (accounts.length > old.length) {
+              console.log('Detected a new account')
+              const index = findNewElePosition(accounts, old)
+              console.log('The new element is at position', index)
+              this.load(accounts[index])
+            } else if (accounts.length < old.length) {
+              console.log('Detected a possible removed account')
+              const index = old.findIndex(a => a.user === selected.user && a.address === selected.address)
+              if (index === -1) {
+                console.log('Not found the removed account. Do nothing')
+              } else if (index >= accounts.length) {
+                console.log('Set to last account')
+                this.load(accounts[accounts.length - 1])
+              } else {
+                console.log('Set to account at same position')
+                this.load(accounts[index])
+              }
+            }
+          }, 100)
+        } // fi
       }
     }
   },
@@ -153,13 +144,14 @@ export default {
       this.$router.push({ name: 'NewAccount', params: { server: this.server } })
     },
     isCurrent (account) {
-      return account && this.selected && account.address === this.selected.address && account.user === this.selected.user
+      return account && this.currentAccount && account.address === this.currentAccount.servername && account.user === this.currentAccount.user
     },
     color (account) {
       return this.isCurrent(account) ? 'active' : ''
     },
-    show (account) {
+    load (account) {
       // Show and edit account
+      if (!account || !account.address || !account.user) return
       const location = {
         name: 'Account',
         params: {
@@ -168,21 +160,26 @@ export default {
         }
       }
       const { route } = this.$router.resolve(location)
-      console.log('Compare', route.path, this.$route.path)
-      if (route.path === this.$route.path) return
+      // console.log('Compare', route.path, this.$route.path)
+      if (route.path === this.$route.path) return // avoid jump to same route <= not throw an error
       // There are a alternative way to the above check https://stackoverflow.com/a/61111771
-      console.log('Go to', route.path)
+      // console.log('Go to', route.path)
       this.$router.push(location)
     },
     async selectOne () {
       console.log('SelectOne')
-      const cserver = await this.getCurrentServer()
-      if (cserver.address === this.server) {
-        console.log('Go to current Server')
-        this.selected = cserver
+      if (this.selected && this.accounts.find(a => a.user === this.selected.user && a.address === this.selected.address)) {
+        console.log('Show previous one')
+        this.load(this.selected)
       } else {
-        console.log('Go to first account')
-        this.selected = this.accounts[0]
+        const cserver = await this.getCurrentServer()
+        if (cserver.address === this.server) {
+          console.log('Go to current Server')
+          this.load(cserver)
+        } else {
+          console.log('Go to first account')
+          this.load(this.accounts[0])
+        }
       }
     }
   },

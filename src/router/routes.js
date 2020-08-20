@@ -42,8 +42,8 @@ const routes = [
             props: true,
             component: () => import('components/Server/ListAccounts.vue'),
             children: [
-              { // This almost duplicated route is a workaround rto deal wit push named route
-                path: 'login/:user',
+              { // This almost duplicated route is a workaround to deal wit push named route
+                path: 'login/:user?',
                 name: 'login',
                 props: true,
                 component: () => import('components/Auth/Signin.vue')
@@ -53,26 +53,26 @@ const routes = [
                 name: 'Account',
                 props: true,
                 component: () => import('components/Server/Account.vue')
-              }
-            ]
-          },
-          {
-            path: ':server/new/account',
-            name: 'NewAccount',
-            props: true,
-            component: () => import('components/Server/NewAccount.vue'),
-            children: [
-              {
-                path: 'signup',
-                name: 'signup',
-                props: true,
-                component: () => import('components/Auth/Signup.vue')
               },
               {
-                path: 'signin',
-                name: 'signin',
+                path: 'new',
+                name: 'NewAccount',
                 props: true,
-                component: () => import('components/Auth/Signin.vue')
+                component: () => import('components/Server/NewAccount.vue'),
+                children: [
+                  {
+                    path: 'signup',
+                    name: 'signup',
+                    props: true,
+                    component: () => import('components/Auth/Signup.vue')
+                  },
+                  {
+                    path: 'signin',
+                    name: 'signin',
+                    props: true,
+                    component: () => import('components/Auth/Signin.vue')
+                  }
+                ]
               }
             ]
           },
