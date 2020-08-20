@@ -120,11 +120,11 @@ export default {
     bkitmenu
   },
   methods: {
-    ...mapActions('global', ['setCurrentServer', 'loadCurrentAccount', 'loadAccounts']),
+    ...mapActions('global', ['setCurrentAccount', 'loadCurrentAccount', 'loadAccounts']),
     async changeserver (account) {
       try {
         this.msg = `Change to account ${account.user}@${account.address}`
-        await this.setCurrentServer(account)
+        await this.setCurrentAccount(account)
       } catch (err) {
         catched(err)
       } finally {

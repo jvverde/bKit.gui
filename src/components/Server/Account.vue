@@ -134,14 +134,14 @@ export default {
   watch: {
   },
   methods: {
-    ...mapActions('global', ['delCredentials', 'deleteProfile', 'initProfile', 'setCurrentServer', 'removeAccount']),
+    ...mapActions('global', ['delCredentials', 'deleteProfile', 'initProfile', 'setCurrentAccount', 'removeAccount']),
     cancel () {
       this.$router.back()
     },
     async setAccountAsDefault () {
       try {
         this.msg = `Change to server ${this.account.user}@${this.account.address}`
-        await this.setCurrentServer(this.account)
+        await this.setCurrentAccount(this.account)
       } catch (err) {
         catched(err)
       } finally {

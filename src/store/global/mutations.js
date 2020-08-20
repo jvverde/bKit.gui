@@ -46,7 +46,7 @@ export function addAccounts (state, accounts) {
   accounts.forEach(account => addAccount(state, account))
 }
 
-export function setCurrentServer (state, account) {
+export function setCurrentAccount (state, account) {
   state.accounts.filter(s => s.current).forEach(s => (s.current = false))
   addAccount(state, { ...account, current: true })
 }

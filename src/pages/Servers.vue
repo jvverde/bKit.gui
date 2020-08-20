@@ -65,7 +65,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('global', ['loadCredentials', 'loadAccounts', 'getCurrentServer']),
+    ...mapActions('global', ['loadCredentials', 'loadAccounts', 'getCurrentAccount']),
     isSelected (servername) {
       return servername === this.selectedServer
     },
@@ -82,7 +82,7 @@ export default {
       this.$router.push({ name: 'NewServer' })
     },
     change2current () {
-      return this.getCurrentServer()
+      return this.getCurrentAccount()
         .then(cserver => this.change(cserver.address))
     },
     async load () {

@@ -115,7 +115,7 @@ export function loadCurrentAccount ({ commit }) {
     try {
       const line = await getServer('-f')
       const server = line2Account(line)
-      commit('setCurrentServer', server)
+      commit('setCurrentAccount', server)
       resolve(server)
     } catch (e) {
       reject(e)
@@ -123,7 +123,7 @@ export function loadCurrentAccount ({ commit }) {
   })
 }
 
-export function getCurrentServer ({ commit, getters }) {
+export function getCurrentAccount ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
       const server = getters.currentAccount || await loadCurrentAccount({ commit })
@@ -134,12 +134,12 @@ export function getCurrentServer ({ commit, getters }) {
   })
 }
 
-export function setCurrentServer ({ commit }, account) {
+export function setCurrentAccount ({ commit }, account) {
   return new Promise(async (resolve, reject) => {
     try {
       const line = await changeServer(account)
       const server = line2Account(line)
-      commit('setCurrentServer', server)
+      commit('setCurrentAccount', server)
       resolve(server)
     } catch (e) {
       reject(e)
@@ -149,8 +149,8 @@ export function setCurrentServer ({ commit }, account) {
 
 export function currentAccount ({ commit, getters }, account) {
   if (!account) {
-    return getCurrentServer({ commit, getters })
+    return getCurrentAccount({ commit, getters })
   } else {
-    return getCurrentServer({ commit }, account)
+    return getCurrentAccount({ commit }, account)
   }
 }

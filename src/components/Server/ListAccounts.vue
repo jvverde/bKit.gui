@@ -139,7 +139,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('global', ['delCredentials', 'getCurrentServer']),
+    ...mapActions('global', ['delCredentials', 'getCurrentAccount']),
     add () {
       this.$router.push({ name: 'NewAccount', params: { server: this.server } })
     },
@@ -159,7 +159,7 @@ export default {
         console.log('Show previous one')
         this.load(this.selected)
       } else {
-        const cserver = await this.getCurrentServer()
+        const cserver = await this.getCurrentAccount()
         if (cserver.address === this.server) {
           console.log('Go to current Server')
           this.load(cserver)
