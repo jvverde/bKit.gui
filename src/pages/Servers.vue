@@ -65,7 +65,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('global', ['loadCredentials', 'loadServers', 'getCurrentServer']),
+    ...mapActions('global', ['loadCredentials', 'loadAccounts', 'getCurrentServer']),
     isSelected (servername) {
       return servername === this.selectedServer
     },
@@ -88,7 +88,7 @@ export default {
     async load () {
       try {
         this.msg = 'Loading profiles'
-        await this.loadServers()
+        await this.loadAccounts()
         this.msg = 'Loading credentials'
         await this.loadCredentials()
         this.msg = 'Get Current Server'

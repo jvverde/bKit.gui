@@ -55,7 +55,7 @@ const line2Account = (line, profile = true) => {
   return { address, user, section, iport, bport, rport, uport, hport, profile }
 }
 
-export function loadServers ({ commit }) {
+export function loadAccounts ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
       const serversList = await listServers('-f')
@@ -110,7 +110,7 @@ export function initProfile ({ commit }, { account, pass }) {
   })
 }
 
-export function loadCurrentServer ({ commit }) {
+export function loadCurrentAccount ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
       const line = await getServer('-f')
@@ -126,7 +126,7 @@ export function loadCurrentServer ({ commit }) {
 export function getCurrentServer ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
-      const server = getters.currentAccount || await loadCurrentServer({ commit })
+      const server = getters.currentAccount || await loadCurrentAccount({ commit })
       resolve(server)
     } catch (e) {
       reject(e)

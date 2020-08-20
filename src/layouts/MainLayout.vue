@@ -120,7 +120,7 @@ export default {
     bkitmenu
   },
   methods: {
-    ...mapActions('global', ['setCurrentServer', 'loadCurrentServer', 'loadServers']),
+    ...mapActions('global', ['setCurrentServer', 'loadCurrentAccount', 'loadAccounts']),
     async changeserver (account) {
       try {
         this.msg = `Change to account ${account.user}@${account.address}`
@@ -135,11 +135,11 @@ export default {
   async mounted () {
     try {
       this.msg = 'Find current server account'
-      await this.loadCurrentServer()
+      await this.loadCurrentAccount()
       this.msg = 'Get local user'
       this.bkituser = await getUser()
       this.msg = 'Loading profiles'
-      await this.loadServers()
+      await this.loadAccounts()
     } catch (err) {
       catched(err)
     } finally {

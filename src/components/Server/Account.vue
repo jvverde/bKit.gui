@@ -134,7 +134,7 @@ export default {
   watch: {
   },
   methods: {
-    ...mapActions('global', ['delCredentials', 'loadServers', 'deleteProfile', 'initProfile', 'setCurrentServer', 'removeAccount']),
+    ...mapActions('global', ['delCredentials', 'deleteProfile', 'initProfile', 'setCurrentServer', 'removeAccount']),
     cancel () {
       this.$router.back()
     },
