@@ -45,7 +45,7 @@ const findNewElePosition = (a, b) => {
   // assuming a.length > b.length
   for (let i = 0; i < b.length; i++) {
     const ae = a[i]
-    if (!b.find(be => be.user === ae.user && be.address === ae.address)) return i
+    if (!b.find(be => be.user === ae.user && be.servername === ae.servername)) return i
   }
   return b.length
 }
@@ -98,7 +98,7 @@ export default {
       handler (to, from) {
         console.log('Watch $route', to.name)
         if (to && to.params && to.name === 'Account') {
-          this.selected = this.accounts.find(a => a.address === to.params.server && a.user === to.params.user)
+          this.selected = this.accounts.find(a => a.servername === to.params.server && a.user === to.params.user)
         }
       }
     },
@@ -122,7 +122,7 @@ export default {
               this.load(accounts[index])
             } else if (accounts.length < old.length) {
               console.log('Detected a possible removed account')
-              const index = old.findIndex(a => a.user === selected.user && a.address === selected.address)
+              const index = old.findIndex(a => a.user === selected.user && a.servername === selected.servername)
               if (index === -1) {
                 console.log('Not found the removed account. Do nothing')
               } else if (index >= accounts.length) {
@@ -144,23 +144,23 @@ export default {
       this.$router.push({ name: 'NewAccount', params: { server: this.server } })
     },
     isCurrent (account) {
-      return account && this.currentAccount && account.address === this.currentAccount.servername && account.user === this.currentAccount.user
+      return account && this.currentAccount && account.servername === this.currentAccount.servername && account.user === this.currentAccount.user
     },
     color (account) {
       return this.isCurrent(account) ? 'active' : ''
     },
     load (account) {
-      if (!account || !account.address || !account.user) return
-      this.$router.push({ name: 'Account', params: { server: account.address, user: account.user } }).catch(() => {})
+      if (!account || !account.servername || !account.user) return
+      this.$router.push({ name: 'Account', params: { server: account.servername, user: account.user } }).catch(() => {})
     },
     async selectOne () {
       console.log('SelectOne')
-      if (this.selected && this.accounts.find(a => a.user === this.selected.user && a.address === this.selected.address)) {
+      if (this.selected && this.accounts.find(a => a.user === this.selected.user && a.servername === this.selected.servername)) {
         console.log('Show previous one')
         this.load(this.selected)
       } else {
         const cserver = await this.getCurrentAccount()
-        if (cserver.address === this.server) {
+        if (cserver.servername === this.server) {
           console.log('Go to current Server')
           this.load(cserver)
         } else {

@@ -1,5 +1,5 @@
 const uAccount = ({ // Uniformization
-  address,
+  servername,
   section,
   user,
   hport = 8765,
@@ -10,7 +10,7 @@ const uAccount = ({ // Uniformization
   ...extra
 }) => {
   return {
-    address,
+    servername,
     user,
     section,
     hport,
@@ -23,8 +23,8 @@ const uAccount = ({ // Uniformization
 }
 
 export function addAccount (state, account) {
-  if (!account || !account.address || !('user' in account)) throw new Error("Account dont' have a field address or field user, or both")
-  const index = state.accounts.findIndex(s => s.address === account.address && (s.user === account.user || !s.user))
+  if (!account || !account.servername || !('user' in account)) throw new Error("Account dont' have a field servername or field user, or both")
+  const index = state.accounts.findIndex(s => s.servername === account.servername && (s.user === account.user || !s.user))
   if (index >= 0) {
     const newaccount = { ...state.accounts[index], ...uAccount(account) }
     state.accounts.splice(index, 1, newaccount)
@@ -34,7 +34,7 @@ export function addAccount (state, account) {
 }
 
 export function delAccount (state, account) {
-  const index = state.accounts.findIndex(s => s.address === account.address && s.user === account.user)
+  const index = state.accounts.findIndex(s => s.servername === account.servername && s.user === account.user)
   if (index >= 0) {
     return state.accounts.splice(index, 1)
   } else {

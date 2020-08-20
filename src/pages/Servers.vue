@@ -59,8 +59,8 @@ export default {
         this.selectedServer = to.params.server
       }
     },
-    srvnames (addresses) {
-      if (this.selectedServer && addresses.includes(this.selectedServer)) return
+    srvnames (servernamees) {
+      if (this.selectedServer && servernamees.includes(this.selectedServer)) return
       this.change2current()
     }
   },
@@ -83,7 +83,7 @@ export default {
     },
     change2current () {
       return this.getCurrentAccount()
-        .then(cserver => this.change(cserver.address))
+        .then(cserver => this.change(cserver.servername))
     },
     async load () {
       try {

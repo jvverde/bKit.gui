@@ -11,31 +11,31 @@ export function currentAccount (state) {
   return state.accounts.filter(s => s.current === true)[0]
 }
 export function serverAddresses (state) {
-  return [...new Set(state.accounts.map(s => s.address))]
+  return [...new Set(state.accounts.map(s => s.servername))]
 }
 export function serverNames (state) {
   return serverAddresses(state)
 }
 export function serverName (state) {
-  return (currentAccount(state) || {}).address
+  return (currentAccount(state) || {}).servername
 }
 export function accountName (state) {
   const account = currentAccount(state)
-  return account ? `${account.user}@${account.address}` : undefined
+  return account ? `${account.user}@${account.servername}` : undefined
 }
 export function getAccount (state) {
-  return (address, user) => {
-    return state.accounts.filter(s => s.address === address && s.user === user)[0]
+  return (servername, user) => {
+    return state.accounts.filter(s => s.servername === servername && s.user === user)[0]
   }
 }
 export function getAccountsByServername (state) {
   return (name) => {
-    return state.accounts.filter(s => s.address === name)
+    return state.accounts.filter(s => s.servername === name)
   }
 }
 export function getServerURL (state) {
   return (name) => {
-    const server = state.accounts.filter(s => s.address === name)[0] || { address: name, hport: 8765 }
-    return `http://${server.address}:${server.hport}`
+    const server = state.accounts.filter(s => s.servername === name)[0] || { servername: name, hport: 8765 }
+    return `http://${server.servername}:${server.hport}`
   }
 }

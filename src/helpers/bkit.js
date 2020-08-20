@@ -53,18 +53,18 @@ export async function getUser () {
 }
 
 export async function changeServer (server) {
-  const servers = await enqueue2bash('./server.sh', ['--no-ask', '-s', '-f', '-u', server.user, server.address, server.iport])
+  const servers = await enqueue2bash('./server.sh', ['--no-ask', '-s', '-f', '-u', server.user, server.servername, server.iport])
   return servers[0]
 }
 export async function deleteServer (server) {
-  const servers = await enqueue2bash('./server.sh', ['--no-ask', '--delete', '-f', '-u', server.user, server.address])
+  const servers = await enqueue2bash('./server.sh', ['--no-ask', '--delete', '-f', '-u', server.user, server.servername])
   return servers[0]
 }
 export async function initServer (server, pass) {
   const servers = await enqueue2bash({
     script: './server.sh',
     env: { BKIT_PASSWORD: pass }
-  }, ['--no-ask', '-f', '-u', server.user, server.address, server.iport])
+  }, ['--no-ask', '-f', '-u', server.user, server.servername, server.iport])
   return servers[0]
 }
 

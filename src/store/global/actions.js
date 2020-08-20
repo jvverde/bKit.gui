@@ -10,7 +10,7 @@ export function addAccount ({ commit }, { user, server, password }) {
     try {
       console.log('Add account', user, server)
       await addCredentials(`${user}@${server}`, password)
-      commit('addAccount', { address: server, user, autorized: true })
+      commit('addAccount', { servername: server, user, autorized: true })
       resolve(true)
     } catch (err) {
       reject(err)
@@ -18,12 +18,12 @@ export function addAccount ({ commit }, { user, server, password }) {
   })
 }
 
-export function delCredentials ({ commit, getters }, { user, address }) {
+export function delCredentials ({ commit, getters }, { user, servername }) {
   return new Promise(async (resolve, reject) => {
     try {
-      await deleteAccount(`${user}@${address}`)
+      await deleteAccount(`${user}@${servername}`)
       // Get is a copy with credentials property set to false
-      const server = { ...getters.getAccount(address, user), autorized: false }
+      const server = { ...getters.getAccount(servername, user), autorized: false }
       commit('addAccount', server)
       resolve(true)
     } catch (err) {
@@ -37,8 +37,8 @@ export function loadCredentials ({ commit }) {
     try {
       const accounts = await getAccounts()
       const servers = accounts.map(u => {
-        const [user, address] = u.split('@')
-        return { address, user, autorized: true }
+        const [user, servername] = u.split('@')
+        return { servername, user, autorized: true }
       })
       commit('addAccounts', servers)
       resolve(servers)
@@ -51,8 +51,8 @@ export function loadCredentials ({ commit }) {
 const line2Account = (line, profile = true) => {
   if (!line) return {}
   const [user, url] = line.split('@')
-  const [address, , section, iport, bport, rport, uport, hport] = url.split(':')
-  return { address, user, section, iport, bport, rport, uport, hport, profile }
+  const [servername, , section, iport, bport, rport, uport, hport] = url.split(':')
+  return { servername, user, section, iport, bport, rport, uport, hport, profile }
 }
 
 export function loadAccounts ({ commit }) {
@@ -87,7 +87,7 @@ export function removeAccount ({ commit }, account) {
   return new Promise(async (resolve, reject) => {
     try {
       if (account.profile) await deleteServer(account)
-      if (account.autorized) await deleteAccount(`${account.user}@${account.address}`)
+      if (account.autorized) await deleteAccount(`${account.user}@${account.servername}`)
       commit('delAccount', account)
       resolve(true)
     } catch (e) {

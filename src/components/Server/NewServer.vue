@@ -8,10 +8,10 @@
         @keyup.enter="add"
         @keydown.tab="add"
         type="text"
-        v-model="address"
+        v-model="servername"
         :loading="adding"
         :error="!!error"
-        :error-message="`Server '${address}' not found`"
+        :error-message="`Server '${servername}' not found`"
         @clear="error=false"
         placeholder="IP Address or Server Name"
         hint="Address of a bKit server"
@@ -43,7 +43,7 @@ export default {
   name: 'Servers',
   data () {
     return {
-      address: undefined,
+      servername: undefined,
       port: 8765,
       adding: false,
       error: false
@@ -51,11 +51,11 @@ export default {
   },
   methods: {
     // add () {
-    //   if (!this.address) return
+    //   if (!this.servername) return
     //   this.error = null
     //   this.adding = true
-    //   changeServer(this.address)
-    //     .then(() => this.$emit('done', this.address))
+    //   changeServer(this.servername)
+    //     .then(() => this.$emit('done', this.servername))
     //     .catch(err => {
     //       this.error = err
     //       warn(err)
@@ -66,21 +66,21 @@ export default {
     // },
     ...mapMutations('global', ['addAccount']),
     async add () {
-      if (!this.address || !this.port) return
-      const url = `http://${this.address}:${this.port}/info`
+      if (!this.servername || !this.port) return
+      const url = `http://${this.servername}:${this.port}/info`
       try {
         this.adding = true
         const { data } = await axios.get(url)
         console.log('data', data)
         const server = {
-          address: this.address,
+          servername: this.servername,
           user: undefined,
           hport: this.port,
           iport: data.iport,
           bport: data.bport
         }
         await this.addAccount(server)
-        this.$router.replace({ name: 'ListAccounts', params: { server: server.address } })
+        this.$router.replace({ name: 'ListAccounts', params: { server: server.servername } })
       } catch (err) {
         warn(err)
       } finally {

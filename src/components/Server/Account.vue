@@ -13,7 +13,7 @@
             Manage account
           </q-item-section>
           <q-item-section side>
-            {{account.user}}@{{account.address}}
+            {{account.user}}@{{account.servername}}
           </q-item-section>
         </q-item>
         <q-item>
@@ -122,7 +122,7 @@ export default {
     account () { return this.getAccount(this.server, this.user) || {} },
     isDefault: {
       get () {
-        return this.currentAccount && this.currentAccount.address === this.account.address && this.currentAccount.user === this.account.user
+        return this.currentAccount && this.currentAccount.servername === this.account.servername && this.currentAccount.user === this.account.user
       },
       set (val) {
         if (val) this.setAccountAsDefault()
@@ -140,7 +140,7 @@ export default {
     },
     async setAccountAsDefault () {
       try {
-        this.msg = `Change to server ${this.account.user}@${this.account.address}`
+        this.msg = `Change to server ${this.account.user}@${this.account.servername}`
         await this.setCurrentAccount(this.account)
       } catch (err) {
         catched(err)
@@ -177,8 +177,8 @@ export default {
       this.$router.push({ name: 'login', params })
     },
     async removeCredentials () {
-      const { user, server: address } = this
-      this.delCredentials({ user, address })
+      const { user, server: servername } = this
+      this.delCredentials({ user, servername })
     },
     async remove () {
       console.log('Remove account', this.account)

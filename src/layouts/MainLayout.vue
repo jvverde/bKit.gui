@@ -11,15 +11,15 @@
         />
 
         <q-toolbar-title>
-          <div v-if="account && account.address" class="row no-wrap">
+          <div v-if="account && account.servername" class="row no-wrap">
             <span>bKit Account:</span>
-             <q-btn flat dense no-caps :label="`${account.user}@${account.address}`" :loading="loading">
+             <q-btn flat dense no-caps :label="`${account.user}@${account.servername}`" :loading="loading">
                 <q-menu v-if="accounts.length > 0"
                   transition-show="jump-down"
                   transition-hide="jump-up">
                   <q-list v-for="(account, index) in accounts" :key="index">
                     <q-item clickable dense v-close-popup :active="account.current" @click="changeserver(account)">
-                      <q-item-section>{{account.user}}@{{account.address}}</q-item-section>
+                      <q-item-section>{{account.user}}@{{account.servername}}</q-item-section>
                       <q-item-section side v-if="account.current">
                         <q-icon name="done" color="active"/>
                       </q-item-section>
@@ -77,8 +77,8 @@ const compareByUser = (a, b) => {
   return 0
 }
 const compareByAddr = (a, b) => {
-  if (a.address < b.address) return -1
-  if (a.address > b.address) return 1
+  if (a.servername < b.servername) return -1
+  if (a.servername > b.servername) return 1
   return compareByUser(a, b)
 }
 const compare = compareByAddr
@@ -123,7 +123,7 @@ export default {
     ...mapActions('global', ['setCurrentAccount', 'loadCurrentAccount', 'loadAccounts']),
     async changeserver (account) {
       try {
-        this.msg = `Change to account ${account.user}@${account.address}`
+        this.msg = `Change to account ${account.user}@${account.servername}`
         await this.setCurrentAccount(account)
       } catch (err) {
         catched(err)
