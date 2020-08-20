@@ -77,7 +77,7 @@
       <q-dialog v-model="waitcode" transition-show="flip-down" transition-hide="flip-up">
         <q-card>
           <q-card-section v-if="response.email">
-            A code has been sent to mail address {{response.email}}
+            A code has been sent to your email {{response.email}}
           </q-card-section>
           <q-card-section>
             Please check you email and then enter it on field Code bellow
