@@ -61,7 +61,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['getAccountsByServer']),
+    ...mapGetters('global', ['getAccountsByServername']),
     selected: {
       get () {
         return this.currentOf[this.server]
@@ -71,7 +71,7 @@ export default {
       }
     },
     accounts () {
-      return [...this.getAccountsByServer(this.server).filter(a => a.user)].sort(compbyuser)
+      return [...this.getAccountsByServername(this.server).filter(a => a.user)].sort(compbyuser)
     },
     length () { return this.accounts.length },
     zero () { return this.length === 0 },
