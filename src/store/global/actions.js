@@ -126,7 +126,7 @@ export function loadCurrentServer ({ commit }) {
 export function getCurrentServer ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
-      const server = getters.currentServer || await loadCurrentServer({ commit })
+      const server = getters.currentAccount || await loadCurrentServer({ commit })
       resolve(server)
     } catch (e) {
       reject(e)

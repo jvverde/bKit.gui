@@ -24,19 +24,19 @@ const makeServer = ({
 
 export function addServer (state, server) {
   if (!server || !server.address || !('user' in server)) throw new Error("Server dont' have a field address or field user, or both")
-  const index = state.servers.findIndex(s => s.address === server.address && (s.user === server.user || !s.user))
+  const index = state.accounts.findIndex(s => s.address === server.address && (s.user === server.user || !s.user))
   if (index >= 0) {
-    const newserver = { ...state.servers[index], ...makeServer(server) }
-    state.servers.splice(index, 1, newserver)
+    const newserver = { ...state.accounts[index], ...makeServer(server) }
+    state.accounts.splice(index, 1, newserver)
   } else {
-    state.servers.push(makeServer(server))
+    state.accounts.push(makeServer(server))
   }
 }
 
 export function delServer (state, server) {
-  const index = state.servers.findIndex(s => s.address === server.address && s.user === server.user)
+  const index = state.accounts.findIndex(s => s.address === server.address && s.user === server.user)
   if (index >= 0) {
-    return state.servers.splice(index, 1)
+    return state.accounts.splice(index, 1)
   } else {
     return undefined
   }
@@ -47,6 +47,6 @@ export function addServers (state, servers) {
 }
 
 export function setCurrentServer (state, server) {
-  state.servers.filter(s => s.current).forEach(s => (s.current = false))
+  state.accounts.filter(s => s.current).forEach(s => (s.current = false))
   addServer(state, { ...server, current: true })
 }

@@ -96,7 +96,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['server']),
+    ...mapGetters('global', ['currentAccount']),
     splitter: {
       get: function () {
         const length = 10 * (this.restores.length + this.backups.length)
@@ -115,7 +115,7 @@ export default {
     }
   },
   watch: {
-    server () {
+    currentAccount () {
       this.disks = []
       this.load()
     }
