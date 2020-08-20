@@ -50,20 +50,6 @@ export default {
     }
   },
   methods: {
-    // add () {
-    //   if (!this.servername) return
-    //   this.error = null
-    //   this.adding = true
-    //   changeServer(this.servername)
-    //     .then(() => this.$emit('done', this.servername))
-    //     .catch(err => {
-    //       this.error = err
-    //       warn(err)
-    //     })
-    //     .finally(() => {
-    //       this.adding = false
-    //     })
-    // },
     ...mapMutations('global', ['addAccount']),
     async add () {
       if (!this.servername || !this.port) return

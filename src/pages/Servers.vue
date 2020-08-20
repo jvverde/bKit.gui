@@ -2,10 +2,10 @@
   <q-page padding class="fit column no-wrap items-center relative-position">
     <div class="q-pa-sm q-mt-sm  q-gutter-x-sm row items-center full-width self-start">
       <div>Manage server:</div>
-      <div @click="change(srvname)"
-        v-for="(srvname, index) in srvnames" :key="index">
-        <q-btn flat :color="color(srvname)" icon="storage" :icon-right="isSelected(srvname) ? 'done' : ''">
-          <span style="color:black">{{srvname}}</span>
+      <div @click="change(servername)"
+        v-for="(servername, index) in servernames" :key="index">
+        <q-btn flat :color="color(servername)" icon="storage" :icon-right="isSelected(servername) ? 'done' : ''">
+          <span style="color:black">{{servername}}</span>
         </q-btn>
       </div>
       <div style="margin-left:auto" class="q-my-sm">
@@ -41,15 +41,16 @@ export default {
   computed: {
     ...mapGetters('global', ['serverAddresses']),
     loading () { return this.msg && this.msg.length > 0 },
-    srvnames () { return [...this.serverAddresses].sort() }
+    servernames () { return [...this.serverAddresses].sort() }
   },
   watch: {
     selectedServer: {
       immediate: true,
-      handler (srvname, oldname) {
-        if (srvname && srvname !== oldname) {
-          console.log('Change to ListAccounts of ', srvname)
-          this.$router.push({ name: 'ListAccounts', params: { server: srvname } }).catch(() => {})
+      handler (servername, oldname) {
+        console.log('selectedServer', servername, oldname)
+        if (servername && servername !== oldname) {
+          console.log('Change to ListAccounts of ', servername)
+          this.$router.push({ name: 'ListAccounts', params: { server: servername } }).catch(() => {})
         }
       }
     },
@@ -59,8 +60,8 @@ export default {
         this.selectedServer = to.params.server
       }
     },
-    srvnames (servernamees) {
-      if (this.selectedServer && servernamees.includes(this.selectedServer)) return
+    servernames (names) {
+      if (this.selectedServer && names.includes(this.selectedServer)) return
       this.change2current()
     }
   },
