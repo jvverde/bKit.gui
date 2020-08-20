@@ -3,14 +3,6 @@ import VueRouter from 'vue-router'
 
 import routes from './routes'
 
-// import { Store } from 'src/store'
-
-// const currentServer = () => Store.getters['global/server']
-// import { getServer } from 'src/helpers/bkit'
-
-// const isBkitInstalled = () => Store.getters['global/bkitinstalled']
-// const isBkitOk = () => Store.getters['global/bkitok']
-
 Vue.use(VueRouter)
 
 export default function (/* { store, ssrContext } */) {

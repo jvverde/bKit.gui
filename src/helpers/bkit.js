@@ -5,7 +5,8 @@ import { Store } from 'src/store'
 
 const path = require('path')
 const nill = () => null
-const currentServer = () => Store.getters['global/currentServer']
+const accountName = () => Store.getters['global/accountName']
+const serverName = () => Store.getters['global/serverName']
 
 /* ------------------ define queues and proxis/caches --------------- */
 import Queue, { QueueLast, QueueByKey } from './queue'
@@ -20,8 +21,8 @@ function enqueue2bash (name, args = [], events = {}, queue = defaultQueue) {
     queue = events
     events = {}
   }
-  const cserver = currentServer() || {}
-  const key = [name, ...args, cserver.address].join('|')
+  const server = serverName() || ''
+  const key = [name, ...args, server].join('|')
   // console.log('Key for enqueue2bash', key)
   return queue.enqueue(() => asyncBash(name, args, events), key)
 }
@@ -88,7 +89,7 @@ const backupQueue = new Queue() // Dedicated queue for restore requests
 // Enqueue  scripts
 function _Queue (name, args, events = {}, queue = restoreQueue) {
   const { enqueued = nill } = events
-  const key = Date.now() + Math.random().toString(36).slice(1) + currentServer()
+  const key = Date.now() + Math.random().toString(36).slice(1) + accountName()
   enqueued({
     dismiss: () => queue.dismiss(key),
     position: () => queue.position(key)
@@ -412,7 +413,7 @@ export async function listsnap (path, snap, rvid, {
   args = [],
   queue = listdirQueue
 } = {}) {
-  const key = rvid + path + args.join('') + currentServer()
+  const key = rvid + path + args.join('') + accountName()
   args = [`--rvid=${rvid}`, ...args]
   if (snap) args.push(`--snap=${snap}`)
   const promise = () => listdirs(path, args) // A future promise as required by queue.enqueue
@@ -424,7 +425,7 @@ export async function diffsnap (path, snap, {
   queue = dkitQueue,
   invalidateCache = false
 } = {}) {
-  const key = path + args.join('') + currentServer()
+  const key = path + args.join('') + accountName()
   if (snap) args.push(`--snap=${snap}`)
   if (invalidateCache) {
     // In this case it needs to go directly to the proxy/cache to invalidade it
@@ -457,7 +458,7 @@ export async function refreshsnap (path, snap, {
   queue = queue4last,
   invalidateCache = false
 } = {}) {
-  const key = 'refreshsnap' + currentServer()
+  const key = 'refreshsnap' + accountName()
   if (snap) args.push(`--snap=${snap}`)
   if (invalidateCache) {
     // In this case it needs to go directly to the proxy/cache to invalidade it

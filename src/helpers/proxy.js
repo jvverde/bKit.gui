@@ -1,7 +1,7 @@
 'use strict'
 import { Store } from 'src/store'
 
-const server = () => Store.getters['global/server']
+const servername = () => Store.getters['global/serverName']
 
 const deepclone = require('lodash.clonedeep')
 
@@ -53,7 +53,7 @@ export default function proxyIt (fn, { cache = _global, name = 'default' }) {
         args.splice(index, 1)
       }
 
-      const key = [target.name, server(), ...args].flat().join('|')
+      const key = [target.name, servername(), ...args].flat().join('|')
 
       if (index >= 0) {
         console.log(target.name, 'Invalidate Cache for key ', key)

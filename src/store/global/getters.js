@@ -1,5 +1,5 @@
-export function server (state) {
-  return currentServer(state) || {}
+export function account (state) {
+  return currentAccount(state) || {}
 }
 
 export function servers (state) {
@@ -12,7 +12,7 @@ export function serversInitialized (state) {
   return state.accounts.filter(s => s.initialized === true)
 }
 
-export function currentServer (state) {
+export function currentAccount (state) {
   return state.accounts.filter(s => s.current === true)[0]
 }
 
@@ -21,6 +21,13 @@ export function serverAddresses (state) {
 }
 export function serverNames (state) {
   return serverAddresses(state)
+}
+export function serverName (state) {
+  return (currentAccount(state) || {}).address
+}
+export function accountName (state) {
+  const account = currentAccount(state)
+  return account ? `${account.user}@${account.address}` : undefined 
 }
 
 export function getAccount (state) {

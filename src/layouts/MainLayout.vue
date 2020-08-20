@@ -11,9 +11,9 @@
         />
 
         <q-toolbar-title>
-          <div v-if="server && server.address" class="row no-wrap">
+          <div v-if="account && account.address" class="row no-wrap">
             <span>bKit Account:</span>
-             <q-btn flat dense no-caps :label="`${server.user}@${server.address}`" :loading="loading">
+             <q-btn flat dense no-caps :label="`${account.user}@${account.address}`" :loading="loading">
                 <q-menu v-if="accounts.length > 0"
                   transition-show="jump-down"
                   transition-hide="jump-up">
@@ -96,7 +96,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['server', 'serversInitialized']),
+    ...mapGetters('global', ['account', 'serversInitialized']),
     loading () { return this.msg && this.msg.length > 0 },
     user () {
       return this.bkituser
@@ -123,7 +123,7 @@ export default {
     ...mapActions('global', ['setCurrentServer', 'loadCurrentServer', 'loadServers']),
     async changeserver (account) {
       try {
-        this.msg = `Change to server ${account.user}@${account.address}`
+        this.msg = `Change to account ${account.user}@${account.address}`
         await this.setCurrentServer(account)
       } catch (err) {
         catched(err)
@@ -134,7 +134,7 @@ export default {
   },
   async mounted () {
     try {
-      this.msg = 'Find current server'
+      this.msg = 'Find current server account'
       await this.loadCurrentServer()
       this.msg = 'Get local user'
       this.bkituser = await getUser()
