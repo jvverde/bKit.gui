@@ -1,5 +1,5 @@
 import { warn } from 'src/helpers/notify'
-import fs from 'fs-extra'
+import fs from 'fs'
 
 const path = require('path')
 const onlocal = true
@@ -8,17 +8,17 @@ export async function* readdir (dir) {
   try {
     const fullpath = path.normalize(`${dir}/`)
     console.log('lstat', fullpath)
-    const stat = await fs.lstat(fullpath)
+    const stat = fs.lstatSync(fullpath)
     if (stat.isDirectory()) {
       console.log('fs.readdir', fullpath)
-      const files = await fs.readdir(fullpath)
+      const files = fs.readdirSync(fullpath)
       console.log('for each file', files)
       for (const file of files) {
         console.log('file', file)
         try { // catch error individualy. This way it doesn't ends the loop
           const filename = path.join(fullpath, file)
           console.log('lstat', filename)
-          const stat = await fs.lstat(filename)
+          const stat = fs.lstatSync(filename)
           const isdir = stat.isDirectory()
           console.log('isdir', isdir)
           yield {
