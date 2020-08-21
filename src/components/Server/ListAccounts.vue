@@ -108,7 +108,9 @@ export default {
       handler (accounts, old) {
         // Here we are only interested on changes in the number of accounts (new or removed) under same server
         console.log('Watch Accounts')
-        if (accounts && old && accounts.length !== old.length) {
+        if (old && old.length && accounts && accounts.length && accounts[0].servername !== old[0].servername) {
+          console.log('Do nothing when change server')
+        } else if (accounts && old && accounts.length !== old.length) {
           const selected = this.selected || {}
           setTimeout(() => { // wait a while and let any pending transition to occur first
             console.log('Process Watch')

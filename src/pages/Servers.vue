@@ -51,6 +51,9 @@ export default {
         if (servername && servername !== oldname) {
           console.log('Change to ListAccounts of ', servername)
           this.listAccounts(servername)
+        } else if (servername === false && oldname) {
+          console.log('Change to Servers ', servername)
+          this.$router.push({ name: 'servers' }).catch(() => {})
         }
       }
     },
@@ -79,7 +82,11 @@ export default {
       }
     },
     change (servername) {
-      this.selectedServer = servername
+      if (this.isSelected(servername)) {
+        this.selectedServer = false
+      } else {
+        this.selectedServer = servername
+      }
     },
     add () {
       this.$router.push({ name: 'NewServer' })
