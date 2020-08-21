@@ -330,10 +330,12 @@ export default {
     async readdir () {
       if (!this.mountpoint || !fs.existsSync(this.path) || !this.isdir) return
       // Only if directory exists on local disk and it correspond to the backup
+      console.log('readdir', this.path)
       for await (const entry of readdir(this.path)) {
         entry.selected = this.selected // inherit select status from parent
         this.updateChildrens(entry)
       }
+      console.log('Done read dir', this.path)
     },
     async opendir () {
       if (!this.isdir) return
@@ -350,7 +352,7 @@ export default {
   },
   mounted () {
     if (this.isroot) this.showChildrens()
-    if (this.isdir) {
+    if (this.isdir === 'NEVER HAAPENS') {
       chokidar.watch(this.path, chokidarOptions)
         .on('all', async (event, path) => {
           if (this.loaded) { // only care if the dir is loaded

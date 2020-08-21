@@ -36,6 +36,7 @@ function _bash (name, args = [], events = {}, done = nill) {
   const { onreadline = nill, onerror = nill, stderr = warn, oncespawn = nill } = events
   let doneOnce = (code) => {
     doneOnce = nill
+    stoptimeout()
     console.log('Done', scriptname, ...args)
     done(code)
     fd.kill()
@@ -50,6 +51,24 @@ function _bash (name, args = [], events = {}, done = nill) {
     options
   )
   console.log('Spawned', scriptname, ...args)
+
+  const mytimeout = () => {
+    console.log('kill by timeout')
+    if (fd.stdin) fd.stdin.pause() // just in case
+    fd.kill()
+  }
+  const stoptimeout = () => {
+    if (fd._timeout) clearTimeout(fd._timeout)
+  }
+  const inittimeout = (timeout = 60000) => {
+    fd._timeout = setTimeout(mytimeout, timeout)
+  }
+  const resettimeout = (timeout = 60000) => {
+    stoptimeout()
+    inittimeout(timeout)
+  }
+
+  inittimeout(60000)
 
   fd.on('close', (code) => {
     console.log('Done spawn', scriptname, ...args)
@@ -77,7 +96,10 @@ function _bash (name, args = [], events = {}, done = nill) {
     input: fd.stdout,
     output: fd.stdin
   })
-  rl.on('line', onreadline)
+  rl.on('line', (data) => {
+    resettimeout()
+    onreadline(data)
+  })
   rl.on('close', () => {
     console.log('Readline close', scriptname)
     doneOnce()
