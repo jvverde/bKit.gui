@@ -50,7 +50,7 @@ export default {
         console.log('selectedServer', servername, oldname)
         if (servername && servername !== oldname) {
           console.log('Change to ListAccounts of ', servername)
-          this.$router.push({ name: 'ListAccounts', params: { server: servername } }).catch(() => {})
+          this.listAccounts(servername)
         }
       }
     },
@@ -73,8 +73,10 @@ export default {
     color (servername) {
       return this.isSelected(servername) ? 'active' : ''
     },
-    go () {
-      this.$router.push('/backup')
+    listAccounts (servername = this.selectedServer) {
+      if (servername) {
+        this.$router.push({ name: 'ListAccounts', params: { server: servername } }).catch(() => {})
+      }
     },
     change (servername) {
       this.selectedServer = servername
@@ -102,7 +104,11 @@ export default {
     }
   },
   mounted () {
+    console.log('Mount server')
     this.load()
+  },
+  activated () {
+    console.log('ACTIVATED')
   }
 }
 </script>

@@ -82,7 +82,7 @@ import { listDisksOnBackup, listLocalDisks } from 'src/helpers/bkit'
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'Backup',
+  name: 'backup',
   data () {
     return {
       loading: false,

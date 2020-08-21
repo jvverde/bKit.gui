@@ -39,7 +39,7 @@
       <bkitmenu/>
     </q-drawer>
     <q-page-container class="bkit-container">
-      <keep-alive>
+      <keep-alive include="backup">
         <router-view/>
       </keep-alive>
     </q-page-container>
