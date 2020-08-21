@@ -22,7 +22,7 @@
         <q-item-section no-wrap :class="{ isSelected: isSelected }">
           <q-item-label class="ellipsis">
             <q-spinner-ios color="loader" v-if="isloading"/>
-            <span :class="{ wasDeleted: wasdeleted }" @click.stop="see">
+            <span :class="{ wasDeleted: wasdeleted, noBackup: isnew }" @click.stop="see">
               {{name}}
             </span>
             <q-icon color="transparent" size="xs" name="help" @click.stop="debug(entry)"/>
@@ -331,7 +331,7 @@ export default {
       if (!this.mountpoint || !fs.existsSync(this.path) || !this.isdir) return
       // Only if directory exists on local disk and it correspond to the backup
       console.log('readdir', this.path)
-      for await (const entry of readdir(this.path)) {
+      for (const entry of readdir(this.path)) {
         entry.selected = this.selected // inherit select status from parent
         this.updateChildrens(entry)
       }
@@ -345,7 +345,7 @@ export default {
     },
     async refresh () {
       this.loading = true
-      await this.readdir()
+      this.readdir()
       await this.checkDirOnBackup()
       this.loading = false
     }
@@ -378,6 +378,10 @@ export default {
   }
   .wasDeleted {
     color: $deleted;
+  }
+  .noBackup {
+    color: $nobackup;
+    color: var(--q-color-nobackup);
   }
   .expandicon, .noexpandicon {
     margin: 0px;

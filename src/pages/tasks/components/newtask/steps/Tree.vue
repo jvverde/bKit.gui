@@ -250,13 +250,13 @@ export default {
     },
     async refresh () {
       this.loading = true
-      await this.readdir()
+      this.readdir()
       this.loading = false
     },
     async readdir () {
       if (!fs.existsSync(this.path) || !this.isdir) return
       // Only if directory exists
-      for await (const entry of readdir(this.path)) {
+      for (const entry of readdir(this.path)) {
         this.updateChildrens(entry)
       }
     }

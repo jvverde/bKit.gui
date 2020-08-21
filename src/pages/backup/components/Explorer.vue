@@ -251,7 +251,7 @@ export default {
     async load (fullpath) {
       if (!this.mountpoint || !fs.existsSync(fullpath)) return
       this.loading = 'Reading local disk'
-      for await (const entry of readdir(fullpath)) {
+      for (const entry of readdir(fullpath)) {
         entry.checked = false
         // prevent the situation where dir path is no longer the current path
         if (this.currentPath === fullpath) this.updateCurrentFiles(entry, true)
