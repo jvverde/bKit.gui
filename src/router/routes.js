@@ -73,6 +73,12 @@ const routes = [
                     component: () => import('components/Auth/Signin.vue')
                   }
                 ]
+              },
+              {
+                path: 'resetpass',
+                name: 'ResetPass',
+                props: true,
+                component: () => import('components/Auth/Reset.vue')
               }
             ]
           },

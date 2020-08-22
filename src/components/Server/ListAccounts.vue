@@ -2,7 +2,7 @@
   <div class="fit relative-position column no-wrap">
     <div class="q-pa-sm q-gutter-x-sm row items-center full-width self-start">
       <div v-if="some">
-        Registered account<span v-if="one">s</span> for server {{server}}:
+        Registered account<span v-if="!one">s</span> for server {{server}}:
       </div>
       <div v-for="(account, index) in accounts" :key="index">
         <q-chip clickable

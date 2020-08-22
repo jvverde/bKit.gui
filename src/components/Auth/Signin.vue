@@ -8,7 +8,7 @@
           max-length="16"
           :autofocus="!specificUser"
           v-model="form.username"
-          float-label="Username"
+          label="Username"
           :error="$v.form.username.$error"
           @blur="$v.form.username.$touch"
           @keyup.enter="send"
@@ -18,7 +18,7 @@
           max-length="16"
           v-model="form.password"
           :autofocus="specificUser"
-          float-label="Password"
+          label="Password"
           :error="$v.form.password.$error"
           @blur="$v.form.password.$touch"
           @keyup.enter="send"
@@ -29,7 +29,7 @@
           @click="send"
         >Sign In</q-btn>
         <router-link
-          to="/reset_pass"
+          :to="{ name: 'ResetPass', params: { server: server } }"
           class="thin-paragraph text-right"
           style="margin:.5em 0"
         >
