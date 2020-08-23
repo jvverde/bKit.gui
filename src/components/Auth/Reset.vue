@@ -1,6 +1,6 @@
 <template>
   <div class="fit relative-position">
-    <div class="q-px-xl q-py-sm q-gutter-y-xl column items-stretch absolute-center">
+    <form v-on:submit.prevent class="q-px-xl q-py-sm q-gutter-y-sm column items-stretch absolute-center">
       <q-input type="text" max-length="16"
         v-model="form.username"
         autofocus
@@ -9,6 +9,7 @@
         :error="$v.form.password.$error"
         @blur="$v.form.username.$touch"
         @keyup.enter="send"
+        :disable="waitpass"
       >
         <template v-slot:after>
           <q-icon v-if="$v.form.username.$error" name="warning" flat color="error" size="xs"/>
@@ -16,14 +17,69 @@
         </template>
       </q-input>
       <q-btn v-model="submit"
+        v-if="status === 0"
         loader
         label="Recover"
         no-caps
         rounded color="secondary"
         :disabled="!userReady"
-        @click="send"
+        @click="set"
       />
-    </div>
+      <q-input
+        v-if="status > 0"
+        type="text"
+        maxlength="8"
+        minlength="8"
+        v-model="form.code"
+        autofocus
+        label="Code"
+        hint="Code received by email">
+        <template v-slot:after>
+          <!--q-icon v-if="codeinvalid" name="warning" flat color="error" size="xs"/-->
+        </template>
+      </q-input>
+      <q-input
+        v-if="status > 1"
+        type="password"
+        max-length="16"
+        v-model="form.password"
+        label="Password"
+        hint="Give a least 8 characters"
+        @keyup.enter="set"
+        :error="$v.form.password.$error"
+        @blur="$v.form.password.$touch"
+      >
+        <template v-slot:after>
+          <q-icon v-if="$v.form.password.$error" name="warning" flat color="error" size="xs"/>
+          <q-icon v-else-if="!$v.form.password.$invalid" name="done" flat color="ok" size="xs"/>
+        </template>
+      </q-input>
+      <q-input
+        v-if="status > 1"
+        type="password"
+        max-length="16"
+        v-model="form.passrepeat"
+        label="Repeat Password"
+        hint="Same as password"
+        @keyup.enter="set"
+        :error="$v.form.passrepeat.$error"
+        @blur="$v.form.passrepeat.$touch"
+      >
+        <template v-slot:after>
+          <q-icon v-if="$v.form.passrepeat.$error" name="warning" flat color="error" size="xs"/>
+          <q-icon v-else-if="!$v.form.passrepeat.$invalid && !$v.form.password.$invalid" name="done" flat color="ok" size="xs"/>
+        </template>
+      </q-input>
+      <q-btn v-model="submit"
+        v-if="status > 1"
+        loader
+        label="Submit"
+        no-caps
+        rounded color="secondary"
+        :disabled="!userReady"
+        @click="set"
+      />
+    </form>
     <q-btn class="absolute-top-right" flat round icon="cancel" @click="cancel" color="red" size="sm" />
     <q-dialog v-model="waitcode" transition-show="flip-down" transition-hide="flip-up">
       <q-card>
@@ -47,8 +103,25 @@ import { required, minLength, maxLength, sameAs } from 'vuelidate/lib/validators
 import { catcher } from 'src/helpers/notify'
 import { mapGetters } from 'vuex'
 
-const mustbedigits = (v = '') => Promise.resolve(v.match(/^\d{6}$/))
+const mustbecaps = (v = '') => Promise.resolve(v.match(/^[A-Z]{8}$/))
 
+const crypto = require('crypto')
+
+const md5 = (msg) => {
+  const hash = crypto.createHash('md5')
+  hash.update(msg)
+  return hash.digest('hex')
+}
+
+const compose = ({ username, password, rand, code }) => {
+  return {
+    username,
+    password: md5(`${username}|bKit|${password}`),
+    verify: md5(`${rand}${code}`)
+  }
+}
+
+// const states = ['askUsername', 'waitcode', 'setpassword']
 export default {
   name: 'ResetPass',
   data () {
@@ -60,6 +133,7 @@ export default {
         code: undefined
       },
       response: {},
+      status: 0,
       submit: false
     }
   },
@@ -69,7 +143,7 @@ export default {
         required,
         minLength: minLength(8),
         maxLength: maxLength(8),
-        mustbedigits
+        mustbecaps
       },
       username: {
         required,
@@ -77,15 +151,13 @@ export default {
         exists (value) {
           if (!this.$v.form.username.required || !this.$v.form.username.minLength) return Promise.resolve(false)
           console.log('Check if exists')
-          return new Promise((resolve, reject) => {
-            axios.get(`${this.serverURL}/check/${value}`)
-              .then(({ data: { msg } }) => {
-                resolve(msg === 'exists')
-              })
-              .catch((err) => {
-                this.catch(err)
-                reject(err)
-              })
+          return new Promise(async (resolve, reject) => {
+            try {
+              const { data: { msg } } = await axios.get(`${this.serverURL}/check/${value}`)
+              resolve(msg === 'exists')
+            } catch (err) {
+              reject(err)
+            }
           })
         }
       },
@@ -102,9 +174,10 @@ export default {
   computed: {
     ...mapGetters('global', ['getServerURL']),
     waitcode: {
-      get () { return this.response && this.response.status === 'wait' },
-      set () { this.response.status = 'waitcode' }
+      get () { return this.response && this.status === 1 },
+      set () { this.status = 2 }
     },
+    waitpass () { return this.status === 2 },
     userReady () {
       return !this.$v.form.username.$invalid && this.form.username
     },
@@ -121,10 +194,22 @@ export default {
       if (!this.userReady) return
       try {
         this.submit = true
-        const response = await axios.get(`${this.serverURL}/auth/reset_pass/${this.form.username}`)
-        console.log('done', response.data)
-        this.response = response.data
+        const { data } = await axios.get(`${this.serverURL}/auth/reset_pass/${this.form.username}`)
+        console.log('done', data)
+        this.response = data
+        this.status = 1
         this.code = undefined
+      } catch (err) {
+        catcher(err)
+      } finally {
+        this.submit = false
+      }
+    },
+    async set () {
+      try {
+        this.submit = true
+        const obj = compose({ ...this.form, ...this.response })
+        console.log(obj)
       } catch (err) {
         catcher(err)
       } finally {
