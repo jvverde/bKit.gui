@@ -102,20 +102,26 @@ import axios from 'axios'
 import { required, minLength, maxLength, sameAs } from 'vuelidate/lib/validators'
 import { catcher } from 'src/helpers/notify'
 import { mapGetters } from 'vuex'
+import crypto from 'crypto'
 
 const mustbecaps = (v = '') => Promise.resolve(v.match(/^[A-Z]{8}$/))
 
-const crypto = require('crypto')
-
 const md5 = (msg) => {
-  const hash = crypto.createHash('md5')
-  hash.update(msg)
-  return hash.digest('hex')
+  return crypto.createHash('md5')
+    .update(msg)
+    .digest('hex')
+}
+
+const hmac = (msg, pass) => {
+  return crypto.createHmac('sha256', pass)
+    .update(msg)
+    .digest('hex')
 }
 
 const compose = ({ username, password, rand, code }) => {
   return {
     username,
+    hmac: hmac(rand, code),
     password: md5(`${username}|bKit|${password}`),
     verify: md5(`${rand}${code}`)
   }
