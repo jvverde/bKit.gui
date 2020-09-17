@@ -38,13 +38,25 @@ import axios from 'axios'
 // import { changeServer } from 'src/helpers/bkit'
 import { warn } from 'src/helpers/notify'
 import { mapMutations } from 'vuex'
+import fs from 'fs'
+import path from 'path'
+const https = require('https')
+
+const ca = fs.readFileSync(
+  path.join(__statics, '/ca.crt'),
+  'utf8'
+)
+
+const httpsAgent = new https.Agent({ ca: [ca], keepAlive: false })
+console.log(ca)
 
 export default {
   name: 'Servers',
   data () {
     return {
       servername: undefined,
-      port: 8765,
+      port: 8766,
+      // sport: 8766,
       adding: false,
       error: false
     }
@@ -53,10 +65,10 @@ export default {
     ...mapMutations('global', ['addAccount']),
     async add () {
       if (!this.servername || !this.port) return
-      const url = `http://${this.servername}:${this.port}/info`
+      const url = `https://${this.servername}:${this.port}/info`
       try {
         this.adding = true
-        const { data } = await axios.get(url)
+        const { data } = await axios.get(url, { httpsAgent })
         console.log('data', data)
         const server = {
           servername: this.servername,

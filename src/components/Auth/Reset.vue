@@ -100,7 +100,7 @@
 <script>
 import axios from 'axios'
 import { required, minLength, maxLength, sameAs } from 'vuelidate/lib/validators'
-import { catcher } from 'src/helpers/notify'
+import { catched } from 'src/helpers/notify'
 import { mapGetters } from 'vuex'
 import crypto from 'crypto'
 
@@ -206,7 +206,7 @@ export default {
         this.status = 1
         this.code = undefined
       } catch (err) {
-        catcher(err)
+        catched(err)
       } finally {
         this.submit = false
       }
@@ -217,7 +217,7 @@ export default {
         const obj = compose({ ...this.form, ...this.response })
         console.log(obj)
       } catch (err) {
-        catcher(err)
+        catched(err)
       } finally {
         this.submit = false
       }
