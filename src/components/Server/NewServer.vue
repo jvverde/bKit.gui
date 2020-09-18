@@ -47,7 +47,14 @@ const ca = fs.readFileSync(
   'utf8'
 )
 
-const httpsAgent = new https.Agent({ ca: [ca], keepAlive: false })
+const httpsAgent = new https.Agent({
+  ca: [ca],
+  checkServerIdentity: (...args) => {
+    console.log('check', ...args)
+    return null
+  },
+  keepAlive: false
+})
 console.log(ca)
 
 export default {
