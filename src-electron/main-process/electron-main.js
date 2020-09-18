@@ -101,7 +101,7 @@ app.on('ready', async () => {
     console.log('verifier', request)
     const result = await verifier(request)
     console.log('verify result', result)
-    callback(0)
+    callback(-3)
     if (result === 0) {
       /* https://electronjs.org/docs/api/session#sessetcertificateverifyprocproc
        * `0` - Indicates success and disables Certificate Transparency verification.
@@ -111,7 +111,8 @@ app.on('ready', async () => {
       callback(0)
     } else {
       // recommend to call `-2` always when the verifier result is not `0`
-      callback(-2)  }
+      callback(-2)
+    }
   })
 })
 
@@ -134,7 +135,7 @@ ipcMain.on('debug', (event, arg) => {
     mainWindow.webContents.openDevTools()
   } else {
     mainWindow.webContents.closeDevTools()
-  } 
+  }
 })
 
 // Workaround to close all processes / sub-processes after closing the app
@@ -142,7 +143,7 @@ ipcMain.on('debug', (event, arg) => {
 app.once('window-all-closed', app.quit)
 
 app.once('before-quit', () => {
-  save_config()  
+  save_config()
   // Workaround to close all processes / sub-processes after closing the app
   // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
   window.removeAllListeners('close')
