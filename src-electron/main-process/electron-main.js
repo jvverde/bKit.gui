@@ -2,7 +2,8 @@ import {
   app,
   BrowserWindow,
   nativeTheme,
-  ipcMain
+  ipcMain,
+  session
 } from 'electron'
 
 import menu from './menu'
@@ -24,6 +25,7 @@ import fs from 'fs'
 import { autoUpdater } from 'electron-updater'
 import windowStateKeeper from 'electron-window-state'
 import statics from './statics'
+import { createRootCaVerifier } from 'electron-root-ssl-pinning'
 
 say.log('bkit starting...')
 say.log('is Elevated:', app.commandLine.hasSwitch('elevated'))
@@ -90,6 +92,27 @@ app.on('ready', async () => {
   }
   createWindow()
   check4updates()
+  session.defaultSession.setCertificateVerifyProc(async (request, callback) => {
+    /* The verifier returns a verification status code
+     * `0` - VALID
+     * `-2` - INVALID
+     * `-3` - INTERNAL_ERROR
+     */
+    console.log('verifier', request)
+    const result = await verifier(request)
+    console.log('verify result', result)
+    callback(0)
+    if (result === 0) {
+      /* https://electronjs.org/docs/api/session#sessetcertificateverifyprocproc
+       * `0` - Indicates success and disables Certificate Transparency verification.
+       * `-2` - Indicates failure.
+       * `-3` - Uses the verification result from chromium.
+       */
+      callback(0)
+    } else {
+      // recommend to call `-2` always when the verifier result is not `0`
+      callback(-2)  }
+  })
 })
 
 app.on('window-all-closed', () => {
@@ -171,5 +194,44 @@ ipcMain.on('deletePassword', async (event, account) => {
 })
 
 menu()
+
+
+const verifier = createRootCaVerifier([
+  `-----BEGIN CERTIFICATE-----
+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
+IF40NqlxDoMMM1w=
+-----END CERTIFICATE-----`
+]);
+
 
 say.log('bkit started')

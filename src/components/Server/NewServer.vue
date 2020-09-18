@@ -55,7 +55,7 @@ const httpsAgent = new https.Agent({
   },
   keepAlive: false
 })
-console.log(ca)
+console.log(ca, httpsAgent)
 
 export default {
   name: 'Servers',
@@ -75,7 +75,7 @@ export default {
       const url = `https://${this.servername}:${this.port}/info`
       try {
         this.adding = true
-        const { data } = await axios.get(url, { httpsAgent })
+        const { data } = await axios.get(url, { /* httpsAgent */ })
         console.log('data', data)
         const server = {
           servername: this.servername,
