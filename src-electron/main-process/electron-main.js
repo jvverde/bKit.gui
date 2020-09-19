@@ -27,6 +27,8 @@ import windowStateKeeper from 'electron-window-state'
 import statics from './statics'
 import { pki } from 'node-forge'
 
+import rootCA from './cert/ca'
+
 say.log('bkit starting...')
 say.log('is Elevated:', app.commandLine.hasSwitch('elevated'))
 
@@ -72,22 +74,22 @@ function createWindow () {
   try {
     const pathToCerts = path.resolve(statics, 'ca.crt')
     const caCert = fs.readFileSync(pathToCerts).toString()
-    const caStore = pki.createCaStore([ caCert ])
+    // console.log('rootCA', rootCA)
+    const caStore = pki.createCaStore(rootCA)
     mainWindow.webContents.session.setCertificateVerifyProc(async (request, callback) => {
       // https://www.electronjs.org/docs/api/session
-      /* The verifier returns a verification status code
-       * `0` - VALID
-       * `-2` - INVALID
-       * `-3` - INTERNAL_ERROR
-       */
       // console.log('setCertificateVerifyProc', request)
       try {
         const certdata = request.certificate.data
         // console.log('certdata', certdata)
         const cert = pki.certificateFromPem(certdata)
         // console.log('cert', cert)
-        pki.verifyCertificateChain(caStore, [ cert ])
-        callback(0)
+        if (pki.verifyCertificateChain(caStore, [ cert ])) {
+          callback(0)
+        } else {
+          say.error('Failed due to some unknown reason', e.message || e)
+          callback(-3)
+        }
       } catch (e) {
         say.error('Failed to verify certificate', e.message || e)
         callback(-3)
