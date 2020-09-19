@@ -57,6 +57,9 @@ module.exports = function (ctx) {
 
     // Full list of options: https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
+      env: {
+        MYVAR: '"myvar"'
+      },
       scopeHoisting: true,
       vueRouterMode: 'hash', // available values: 'hash', 'history'
       showProgress: true,
@@ -102,7 +105,7 @@ module.exports = function (ctx) {
           target: 'ws://10.1.1.4:8765',
           ws: true,
           changeOrigin: true
-        }         
+        }
       },
       headers: {
          "Access-Control-Allow-Origin": "*",
@@ -216,7 +219,7 @@ module.exports = function (ctx) {
         artifactName: '${productName}-${os}-${arch}-${version}.${ext}',
         nsis: {
           oneClick: false,
-          allowElevation: true, 
+          allowElevation: true,
           // allowToChangeInstallationDirectory: true,
           perMachine: false,
           include: 'build/installer.nsh',
@@ -234,7 +237,7 @@ module.exports = function (ctx) {
                 'x64',
                 'ia32'
               ]
-            }/*,            
+            }/*,
             {
               target: 'zip',
               arch: [

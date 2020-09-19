@@ -38,24 +38,6 @@ import axios from 'axios'
 // import { changeServer } from 'src/helpers/bkit'
 import { warn } from 'src/helpers/notify'
 import { mapMutations } from 'vuex'
-import fs from 'fs'
-import path from 'path'
-const https = require('https')
-
-const ca = fs.readFileSync(
-  path.join(__statics, '/ca.crt'),
-  'utf8'
-)
-
-const httpsAgent = new https.Agent({
-  ca: [ca],
-  checkServerIdentity: (...args) => {
-    console.log('check', ...args)
-    return null
-  },
-  keepAlive: false
-})
-console.log(ca, httpsAgent)
 
 export default {
   name: 'Servers',
@@ -75,7 +57,7 @@ export default {
       const url = `https://${this.servername}:${this.port}/info`
       try {
         this.adding = true
-        const { data } = await axios.get(url, { httpsAgent })
+        const { data } = await axios.get(url)
         console.log('data', data)
         const server = {
           servername: this.servername,
