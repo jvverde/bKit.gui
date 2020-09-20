@@ -72,8 +72,6 @@ function createWindow () {
   mainWindow.loadURL(process.env.APP_URL)
 
   try {
-    const pathToCerts = path.resolve(statics, 'ca.crt')
-    const caCert = fs.readFileSync(pathToCerts).toString()
     // console.log('rootCA', rootCA)
     const caStore = pki.createCaStore(rootCA)
     mainWindow.webContents.session.setCertificateVerifyProc(async (request, callback) => {
@@ -85,6 +83,7 @@ function createWindow () {
         const cert = pki.certificateFromPem(certdata)
         // console.log('cert', cert)
         if (pki.verifyCertificateChain(caStore, [ cert ])) {
+          say.log('Certicate verified!')
           callback(0)
         } else {
           say.error('Failed due to some unknown reason', e.message || e)
@@ -128,10 +127,9 @@ app.on('ready', async () => {
 
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
   // https://www.electronjs.org/docs/api/app#event-certificate-error
-  console.log('url', url)
-  console.log('certificate-error', certificate)
-  if (url === 'https://github.com') {
-    // Verification logic.
+  // console.log('certificate-error', certificate)
+  if (url.match(/https:\/\/(10|192\.168|172\.(1[6-9]|2|3[0-2]))\./)) {
+    say.warn(`Certifiate error, but it will be ignored as it come from a private address ${url}`)
     event.preventDefault()
     callback(true)
   } else {
