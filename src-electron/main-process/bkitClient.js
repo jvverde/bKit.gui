@@ -244,7 +244,7 @@ const verify = async (location) => {
   } else if(location && existsSync(location)) {
     return installBkit(location)
   } else {
-    return install2AlternateLocation(location, invalidLocation(location))
+    return install2AlternateLocation(location  || app.getAppPath(), invalidLocation(location))
   }  
 }
 
@@ -253,7 +253,7 @@ const findbkitLocation = (dir = app.getAppPath(), cnt = 0) => {
   const base = dir.replace(/[\\\/]resources[\\\/].*$/i, '')
   const location = path.join(base, 'bkit-client')
   say.log('Search for bkit client at', dir)
-  if (isbkitClintInstalled(location)) {
+  if (isbkitClintInstalled(location)) { 
     return bkitPath(location)
   } else if (cnt < LIMIT) {
     const parent = path.dirname(dir)

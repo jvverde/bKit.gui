@@ -113,7 +113,7 @@ app.on('ready', async () => {
   say.log('Check if client is run at', client)
   if(!client || !fs.existsSync(client) || !isbkitok(client)) {
     try {
-      const location = await findbkit(client)
+      const location = await findbkit(client) //
       say.log('Found bkit client at', location)
       bkitPath(location)
       load_config()
