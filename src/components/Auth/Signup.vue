@@ -63,7 +63,7 @@
         </q-btn>
       </form>
       <form @submit.prevent="confirm" v-if="askcode">
-        <q-input type="text" maxlength="6" minlength="6"
+        <q-input type="text" maxlength="8" minlength="8"
           v-model="code"
           autofocus
           label="Code"
@@ -100,26 +100,20 @@ import axios from 'axios'
 import { required, minLength, maxLength, email, sameAs } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
 import { mapGetters, mapActions } from 'vuex'
+import { hash, hmac, decrypt } from 'src/helpers/secrets'
 // import { addAccount } from 'src/helpers/credentials'
 
-const crypto = require('crypto')
-
-const md5 = (msg) => {
-  const hash = crypto.createHash('md5')
-  hash.update(msg)
-  return hash.digest('hex')
-}
-
-const compose = ({ username, password, email }, extra) => {
+const compose = ({ username, password, email }, extra = {}) => {
+  // { email, username, hashpass }
   return {
     username,
     email,
-    password: md5(`${username}|bKit|${password}`),
+    hashpass: hash(password),
     ...extra
   }
 }
 
-const mustbedigits = (v = '') => Promise.resolve(v.match(/^\d{6}$/))
+const mustbe8UpperChars = (v = '') => Promise.resolve(v.match(/^[A-Z]{8}$/))
 
 export default {
   name: 'register',
@@ -140,9 +134,9 @@ export default {
   validations: {
     code: {
       required,
-      minLength: minLength(6),
-      maxLength: maxLength(6),
-      mustbedigits
+      minLength: minLength(8),
+      maxLength: maxLength(8),
+      mustbe8UpperChars
     },
     form: {
       username: {
@@ -151,9 +145,10 @@ export default {
         isUnique (value) {
           if (!this.$v.form.username.required || !this.$v.form.username.minLength) return Promise.resolve(false)
           return new Promise((resolve, reject) => {
-            axios.get(`${this.serverURL}/check/${value}`)
-              .then(({ data: { msg } }) => {
-                resolve(msg === 'available')
+            console.log(`Check ${value}`)
+            axios.get(`${this.serverURL}/v1/auth/check/${value}`)
+              .then(({ data: { message } }) => {
+                resolve(message === 'available')
               })
               .catch((err) => {
                 this.catch(err)
@@ -196,7 +191,11 @@ export default {
     waitcode: {
       get () { return this.response && this.response.status === 'wait' },
       set () { this.response.status = 'waitcode' }
-    }
+    },
+    password () { return this.form.password },
+    username () { return this.form.username },
+    email () { return this.form.email },
+    hashpass () { return hash(this.password) }
   },
   mixins: [notify],
   methods: {
@@ -209,11 +208,13 @@ export default {
       if (!this.ready2confirm) return
       try {
         this.submiting = true
-        const obj = compose(this.form, { next: 0, code: this.code })
-        const { data } = await axios.post(`${this.serverURL}/auth/confirmbycode`, obj)
-        this.response = data
+        const challenge = decrypt(this.response.echallenge, this.code)
+        const proof = hmac(challenge, this.hashpass)
+        const confirm = { email: this.email, username: this.username, proof }
+        const { data: response } = await axios.post(`${this.serverURL}/v1/auth/confirm`, confirm)
+        this.response = response
         this.code = undefined
-        this.addAccount({ user: obj.username, server: this.server, password: obj.password })
+        this.addAccount({ user: this.username, server: this.server, password: this.password })
         this.$router.back()
       } catch (err) {
         this.catch(err)
@@ -225,9 +226,10 @@ export default {
       if (!this.ready) return
       try {
         this.submiting = true
-        const obj = compose(this.form, { next: 0 })
-        const { data } = await axios.post(`${this.serverURL}/auth/signup`, obj)
-        this.response = data
+        const obj = compose(this.form)
+        // /v1/auth/signup', { email, username, hashpass }
+        const { data: response } = await axios.post(`${this.serverURL}/v1/auth/signup`, obj)
+        this.response = response
         this.code = null
       } catch (err) {
         this.catch(err)
