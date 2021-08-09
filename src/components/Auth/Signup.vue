@@ -214,7 +214,7 @@ export default {
         const { data: response } = await axios.post(`${this.serverURL}/v1/auth/confirm`, confirm)
         this.response = response
         this.code = undefined
-        this.addAccount({ user: this.username, server: this.server, password: this.password })
+        this.addAccount({ user: this.username, server: this.server, password: this.hashpass })
         this.$router.back()
       } catch (err) {
         this.catch(err)
