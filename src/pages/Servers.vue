@@ -9,7 +9,7 @@
         </q-btn>
       </div>
       <div style="margin-left:auto" class="q-my-sm">
-         <q-btn class="q-px-sm" rounded outline icon="add" label="New Server" no-caps dense @click="add"/>
+         <q-btn class="q-px-sm" rounded icon="add" label="New Server" no-caps dense size="sm" @click="add"/>
       </div>
     </div>
     <div class="fit relative-position routerview">

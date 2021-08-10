@@ -1,7 +1,7 @@
 <template>
   <div class="fit relative-position">
     <div class="q-px-xl q-py-sm q-gutter-y-xl column items-stretch absolute-center">
-      <form @submiting.prevent="send" class="column items-stretch">
+      <form @submiting.prevent="signin" class="column items-stretch">
         <q-input
           :readonly="specificUser"
           type="text"
@@ -11,7 +11,7 @@
           label="Username"
           :error="$v.form.username.$error"
           @blur="$v.form.username.$touch"
-          @keyup.enter="send"
+          @keyup.enter="signin"
         />
         <q-input
           type="password"
@@ -21,12 +21,12 @@
           label="Password"
           :error="$v.form.password.$error"
           @blur="$v.form.password.$touch"
-          @keyup.enter="send"
+          @keyup.enter="signin"
         />
         <q-btn
           rounded color="secondary"
           :disabled="!ready"
-          @click="send"
+          @click="signin"
         >Sign In</q-btn>
         <router-link
           :to="{ name: 'ResetPass', params: { server: server } }"
@@ -55,21 +55,7 @@ import axios from 'axios'
 import { required } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
 import { mapGetters, mapActions } from 'vuex'
-
-const crypto = require('crypto')
-
-const md5 = (msg) => {
-  const hash = crypto.createHash('md5')
-  hash.update(msg)
-  return hash.digest('hex')
-}
-
-const compose = ({ username, password }) => {
-  return {
-    username,
-    password: md5(`${username}|bKit|${password}`)
-  }
-}
+import { hash, hmac } from 'src/helpers/secrets'
 
 export default {
   name: 'Login',
@@ -106,20 +92,26 @@ export default {
     },
     specificUser () {
       return this.user && this.user.length > 0
-    }
+    },
+    password () { return this.form.password },
+    username () { return this.form.username },
+    hashpass () { return hash(this.password) }
   },
   methods: {
     ...mapActions('global', ['addAccount']),
     cancel () {
       this.$router.back()
     },
-    async send () {
+    async signin () {
       if (!this.ready) return
       this.submiting = true
       try {
-        const cred = compose(this.form)
-        await axios.post(`${this.serverURL}/auth/login`, cred)
-        this.addAccount({ user: cred.username, server: this.server, password: cred.password })
+        const { data: info } = await axios.get(`${this.serverURL}/v1/info`)
+        const date = info.date
+        const proof = hmac(date, this.hashpass)
+        const username = this.username
+        await axios.post(`${this.serverURL}/v1/auth/login`, { proof, username, date })
+        this.addAccount({ user: this.username, server: this.server, password: this.hashpass })
         this.$router.back()
       } catch (err) {
         this.catch(err)

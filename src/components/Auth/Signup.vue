@@ -1,12 +1,12 @@
 <template>
   <div class="fit relative-position">
     <div class="q-px-xl q-py-sm column absolute-center">
-      <form @submit.prevent="send" class="column items-stretch">
+      <form @submit.prevent="signup" class="column items-stretch">
         <q-input type="text" max-length="16"
           v-model="form.username"
           label="Username"
           hint="Choose a username"
-          @keyup.enter="send"
+          @keyup.enter="signup"
           @blur="$v.form.username.$touch"
         >
           <template v-slot:after>
@@ -18,7 +18,7 @@
           v-model="form.email"
           label="Email"
           hint="Give a email to confirm"
-          @keyup.enter="send"
+          @keyup.enter="signup"
           @blur="$v.form.email.$touch"
         >
           <template v-slot:after>
@@ -30,7 +30,7 @@
           v-model="form.password"
           label="Password"
           hint="Give a least 8 characters"
-          @keyup.enter="send"
+          @keyup.enter="signup"
           :error="$v.form.password.$error"
           @blur="$v.form.password.$touch"
         >
@@ -43,7 +43,7 @@
           v-model="form.passrepeat"
           label="Repeat Password"
           hint="Same as password"
-          @keyup.enter="send"
+          @keyup.enter="signup"
           :error="$v.form.passrepeat.$error"
           @blur="$v.form.passrepeat.$touch"
         >
@@ -56,7 +56,7 @@
           v-if="!askcode"
           rounded color="secondary"
           :disabled="!ready"
-          @click="send"
+          @click="signup"
           class="q-mt-xl"
         >
           Sign up
@@ -222,12 +222,11 @@ export default {
         this.submiting = false
       }
     },
-    async send () {
+    async signup () {
       if (!this.ready) return
       try {
         this.submiting = true
         const obj = compose(this.form)
-        // /v1/auth/signup', { email, username, hashpass }
         const { data: response } = await axios.post(`${this.serverURL}/v1/auth/signup`, obj)
         this.response = response
         this.code = null

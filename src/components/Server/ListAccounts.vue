@@ -17,10 +17,10 @@
         <div class="text-h6">No accounts</div>
         <div>You don't have any account configured for server {{server}}</div>
         <div>Please add a new one</div>
-        <q-btn class="q-mt-xl" icon="add" outline rounded label="New Account" no-caps @click="add"/>
+        <q-btn class="q-mt-xl" icon="add" label="New Account" rounded no-caps dense @click="add"/>
       </div>
       <div v-else-if="some" style="margin-left:auto" class="q-my-sm">
-        <q-btn class="q-px-sm" icon="add" label="New Account" outline rounded no-caps dense @click="add"/>
+        <q-btn class="q-px-sm" icon="add" label="New Account" rounded no-caps dense size="sm" @click="add"/>
       </div>
     </div>
     <q-inner-loading :showing="loading">
