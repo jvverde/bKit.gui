@@ -14,12 +14,14 @@ Vue.use(Vuex)
  * with the Store instance.
  */
 import global from './global'
+import auth from './auth'
 
 // From https://forum.quasar-framework.org/topic/4276/how-to-use-vuex-store-without-access-to-vue-instance/2
 // Don't if this is a SSR
 export const Store = new Vuex.Store({
   modules: {
-    global
+    global,
+    auth
   },
 
   // enable strict mode (adds overhead!)

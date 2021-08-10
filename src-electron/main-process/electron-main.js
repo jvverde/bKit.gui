@@ -6,6 +6,8 @@ import {
   session
 } from 'electron'
 
+import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+
 import menu from './menu'
 
 import {
@@ -123,6 +125,9 @@ app.on('ready', async () => {
   }
   createWindow()
   check4updates()
+  installExtension(VUEJS_DEVTOOLS)
+    .then(name => say.log(`Added Extension:  ${name}`))
+    .catch(err => say.warn('An error occurred: ', err))
 })
 
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {

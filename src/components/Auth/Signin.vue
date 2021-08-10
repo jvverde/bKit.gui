@@ -51,11 +51,11 @@
 </template>
 
 <script>
-import axios from 'axios'
+
 import { required } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
 import { mapGetters, mapActions } from 'vuex'
-import { hash, hmac } from 'src/helpers/secrets'
+import { hash } from 'src/helpers/secrets'
 
 export default {
   name: 'Login',
@@ -99,6 +99,7 @@ export default {
   },
   methods: {
     ...mapActions('global', ['addAccount']),
+    ...mapActions('auth', ['login']),
     cancel () {
       this.$router.back()
     },
@@ -106,12 +107,10 @@ export default {
       if (!this.ready) return
       this.submiting = true
       try {
-        const { data: info } = await axios.get(`${this.serverURL}/v1/info`)
-        const date = info.date
-        const proof = hmac(date, this.hashpass)
-        const username = this.username
-        await axios.post(`${this.serverURL}/v1/auth/login`, { proof, username, date })
-        this.addAccount({ user: this.username, server: this.server, password: this.hashpass })
+        const { username, serverURL, server, hashpass } = this
+        console.log({ username, serverURL, server, hashpass })
+        await this.login({ username, serverURL, hashpass })
+        this.addAccount({ user: username, server, password: hashpass })
         this.$router.back()
       } catch (err) {
         this.catch(err)
