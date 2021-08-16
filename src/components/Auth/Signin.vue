@@ -108,8 +108,7 @@ export default {
       this.submiting = true
       try {
         const { username, serverURL, server, hashpass } = this
-        const info = await this.login({ username, serverURL, hashpass })
-        console.log('Info:', info)
+        await this.login({ username, serverURL, hashpass })
         this.addAccount({ user: username, server, password: hashpass })
         this.$router.back()
       } catch (err) {

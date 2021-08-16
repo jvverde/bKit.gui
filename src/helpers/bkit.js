@@ -27,7 +27,7 @@ function enqueue2bash (name, args = [], events = {}, queue = defaultQueue) {
   return queue.enqueue(() => asyncBash(name, args, events), key)
 }
 
-// Proxy (via to Queue) to Bash
+// Proxy (via Queue) to Bash
 const proxy2Q2bash = exclusiveProxy(enqueue2bash, { size: 50, name: 'bash' })
 
 export async function listDisksOnBackup () {
@@ -36,6 +36,11 @@ export async function listDisksOnBackup () {
 
 export async function listLocalDisks () {
   return await enqueue2bash('./lib/getdevs.sh', [], queue4Local) || []
+}
+
+export async function getComputerInfo () {
+  const infos = await enqueue2bash('./lib/computer.sh', [], queue4Local) // Always returns an array
+  return (infos || [])[0]
 }
 
 export async function getDiskName (uuid) {

@@ -77,7 +77,8 @@ import explorer from './components/Explorer'
 import restore from './components/Restore'
 import backup from './components/Backup'
 import tooltip from 'src/components/tooltip'
-import { listDisksOnBackup, listLocalDisks } from 'src/helpers/bkit'
+import { listLocalDisks } from 'src/helpers/bkit'
+import { listDisksOnBackup } from 'src/helpers/api'
 
 import { mapGetters } from 'vuex'
 
@@ -164,6 +165,7 @@ export default {
     },
     async getLocalDisks () {
       const disks = await listLocalDisks() || []
+
       for (const disk of disks) {
         console.log('Local disk:', disk)
         const id = disk.replace(/\|(?=\|)/g, '|_') // replace all the sequences '||' by '|_|'

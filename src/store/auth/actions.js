@@ -11,9 +11,7 @@ export function login ({ commit }, { username, serverURL, hashpass }) {
       if (answer.token && answer.proof === hmac(answer.token, hashpass)) {
         commit('setToken', { account: `${username}@${serverURL}`, token: answer.token })
       } else throw new Error('Invalid token received')
-      const userinfo = await axios.get(`${serverURL}/v1/user/info`)
-      console.log('unserinfo', userinfo)
-      resolve(userinfo.data)
+      resolve(answer.token)
     } catch (err) {
       reject(err)
     }

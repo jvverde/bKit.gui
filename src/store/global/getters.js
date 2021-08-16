@@ -34,7 +34,7 @@ export function getAccountsByServername (state) {
   }
 }
 export function getServerURL (state) {
-  return (name) => {
+  return (name = serverName(state)) => {
     const server = state.accounts.filter(s => s.servername === name)[0] || { servername: name, hport: 8765 }
     return `http://${server.servername}:${server.hport}`
   }
