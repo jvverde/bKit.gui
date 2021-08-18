@@ -2,8 +2,7 @@
 export function someAction (context) {
 }
 */
-import { getAccounts, addAccount as addCredentials, deleteAccount } from 'src/helpers/credentials'
-import { listServers, getServer, changeServer, deleteServer, initServer } from 'src/helpers/bkit'
+import { getAccounts as getCredentials, addAccount as addCredentials, deleteAccount as removeCredentials } from 'src/helpers/credentials'
 
 export function addAccount ({ commit }, { user, server, password }) {
   return new Promise(async (resolve, reject) => {
@@ -21,10 +20,10 @@ export function addAccount ({ commit }, { user, server, password }) {
 export function delCredentials ({ commit, getters }, { user, servername }) {
   return new Promise(async (resolve, reject) => {
     try {
-      await deleteAccount(`${user}@${servername}`)
-      // Get is a copy with credentials property set to false
-      const server = { ...getters.getAccount(servername, user), autorized: false }
-      commit('addAccount', server)
+      await removeCredentials(`${user}@${servername}`)
+      // Get a copy of this account and set autorized property to false
+      const account = { ...getters.getAccount(servername, user), autorized: false }
+      commit('updateAccount', account)
       resolve(true)
     } catch (err) {
       reject(err)
@@ -35,20 +34,23 @@ export function delCredentials ({ commit, getters }, { user, servername }) {
 export function loadCredentials ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
-      const accounts = await getAccounts()
-      const servers = accounts.map(u => {
+      const credentials = await getCredentials()
+      const accounts = credentials.map(u => {
         const [user, servername] = u.split('@')
         return { servername, user, autorized: true }
       })
-      commit('addAccounts', servers)
-      resolve(servers)
+      commit('updateAccounts', accounts)
+      resolve(accounts)
     } catch (err) {
       reject(err)
     }
   })
 }
 
-const line2Account = (line, profile = true) => {
+/* Operations related with accounts defined on filesystem on ETCDIR */
+import { listServers, getServer, changeServer, deleteServer, initServer } from 'src/helpers/bkit'
+
+const parseAccount = (line, profile = true) => {
   if (!line) return {}
   const [user, url] = line.split('@')
   const [servername, , section, iport, bport, rport, uport, hport] = url.split(':')
@@ -59,11 +61,11 @@ export function loadAccounts ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
       const serversList = await listServers('-f')
-      const servers = serversList.map(line => {
-        return line2Account(line)
+      const accounts = serversList.map(server => {
+        return parseAccount(server)
       })
-      commit('addAccounts', servers)
-      resolve(servers)
+      commit('updateAccounts', accounts)
+      resolve(accounts)
     } catch (e) {
       reject(e)
     }
@@ -75,8 +77,22 @@ export function deleteProfile ({ commit }, account) {
     try {
       await deleteServer(account)
       const unserv = { ...account, profile: false }
-      commit('addAccount', unserv)
+      commit('updateAccount', unserv)
       resolve(unserv)
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+export function initProfile ({ commit }, { account: profile, pass }) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await deleteServer(profile)
+      const answer = await initServer(profile, pass)
+      const account = parseAccount(answer)
+      commit('updateAccount', account)
+      resolve(account)
     } catch (e) {
       reject(e)
     }
@@ -87,23 +103,9 @@ export function removeAccount ({ commit }, account) {
   return new Promise(async (resolve, reject) => {
     try {
       if (account.profile) await deleteServer(account)
-      if (account.autorized) await deleteAccount(`${account.user}@${account.servername}`)
+      if (account.autorized) await removeCredentials(`${account.user}@${account.servername}`)
       commit('delAccount', account)
       resolve(true)
-    } catch (e) {
-      reject(e)
-    }
-  })
-}
-
-export function initProfile ({ commit }, { account, pass }) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      await deleteServer(account)
-      const answer = await initServer(account, pass)
-      const server = line2Account(answer)
-      commit('addAccount', server)
-      resolve(server)
     } catch (e) {
       reject(e)
     }
@@ -113,10 +115,10 @@ export function initProfile ({ commit }, { account, pass }) {
 export function loadCurrentAccount ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
-      const line = await getServer('-f')
-      const server = line2Account(line)
-      commit('setCurrentAccount', server)
-      resolve(server)
+      const profile = await getServer('-f')
+      const account = parseAccount(profile)
+      commit('setCurrentAccount', account)
+      resolve(account)
     } catch (e) {
       reject(e)
     }
@@ -126,21 +128,21 @@ export function loadCurrentAccount ({ commit }) {
 export function getCurrentAccount ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
-      const server = getters.currentAccount || await loadCurrentAccount({ commit })
-      resolve(server)
+      const account = getters.currentAccount || await loadCurrentAccount({ commit })
+      resolve(account)
     } catch (e) {
       reject(e)
     }
   })
 }
 
-export function setCurrentAccount ({ commit }, account) {
+export function setCurrentAccount ({ commit }, profile) {
   return new Promise(async (resolve, reject) => {
     try {
-      const line = await changeServer(account)
-      const server = line2Account(line)
-      commit('setCurrentAccount', server)
-      resolve(server)
+      const answer = await changeServer(profile)
+      const account = parseAccount(answer)
+      commit('setCurrentAccount', account)
+      resolve(account)
     } catch (e) {
       reject(e)
     }
@@ -151,6 +153,6 @@ export function currentAccount ({ commit, getters }, account) {
   if (!account) {
     return getCurrentAccount({ commit, getters })
   } else {
-    return getCurrentAccount({ commit }, account)
+    return setCurrentAccount({ commit }, account)
   }
 }

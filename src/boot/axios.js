@@ -7,28 +7,28 @@ Vue.prototype.$axios = axios
 const re = new RegExp('(/v[0-9]+)?/user/')
 
 export default ({ router, store }) => {
+  const autologin = async (username) => {
+    console.info('Try autologin for user', username)
+    try {
+      const serverName = store.getters['global/serverName']
+      const getServerURL = store.getters['global/getServerURL']
+      const serverURL = getServerURL(serverName)
+      const hashpass = await getPassword(`${username}@${serverName}`)
+
+      const token = await store.dispatch('auth/login', { username, serverURL, hashpass })
+      return token
+    } catch (err) {
+      console.warn(err)
+    }
+  }
+
   axios.interceptors.request.use(async (config) => {
     const url = new URL(config.url)
-    console.log('url.pathname:', url.pathname, re)
     if (url.pathname.match(re)) {
       const current = store.getters['global/currentAccount']
       const session = `${current.user}@${url.origin}`
-      console.log('session', session)
-      const token = store.getters['auth/accessToken'](session)
-      console.log('token', token)
+      const token = store.getters['auth/accessToken'](session) || (await autologin(current.user))
       if (token) {
-        config.headers['Authorization'] = 'Bearer ' + token
-      } else {
-        // const login = store.actions['auth/login']
-        const getServerURL = store.getters['global/getServerURL']
-        const serverName = store.getters['global/serverName']
-        const username = current.user
-        const serverURL = getServerURL(serverName)
-        const hashpass = await getPassword(`${username}@${serverName}`)
-        console.log({ username, serverURL, hashpass, serverName })
-
-        // const token = login({ username, serverURL, hashpass })
-        const token = await store.dispatch('auth/login', { username, serverURL, hashpass })
         config.headers['Authorization'] = 'Bearer ' + token
       }
     }

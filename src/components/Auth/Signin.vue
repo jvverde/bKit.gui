@@ -56,6 +56,7 @@ import { required } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
 import { mapGetters, mapActions } from 'vuex'
 import { hash } from 'src/helpers/secrets'
+import { LoginError } from 'src/helpers/errors'
 
 export default {
   name: 'Login',
@@ -112,7 +113,12 @@ export default {
         this.addAccount({ user: username, server, password: hashpass })
         this.$router.back()
       } catch (err) {
-        console.warn(err)
+        if (err instanceof LoginError) {
+          console.warn('message:', err.message)
+        }
+        console.warn('message:', err.message)
+        console.warn('name:', err.name)
+        console.warn('err:', err)
         this.catch(err)
       } finally {
         this.submiting = false

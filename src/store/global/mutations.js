@@ -33,6 +33,8 @@ export function addAccount (state, account) {
   }
 }
 
+export const updateAccount = addAccount
+
 export function delAccount (state, account) {
   const index = state.accounts.findIndex(s => s.servername === account.servername && s.user === account.user)
   if (index >= 0) {
@@ -45,6 +47,8 @@ export function delAccount (state, account) {
 export function addAccounts (state, accounts) {
   accounts.forEach(account => addAccount(state, account))
 }
+
+export const updateAccounts = addAccounts
 
 export function setCurrentAccount (state, account) {
   state.accounts.filter(s => s.current).forEach(s => (s.current = false))
