@@ -4,16 +4,16 @@ import path from 'path'
 
 const onlocal = true
 
-export function* readdir (dir) {
+export async function* readdir (dir) {
   try {
     const fullpath = path.normalize(`${dir}/`)
-    const stat = fs.lstatSync(fullpath)
+    const stat = await fs.promises.lstat(fullpath)
     if (stat.isDirectory()) {
-      const files = fs.readdirSync(fullpath)
-      for (const file of files) {
+      const files = await fs.promises.readdir(fullpath)
+      for await (const file of files) {
         try { // catch error individualy. This way it doesn't ends the loop
           const filename = path.join(fullpath, file)
-          const stat = fs.lstatSync(filename)
+          const stat = await fs.promises.lstat(filename)
           const isdir = stat.isDirectory()
           yield {
             path: filename,

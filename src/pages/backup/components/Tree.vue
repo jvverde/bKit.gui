@@ -331,7 +331,7 @@ export default {
       if (!this.mountpoint || !fs.existsSync(this.path) || !this.isdir) return
       // Only if directory exists on local disk and it correspond to the backup
       console.log('readdir', this.path)
-      for (const entry of readdir(this.path)) {
+      for await (const entry of readdir(this.path)) {
         entry.selected = this.selected // inherit select status from parent
         this.updateChildrens(entry)
       }

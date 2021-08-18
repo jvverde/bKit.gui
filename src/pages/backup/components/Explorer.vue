@@ -251,7 +251,7 @@ export default {
     async load (fullpath) {
       if (!this.mountpoint || !fs.existsSync(fullpath)) return
       this.loading = 'Reading local disk'
-      for (const entry of readdir(fullpath)) {
+      for await (const entry of readdir(fullpath)) {
         entry.checked = false
         // prevent the situation where dir path is no longer the current path
         if (this.currentPath === fullpath) this.updateCurrentFiles(entry, true)
@@ -322,6 +322,7 @@ export default {
         })
         .finally(() => (this.loading = false))
     },
+    // call on user events
     backup (path) {
       this.$emit('backup', path, (a) => {
         console.log('Backup done for', a)
