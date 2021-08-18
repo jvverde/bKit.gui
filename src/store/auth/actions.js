@@ -15,7 +15,7 @@ export function login ({ commit }, { username, serverURL, hashpass }) {
       resolve(answer.token)
     } catch (err) {
       if (err.message.match(/status code 422/)) {
-        reject(new LoginError('Invalid password'))
+        reject(new LoginError('Wrong password'))
       } else {
         reject(new LoginError(err))
       }

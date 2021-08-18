@@ -1,17 +1,16 @@
 'use strict'
 import axios from 'axios'
 import { Store } from 'src/store'
-import { getComputerInfo } from './bkit'
+import info from './info'
 
 const getServerURL = Store.getters['global/getServerURL']
-const pInfo = getComputerInfo() // Promise a info
 
 export async function listDisksOnBackup () {
   try {
     const serverURL = getServerURL()
-    const info = await pInfo
-    const [, , uuid] = info.split('|')
-    const { data: response } = await axios.get(`${serverURL}/v1/user/volumes/${uuid}`)
+    const { computer, bkituser } = await info()
+    const { uuid, name, domain } = computer
+    const { data: response } = await axios.get(`${serverURL}/v1/user/volumes/${uuid}/${name}/${domain}/${bkituser}`)
     return response.map(d => d.volume)
   } catch (err) {
     console.error(err)

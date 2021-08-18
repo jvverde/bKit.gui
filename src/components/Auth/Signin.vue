@@ -113,12 +113,10 @@ export default {
         this.addAccount({ user: username, server, password: hashpass })
         this.$router.back()
       } catch (err) {
-        if (err instanceof LoginError) {
-          console.warn('message:', err.message)
-        }
-        console.warn('message:', err.message)
-        console.warn('name:', err.name)
         console.warn('err:', err)
+        if (err instanceof LoginError) {
+          this.form.password = undefined
+        }
         this.catch(err)
       } finally {
         this.submiting = false
