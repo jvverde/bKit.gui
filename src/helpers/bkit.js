@@ -385,7 +385,7 @@ function* line2entry ([...lines]) {
     }
   }
 }
-
+// HERE NOW
 async function _listdirs (args, events = {}) {
   console.log('Enqueued bash listdir.sh with args', args)
   const lines = await enqueue2bash('./listdirs.sh', args, events, queue4Remote)

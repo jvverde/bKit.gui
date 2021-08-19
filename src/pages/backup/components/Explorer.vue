@@ -72,6 +72,7 @@
 
 // import { warn } from 'src/helpers/notify'
 import { refreshlist, refreshsnap } from 'src/helpers/bkit'
+import { listPath as listRemoteDir } from 'src/helpers/api'
 import { Resource } from 'src/helpers/types'
 
 import tree from './Tree'
@@ -264,9 +265,10 @@ export default {
         this.readLocalDir(fullpath),
         this.readRemoteDir(fullpath)
       ])
-      await this.comparedir(fullpath)
-      this.markFiltered()
-      this.cleanup()
+      // TEMPORARY
+      // await this.comparedir(fullpath)
+      // this.markFiltered()
+      // this.cleanup()
     },
     async comparedir (fullpath) {
       const { snap, path, mountpoint, rvid } = this
@@ -306,13 +308,15 @@ export default {
       this.loading = 'Reading backup'
       const upath = bkitPath(mountpoint, fullpath)
 
+      const entries = listRemoteDir(rvid, snap, upath)
+      console.log('entries', entries)
       return refreshlist(upath, snap, rvid)
         .then(dirs => {
           dirs.forEach(entry => {
             console.log('entry:', entry)
-            entry.path = join(fullpath, entry.name)
-            entry.checked = true
-            if (this.currentPath === fullpath) this.updateCurrentFiles(entry)
+            // entry.path = join(fullpath, entry.name)
+            // entry.checked = true
+            // if (this.currentPath === fullpath) this.updateCurrentFiles(entry)
           })
         })
         .catch(err => {
