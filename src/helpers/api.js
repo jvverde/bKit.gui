@@ -34,6 +34,6 @@ export async function listPath (rvid, snap, path) {
   const { data: response } = await axios.get(`${serverURL}/v1/user/list/${uuid}/${name}/${domain}/${bkituser}/${rvid}/${snap}`, {
     params: { path }
   })
-  console.log('response', response)
-  return response.map(e => e)
+  // console.log('response', response)
+  return response
 }

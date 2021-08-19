@@ -31,6 +31,7 @@ export default ({ router, store }) => {
       if (token) {
         config.headers['Authorization'] = 'Bearer ' + token
       }
+      // Is a forbiden header config.headers['Accept-Encoding'] = 'gzip'
     }
     return config
   }, error => Promise.reject(error))

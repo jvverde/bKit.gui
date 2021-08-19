@@ -15,13 +15,15 @@ export async function* readdir (dir) {
           const filename = path.join(fullpath, file)
           const stat = await fs.promises.lstat(filename)
           const isdir = stat.isDirectory()
+          const type = stat.isFile() ? 'f' : stat.isDirectory() ? 'd' : stat.isFIFO() ? 'p' : stat.isSocket() ? 's' : stat.isSymbolicLink() ? 'l' : undefined
           yield {
             path: filename,
             name: file,
+            type,
             isdir,
-            onlocal,
             isfile: !isdir,
-            stat
+            stat,
+            onlocal
           }
         } catch (err) {
           warn(err, false)

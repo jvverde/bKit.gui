@@ -53,7 +53,7 @@
           </transition>
           <div class="q-pa-xs row justify-evenly q-gutter-sm relative-position">
             <item
-              v-for="(entry, index) in currentFiles"
+              v-for="(entry, index) in showFiles"
               :key="index"
               v-bind="entry"
               @open="show"
@@ -139,6 +139,7 @@ export default {
       currentPath: '',
       loading: false,
       currentFiles: [],
+      files: [],
       invalidateCache: false,
       diskEvent: '',
       snap: undefined
@@ -166,6 +167,9 @@ export default {
       const onlocal = !!this.mountpoint
       return { isdir, isroot, path, onbackup, onlocal }
     },
+    showFiles () {
+      return this.currentFiles.filter(e => e.parent === this.currentPath)
+    },
     isReady2Show () {
       return this.snap !== undefined || !this.rvid
     },
@@ -189,7 +193,7 @@ export default {
     currentPath: {
       immediate: true,
       async handler (dir, oldir) {
-        this.currentFiles = []
+        // this.currentFiles = []
         if (this.mountpoint) { // only if is a local drive/disk
           if (this.watcher) {
             await this.watcher.close()
@@ -228,8 +232,10 @@ export default {
       const currentFiles = this.currentFiles
       const index = currentFiles.findIndex(e => e.path === entry.path)
       if (index >= 0) {
-        const file = reset ? entry : { ...currentFiles[index], ...entry }
+        // const file = reset ? entry : { ...currentFiles[index], ...entry }
+        const file = { ...currentFiles[index], ...entry }
         currentFiles.splice(index, 1, file)
+        console.log('Updated entry:', file)
       } else {
         currentFiles.push(entry)
       }
@@ -253,7 +259,9 @@ export default {
       if (!this.mountpoint || !fs.existsSync(fullpath)) return
       this.loading = 'Reading local disk'
       for await (const entry of readdir(fullpath)) {
+        // console.log('local entry:', entry)
         entry.checked = false
+        entry.parent = fullpath
         // prevent the situation where dir path is no longer the current path
         if (this.currentPath === fullpath) this.updateCurrentFiles(entry, true)
       }
@@ -295,10 +303,11 @@ export default {
         .finally(() => (this.loading = false))
     },
     async readRemoteDir (fullpath) {
-      const { snap, rvid, path, mountpoint, currentFiles } = this
+      const { snap, rvid, mountpoint, currentFiles } = this
       // Only if it still the current path and a Remote Volume (rvid) and snap exists
       // Otherwise mark is as checked and return
       if (!rvid || !snap || this.currentPath !== fullpath) {
+        console.log(`!${rvid} || !${snap} || ${this.currentPath} !== ${fullpath}`)
         return currentFiles.forEach(e => {
           e.checked = e.nobackup = true
         }) // mark files as cheched and with no backup
@@ -306,10 +315,28 @@ export default {
       // console.log(`Check ${fullpath} status on server`)
 
       this.loading = 'Reading backup'
-      const upath = bkitPath(mountpoint, fullpath)
+      try {
+        const upath = bkitPath(mountpoint, fullpath)
+        const entries = await listRemoteDir(rvid, snap, upath)
+        for (const entry of entries) {
+          const path = join(fullpath, entry.name)
+          const fullname = `${upath}/${entry.name}`
 
-      const entries = listRemoteDir(rvid, snap, upath)
-      console.log('entries', entries)
+          const backup = {
+            path,
+            parent: fullpath,
+            remote: { ...entry, fullname, snap, rvid }
+          }
+          // prevent the situation where dir path is no longer the current path
+          if (this.currentPath === fullpath) this.updateCurrentFiles(backup)
+        }
+      } catch (err) {
+        console.error(err)
+      } finally {
+        this.loading = false
+      }
+      console.log(refreshlist && 'refreshlist')
+      /*
       return refreshlist(upath, snap, rvid)
         .then(dirs => {
           dirs.forEach(entry => {
@@ -327,6 +354,7 @@ export default {
           }
         })
         .finally(() => (this.loading = false))
+      */
     },
     // call on user events
     backup (path) {
