@@ -51,11 +51,11 @@
 </template>
 
 <script>
-
 const os = require('os')
+const username = os.userInfo().username
+
 const { ipcRenderer, remote: { app } } = require('electron')
-import { getUser } from 'src/helpers/bkit'
-import { username } from 'src/helpers/bash'
+import info from 'src/helpers/info'
 import { catched } from 'src/helpers/notify'
 import { mapGetters, mapActions } from 'vuex'
 import bkitmenu from 'src/components/Menu'
@@ -134,12 +134,13 @@ export default {
   },
   async mounted () {
     try {
-      this.msg = 'Find current server account'
-      await this.loadCurrentAccount()
+      // this.msg = 'Find current server account'
+      // await this.loadCurrentAccount()
       this.msg = 'Get local user'
-      this.bkituser = await getUser()
-      this.msg = 'Loading profiles'
-      await this.loadAccounts()
+      const { bkituser } = await info()
+      this.bkituser = bkituser
+      // this.msg = 'Loading profiles'
+      // await this.loadAccounts()
     } catch (err) {
       catched(err)
     } finally {

@@ -101,7 +101,7 @@ const { chokidar, chokidarOptions } = require('src/helpers/chockidar')
 // const listdir = bkit.enqueueListdir('Listdir on localexplorer')
 // const dkit = bkit.enqueuedkit('dKit on localexplorer')
 
-const unixPath = (base, path, isdir = true) => {
+const bkitPath = (base, path, isdir = true) => {
   let upath = base ? relative(base, path) : path
   upath = isdir ? `/${upath}/` : `/${upath}`
   return normalize(upath)
@@ -248,7 +248,7 @@ export default {
         e.checked = true
       })
     },
-    async load (fullpath) {
+    async readLocalDir (fullpath) {
       if (!this.mountpoint || !fs.existsSync(fullpath)) return
       this.loading = 'Reading local disk'
       for await (const entry of readdir(fullpath)) {
@@ -260,8 +260,10 @@ export default {
     },
     async refresh (fullpath) {
       if (!fullpath) return
-      await this.load(fullpath)
-      await this.readDirOnBackup(fullpath)
+      await Promise.all([
+        this.readLocalDir(fullpath),
+        this.readRemoteDir(fullpath)
+      ])
       await this.comparedir(fullpath)
       this.markFiltered()
       this.cleanup()
@@ -290,7 +292,7 @@ export default {
         })
         .finally(() => (this.loading = false))
     },
-    async readDirOnBackup (fullpath) {
+    async readRemoteDir (fullpath) {
       const { snap, rvid, path, mountpoint, currentFiles } = this
       // Only if it still the current path and a Remote Volume (rvid) and snap exists
       // Otherwise mark is as checked and return
@@ -302,12 +304,12 @@ export default {
       // console.log(`Check ${fullpath} status on server`)
 
       this.loading = 'Reading backup'
-
-      const upath = unixPath(mountpoint, fullpath)
+      const upath = bkitPath(mountpoint, fullpath)
 
       return refreshlist(upath, snap, rvid)
         .then(dirs => {
           dirs.forEach(entry => {
+            console.log('entry:', entry)
             entry.path = join(fullpath, entry.name)
             entry.checked = true
             if (this.currentPath === fullpath) this.updateCurrentFiles(entry)
@@ -335,12 +337,12 @@ export default {
     },
     restore (path, isdir = true) {
       const { snap, rvid, mountpoint } = this
-      if (!mountpoint) path = unixPath('', path, isdir)
+      if (!mountpoint) path = bkitPath('', path, isdir)
       this.$emit('restore', new Resource({ path, snap, rvid }))
     },
     recover (path, isdir = true) {
       const { snap, rvid, mountpoint } = this
-      path = unixPath(mountpoint, path, isdir)
+      path = bkitPath(mountpoint, path, isdir)
       dialog.showOpenDialog({
         title: 'Where do you want to recover your data',
         defaultPath: download,

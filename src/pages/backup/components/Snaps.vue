@@ -37,7 +37,9 @@ moment.relativeTimeThreshold('m', 119)
 moment.relativeTimeThreshold('h', 47)
 moment.relativeTimeThreshold('d', 59)
 moment.relativeTimeThreshold('M', 23)
+
 import { listSnaps } from 'src/helpers/api'
+
 export default {
   name: 'Snaps',
   data () {
