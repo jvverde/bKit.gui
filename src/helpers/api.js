@@ -17,3 +17,11 @@ export async function listDisksOnBackup () {
   }
   // return []
 }
+
+export async function listSnaps (rvid) {
+  const serverURL = getServerURL()
+  const { computer, bkituser } = await info()
+  const { uuid, name, domain } = computer
+  const { data: response } = await axios.get(`${serverURL}/v1/user/snaps/${uuid}/${name}/${domain}/${rvid}/${bkituser}`)
+  return response.map(e => e.snap)
+}

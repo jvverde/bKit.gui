@@ -37,7 +37,7 @@ moment.relativeTimeThreshold('m', 119)
 moment.relativeTimeThreshold('h', 47)
 moment.relativeTimeThreshold('d', 59)
 moment.relativeTimeThreshold('M', 23)
-import { listSnaps } from 'src/helpers/bkit'
+import { listSnaps } from 'src/helpers/api'
 export default {
   name: 'Snaps',
   data () {
@@ -78,25 +78,23 @@ export default {
         this.currentSnap = null
       }
     },
-    load_snaps () {
+    async load_snaps () {
       this.snaps.splice(0, this.snaps.length) // empty snaps
-      this.reload()
+      await this.reload()
     },
-    reload () {
+    async reload () {
       this.loading = true
-      listSnaps(this.rvid, {
-        onreadline: (data) => {
-          if (this.snaps.find(e => e.id === data)) return
+      const names = await listSnaps(this.rvid)
+      for (const id of names) {
+        if (!this.snaps.find(e => e.id === id)) {
           this.snaps.push({
-            date: moment.utc(data.substring(5), 'YYYY.MM.DD-HH.mm.ss').local(),
-            id: data
+            date: moment.utc(id.substring(5), 'YYYY.MM.DD-HH.mm.ss').local(),
+            id
           })
         }
-      }).then(code => {
-        this.loading = false
-        this.select(this.snaps.length - 1)
-        console.log(`Script listsnaps ends with code  ${code}`)
-      })
+      }
+      this.select(this.snaps.length - 1)
+      this.loading = false
     }
   },
   mounted () {
