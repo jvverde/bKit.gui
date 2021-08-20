@@ -28,8 +28,9 @@
 
       <template v-slot:before>
         <q-scroll-area class="fit" :thumb-style="thumbStyle" :bar-style="barStyle">
+          <raiz :fullpath="mountpoint" :snap="snap" :rvid="rvid" :mountpoint="mountpoint"/>
           <q-list>
-            <tree
+          <!--             <tree
               :entry="root"
               :mountpoint="mountpoint"
               :rvid="rvid"
@@ -38,7 +39,7 @@
               :selected.sync="selectedNode"
               @restore="(...args) => $emit('restore', ...args)"
               @backup="(...args) => $emit('backup', ...args)"
-              @show="show"/>
+              @show="show"/> -->
           </q-list>
         </q-scroll-area>
       </template>
@@ -75,9 +76,10 @@ import { refreshlist, refreshsnap } from 'src/helpers/bkit'
 import { listPath as listRemoteDir } from 'src/helpers/api'
 import { Resource } from 'src/helpers/types'
 
-import tree from './Tree'
+// import tree from './Tree'
 import item from './Item'
 import snaps from './Snaps'
+import raiz from './Root'
 // import fs from 'fs-extra'
 const { relative, join, sep, dirname } = require('path')
 const fs = require('fs')
@@ -156,8 +158,9 @@ export default {
     }
   },
   components: {
+    raiz,
     snaps,
-    tree,
+    // tree,
     item
   },
   computed: {

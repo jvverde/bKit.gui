@@ -1,17 +1,17 @@
-import axios from 'axios'
 import fs from 'fs'
+import { readdir } from 'src/helpers/readfs'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
 import { listPath as listRemoteDir } from 'src/helpers/api'
 import { relative, normalize } from 'path'
 
-const find = pathname => fs.promises.access(pathname, fs.constants.F_OK)
+const exists = async (pathname) => fs.promises.access(pathname, fs.constants.F_OK)
 
 const bkitPath = (base, path) => {
   let upath = base ? relative(base, path) : path
   return normalize(upath)
 }
 
-export const Directory = {
+export default {
   data: function () {
     return {
       localEntries: [],
@@ -28,8 +28,8 @@ export const Directory = {
     },
     mountpoint: {
       type: String,
-      default: ''      
-    }
+      default: ''
+    },
     rvid: {
       type: String,
       default: ''
@@ -40,34 +40,45 @@ export const Directory = {
     }
   },
   computed: {
-    endpoint () { return [this.snap, this.rvid, this.mountpoint] }
+    endpoint () {
+      return [this.snap, this.rvid, this.mountpoint]
+    },
+    backups () {
+      const { localEntries, remoteEntries } = this
+      return localEntries.filter(le => remoteEntries.some(re => re.name === le.name))
+    },
+    nobackups () {
+      const { localEntries, backups } = this
+      return localEntries.filter(le => backups.every(ie => ie.name !== le.name))
+    },
+    nolocals () {
+      const { remoteEntries, backups } = this
+      return remoteEntries.filter(re => backups.every(ie => ie.name !== re.name))
+    },
+    entries () {
+      const r = [...this.nobackups, ...this.backups, ...this.nolocals]
+      return r
+    }
   },
   watch: {
     endpoint: {
       immediate: true,
       deep: true,
       async handler (endpoint, old) {
-        await this.readRemoteDir()  
+        console.log('New endpoint', endpoint)
+        await this.readRemoteDir()
       }
-    }
+    },
     fullpath: {
       immediate: true,
       async handler (dir, oldir) {
-        // this.currentFiles = []
-        const exists = dir && await find(dir)
-        if (exits) { // only if is a local drive/disk
+        console.log('New fullpath', dir)
+        try {
+          await exists(dir)
           await this.readLocalDir()
-          if (this.watcher) {
-            await this.watcher.close()
-            this.watcher.add(dir)
-          } else {
-            this.watcher = chokidar.watch(dir, chokidarOptions)
-          }
-          this.watcher.on('all', (event, path) => {
-            this.diskEvent = [event, path].join('|')
-            console.log('Event', this.diskEvent)
-            this.readLocalDir()
-          })
+          await this.installWatcher()
+        } catch (err) {
+          console.log(err)
         }
       }
     }
@@ -79,30 +90,48 @@ export const Directory = {
       try {
         this.localloading = 'Reading local disk'
         const fullpath = this.fullpath
-        const exists = fullpath && await find(fullpath)
-        if (!exists) return
-        const entries = await readdir(fullpath)
-        if (fullpath !== this.fullpath) return
-        this.localEntries = entries.map(e => { ...e, onlocal: true })
+        console.log('readLocalDir', fullpath)
+        await exists(fullpath)
+        const entries = await readdir(fullpath) // readdir is an async generator
+        this.localEntries = []
+        for await (const entry of entries) {
+          if (fullpath !== this.fullpath) return
+          this.localEntries.push({ ...entry, onlocal: true })
+        }
       } catch (err) {
         console.error(err)
       } finally {
-        this.localloading = false        
+        this.localloading = false
       }
     },
     async readRemoteDir () {
       try {
+        this.remoteloading = 'Reading backup'
         const { snap, rvid, fullpath, mountpoint } = this
-        if (!snap || !rvid ) return
+        if (!snap || !rvid) return
         const upath = bkitPath(mountpoint, fullpath)
+        console.log('upath', upath)
         const entries = await listRemoteDir(rvid, snap, upath)
         if (fullpath !== this.fullpath) return
-        this.remoteEntries = entries.map(e => { ...e, onbackup: true })
+        this.remoteEntries = entries.map(e => ({ ...e, onbackup: true }))
       } catch (err) {
         console.log(err)
       } finally {
         this.remoteloading = false
       }
+    },
+    async installWatcher () {
+      if (this.watcher) {
+        await this.watcher.close()
+        this.watcher.add(this.fullpath)
+      } else {
+        this.watcher = chokidar.watch(this.fullpath, chokidarOptions)
+      }
+      this.watcher.on('all', (event, path) => {
+        this.diskEvent = [event, path].join('|')
+        console.log('Event', this.diskEvent)
+        this.readLocalDir()
+      })
     }
   }
 }
