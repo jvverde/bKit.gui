@@ -3,6 +3,7 @@ import { readdir } from 'src/helpers/readfs'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
 import { listPath as listRemoteDir } from 'src/helpers/api'
 import { relative, normalize } from 'path'
+import { onMounted } from 'vue'
 
 const exists = async (pathname) => fs.promises.access(pathname, fs.constants.F_OK)
 
@@ -12,10 +13,20 @@ const bkitPath = (base, path) => {
 }
 
 export default {
-  data: function () {
+  setup () {
+    // mounted
+    console.log('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
+    onMounted(() => {
+      console.log('Component ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ is mounted!')
+    })
     return {
-      localEntries: [],
-      remoteEntries: [],
+      teste: 3
+    }
+  },
+  data () {
+    return {
+      localEntries: {},
+      backupEntries: {},
       watcher: undefined,
       remoteloading: false,
       localloading: false
@@ -43,20 +54,23 @@ export default {
     endpoint () {
       return [this.snap, this.rvid, this.mountpoint]
     },
-    backups () {
-      const { localEntries, remoteEntries } = this
-      return localEntries.filter(le => remoteEntries.some(re => re.name === le.name))
+    secured () {
+      const { localEntries, backupEntries } = this
+      const keys = Object.keys(localEntries)
+      return keys.filter(k => backupEntries[k] instanceof Object).map(k => localEntries[k])
     },
-    nobackups () {
-      const { localEntries, backups } = this
-      return localEntries.filter(le => backups.every(ie => ie.name !== le.name))
+    onlyLocal () {
+      const { localEntries, secured } = this
+      const keys = Object.keys(localEntries)
+      return keys.filter(k => !(secured[k] instanceof Object)).map(k => localEntries[k])
     },
-    nolocals () {
-      const { remoteEntries, backups } = this
-      return remoteEntries.filter(re => backups.every(ie => ie.name !== re.name))
+    onlyBackup () {
+      const { backupEntries, secured } = this
+      const keys = Object.keys(backupEntries)
+      return keys.filter(k => !(secured[k] instanceof Object)).map(k => backupEntries[k])
     },
     entries () {
-      const r = [...this.nobackups, ...this.backups, ...this.nolocals]
+      const r = [...this.secured, ...this.onlyLocal, ...this.onlyBackup]
       return r
     }
   },
@@ -84,6 +98,7 @@ export default {
     }
   },
   mounted () {
+    console.log('Mounted this.teste', this.teste)
   },
   methods: {
     async readLocalDir () {
@@ -93,11 +108,12 @@ export default {
         console.log('readLocalDir', fullpath)
         await exists(fullpath)
         const entries = await readdir(fullpath) // readdir is an async generator
-        this.localEntries = []
+        const localEntries = {}
         for await (const entry of entries) {
-          if (fullpath !== this.fullpath) return
-          this.localEntries.push({ ...entry, onlocal: true })
+          entry.onlocal = true
+          localEntries[entry.name] = entry
         }
+        if (fullpath === this.fullpath) this.localEntries = localEntries
       } catch (err) {
         console.error(err)
       } finally {
@@ -113,7 +129,12 @@ export default {
         console.log('upath', upath)
         const entries = await listRemoteDir(rvid, snap, upath)
         if (fullpath !== this.fullpath) return
-        this.remoteEntries = entries.map(e => ({ ...e, onbackup: true }))
+        const backupEntries = {}
+        entries.forEach(entry => {
+          entry.onbackup = true
+          backupEntries[entry.name] = entry
+        })
+        this.backupEntries = backupEntries
       } catch (err) {
         console.log(err)
       } finally {

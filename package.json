@@ -43,7 +43,7 @@
   ],
   "dependencies": {
     "@growthbunker/vuedarkmode": "^0.5.56",
-    "@quasar/extras": "^1.10.9",
+    "@quasar/extras": "^1.10.11",
     "axios": "^0.21.1",
     "chokidar": "^3.4.1",
     "electron-log": "^4.2.1",
