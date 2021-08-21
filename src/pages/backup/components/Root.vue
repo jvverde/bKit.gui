@@ -4,7 +4,7 @@
     <div>rvid {{ rvid }}</div>
     <div>snap {{ snap }}</div>
     <div>fullpath {{ fullpath }}</div>
-    <div>names: {{ names.map(e => [e.name, e.onlocal, e.onbackup]) }}</div>
+    <div>names: {{ names.map(e => [e.name, e.updated]) }}</div>
   <!--     <tree
       :entry="root"
       :mountpoint="mountpoint"

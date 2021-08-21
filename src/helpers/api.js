@@ -28,12 +28,15 @@ export async function listSnaps (rvid) {
 
 export async function listPath (rvid, snap, path) {
   const serverURL = getServerURL()
-  const { computer, bkituser } = await info()
+  const { computer, bkituser: profile } = await info()
   const { uuid, name, domain } = computer
   // format: /list/:uuid/:name/:domain/:profile/:volume/:snap
-  const { data: response } = await axios.get(`${serverURL}/v1/user/list/${uuid}/${name}/${domain}/${bkituser}/${rvid}/${snap}`, {
+  const { data: response } = await axios.get(`${serverURL}/v1/user/list/${uuid}/${name}/${domain}/${profile}/${rvid}/${snap}`, {
     params: { path }
   })
   // console.log('response', response)
-  return response
+  const remote = { server: serverURL, uuid, name, domain, profile, rvid, snap, path }
+  return response.map(e => {
+    return { ...e, remote }
+  })
 }

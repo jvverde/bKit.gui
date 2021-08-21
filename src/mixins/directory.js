@@ -3,7 +3,6 @@ import { readdir } from 'src/helpers/readfs'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
 import { listPath as listRemoteDir } from 'src/helpers/api'
 import { relative, normalize } from 'path'
-import { onMounted } from 'vue'
 
 const exists = async (pathname) => fs.promises.access(pathname, fs.constants.F_OK)
 
@@ -12,17 +11,49 @@ const bkitPath = (base, path) => {
   return normalize(upath)
 }
 
-export default {
-  setup () {
-    // mounted
-    console.log('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
-    onMounted(() => {
-      console.log('Component ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ is mounted!')
-    })
-    return {
-      teste: 3
+export class Entry {
+  constructor (obj) {
+    Object.assign(this, obj)
+  }
+  get hasBackup () {
+    return this.diff instanceof Object
+  }
+  get isdir () {
+    return this.type === 'd'
+  }
+  get isnotdir () {
+    return this.type !== 'd'
+  }
+  get isfile () {
+    return this.type === 'f'
+  }
+  get updated () {
+    const { diff, isnotdir, hasBackup } = this
+    if (!hasBackup) return undefined
+    if (isnotdir) {
+      return !('size' in diff || 'mtimeMs' in diff)
+    } else return !('mtimeMs' in diff)
+  }
+}
+
+const diff = (a = {}, b = {}) => {
+  const keys = Object.keys(a)
+  const r = {}
+  keys.forEach(k => {
+    if (a[k] !== b[k]) {
+      r[k] = [a[k], b[k]]
     }
-  },
+  })
+  return r
+}
+
+const join = (a, b) => {
+  const d = { diff: diff(a.stat, b.stat) }
+  const r = { ...b, ...a, ...d }
+  return r
+}
+
+export default {
   data () {
     return {
       localEntries: {},
@@ -57,20 +88,21 @@ export default {
     secured () {
       const { localEntries, backupEntries } = this
       const keys = Object.keys(localEntries)
-      return keys.filter(k => backupEntries[k] instanceof Object).map(k => localEntries[k])
+      return keys.filter(k => backupEntries[k] instanceof Object).map(k => new Entry(join(localEntries[k], backupEntries[k])))
     },
     onlyLocal () {
-      const { localEntries, secured } = this
+      const { localEntries, backupEntries } = this
       const keys = Object.keys(localEntries)
-      return keys.filter(k => !(secured[k] instanceof Object)).map(k => localEntries[k])
+      return keys.filter(k => !(backupEntries[k] instanceof Object)).map(k => new Entry(localEntries[k]))
     },
     onlyBackup () {
-      const { backupEntries, secured } = this
+      const { backupEntries, localEntries } = this
       const keys = Object.keys(backupEntries)
-      return keys.filter(k => !(secured[k] instanceof Object)).map(k => backupEntries[k])
+      return keys.filter(k => !(localEntries[k] instanceof Object)).map(k => new Entry(backupEntries[k]))
     },
     entries () {
       const r = [...this.secured, ...this.onlyLocal, ...this.onlyBackup]
+      console.log('Entries', r)
       return r
     }
   },
