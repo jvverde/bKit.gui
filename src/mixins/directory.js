@@ -2,13 +2,13 @@ import fs from 'fs'
 import { readdir } from 'src/helpers/readfs'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
 import { listPath as listRemoteDir } from 'src/helpers/api'
-import { relative, normalize } from 'path'
+import path from 'path'
 
 const exists = async (pathname) => fs.promises.access(pathname, fs.constants.F_OK)
 
-const bkitPath = (base, path) => {
-  let upath = base ? relative(base, path) : path
-  return normalize(upath)
+const bkitPath = (base, fullpath) => {
+  let upath = base ? path.relative(base, fullpath) : fullpath
+  return path.normalize(upath).split(path.sep).join(path.posix.sep)
 }
 
 export class Entry {
@@ -16,7 +16,7 @@ export class Entry {
     Object.assign(this, obj)
   }
   get hasBackup () {
-    return this.diff instanceof Object
+    return this.remote instanceof Object
   }
   get isdir () {
     return this.type === 'd'
@@ -33,6 +33,19 @@ export class Entry {
     if (isnotdir) {
       return !('size' in diff || 'mtimeMs' in diff)
     } else return !('mtimeMs' in diff)
+  }
+  get snap () {
+    const { remote } = this
+    if (remote) return remote.snap
+    return undefined
+  }
+  get rvid () {
+    const { remote } = this
+    if (remote) return remote.rvid
+    return undefined
+  }
+  get fullpath () {
+    return this.path
   }
 }
 
@@ -83,7 +96,7 @@ export default {
   },
   computed: {
     endpoint () {
-      return [this.snap, this.rvid, this.mountpoint]
+      return [this.snap, this.rvid, this.mountpoint, this.fullpath]
     },
     secured () {
       const { localEntries, backupEntries } = this
@@ -130,7 +143,6 @@ export default {
     }
   },
   mounted () {
-    console.log('Mounted this.teste', this.teste)
   },
   methods: {
     async readLocalDir () {
@@ -143,6 +155,7 @@ export default {
         const localEntries = {}
         for await (const entry of entries) {
           entry.onlocal = true
+          entry.mountpoint = this.mountpoint
           localEntries[entry.name] = entry
         }
         if (fullpath === this.fullpath) this.localEntries = localEntries
@@ -158,7 +171,7 @@ export default {
         const { snap, rvid, fullpath, mountpoint } = this
         if (!snap || !rvid) return
         const upath = bkitPath(mountpoint, fullpath)
-        console.log('upath', upath)
+        console.log('readRemoteDir', upath)
         const entries = await listRemoteDir(rvid, snap, upath)
         if (fullpath !== this.fullpath) return
         const backupEntries = {}

@@ -37,7 +37,7 @@
       </template>
 
       <div v-if="isOpen" style="margin-left:1em">
-        <node :fullpath="entry.path"/>
+        <node v-bind="nodeProps"/>
       </div>
   </q-expansion-item>
 </template>
@@ -60,6 +60,10 @@ export default {
     }
   },
   computed: {
+    nodeProps () {
+      const { fullpath, snap, rvid, mountpoint } = this.entry
+      return { fullpath, snap, rvid, mountpoint }
+    },
     isSelected () {
       return this.path === this.displayNode
     },
