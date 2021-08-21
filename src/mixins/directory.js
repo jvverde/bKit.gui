@@ -115,7 +115,7 @@ export default {
     },
     entries () {
       const r = [...this.secured, ...this.onlyLocal, ...this.onlyBackup]
-      console.log('Entries', r)
+      // console.log('Entries', r)
       return r
     }
   },
@@ -124,14 +124,14 @@ export default {
       immediate: true,
       deep: true,
       async handler (endpoint, old) {
-        console.log('New endpoint', endpoint)
+        // console.log('New endpoint', endpoint)
         await this.readRemoteDir()
       }
     },
     fullpath: {
       immediate: true,
       async handler (dir, oldir) {
-        console.log('New fullpath', dir)
+        // console.log('New fullpath', dir)
         try {
           await exists(dir)
           await this.readLocalDir()

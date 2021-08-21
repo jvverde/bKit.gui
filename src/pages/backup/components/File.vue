@@ -1,56 +1,59 @@
- <template>
-  <div>
-    <div>
-      <directory v-for="folder in folders" :key="folder.path" :entry="folder"/>
-    </div>
-    <div>
-      <file v-for="file in files" :key="file.path" :entry="file"/>
-    </div>
-  </div>
+<template>
+  <q-list dense>
+    <q-item> <!-- this is the header line template -->
+      <q-item-section side>
+        <q-icon name="description" color="file"/>
+      </q-item-section>
+
+      <q-item-section no-wrap>
+        <q-item-label class="ellipsis">
+          <span :class="{ wasDeleted: wasdeleted, noBackup: isnew }">
+            {{name}}
+          </span>
+          <q-icon name="done" color="updated" v-if="isUpdate"/>
+          <q-icon name="call_merge" color="modified" v-else-if="wasmodified"/>
+          <q-icon name="arrow_upward" color="nobackup" v-else-if="isnew"/>
+          <q-icon name="arrow_downward" color="deleted" v-else-if="wasdeleted"/>
+          <q-icon name="block " color="filtered" v-else-if="isfiltered"/>
+        </q-item-label>
+      </q-item-section>
+
+      <q-item-section side no-wrap>
+         <q-btn-group flat rounded>
+          <q-btn round color="button" flat size="sm" icon="restore"/>
+        </q-btn-group>
+      </q-item-section>
+    </q-item>
+  </q-list>
 </template>
+
 <script>
-
-const comparenames = (a, b) => {
-  if (a.name.toLowerCase() < b.name.toLowerCase()) return -1
-  if (a.name.toLowerCase() > b.name.toLowerCase()) return 1
-  return 0
-}
-const compare = (a, b) => {
-  if (a.isdir && b.isdir) return comparenames(a, b)
-  else if (!a.isdir && !b.isdir) return comparenames(a, b)
-  else if (a.isdir) return -1
-  else if (b.isdir) return 1
-  else return 0
-}
-
-import dirminxin from 'src/mixins/directory'
-
 export default {
-  name: 'node',
+  name: 'file',
   data () {
     return {
       open: false
     }
   },
-  mixins: [dirminxin],
   components: {
-    directory: () => import('./Directory'),
-    file: () => import('./File')
   },
   props: {
+    entry: {
+      type: Object,
+      required: true
+    }
   },
   computed: {
-    childrens () {
-      return [...this.entries].sort(compare)
-    },
-    folders () {
-      return this.childrens.filter(e => e.isdir)
-    },
-    files () {
-      return this.childrens.filter(e => !e.isdir)
-    },
     isSelected () {
       return this.path === this.displayNode
+    },
+    selectedNode: {
+      get () {
+        return this.displayNode
+      },
+      set (val) {
+        this.$emit('update:displayNode', val)
+      }
     },
     isloading () {
       return this.loading
@@ -63,6 +66,9 @@ export default {
     },
     path () {
       return this.entry.path
+    },
+    name () {
+      return this.entry.name
     },
     leaf () {
       return !this.isdir
@@ -80,16 +86,14 @@ export default {
     isfiltered () { return !!this.entry.isfiltered },
     isnew () { return !this.onbackup && this.onlocal && !!this.entry.isnew },
     wasmodified () { return this.onbackup && this.onlocal && !!this.entry.wasmodified },
-    isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified },
-    token () {
-      return [this.path, this.snap, this.rvid, this.eventdate].join('|')
-    }
+    isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified }
   },
   watch: {
   },
   methods: {
   },
   mounted () {
+    // console.log('mounted entry', this.entry)
   }
 }
 </script>

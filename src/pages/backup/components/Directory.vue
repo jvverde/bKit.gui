@@ -1,50 +1,48 @@
 <template>
   <q-expansion-item
-      switch-toggle-side
-      dense
-      dense-toggle
-      v-model="open"
-      class="b-tree"
-      :ref="path"
-      :header-style="isSelected ? 'background-color:var(--q-color-selected)' : ''"
-      expand-icon="keyboard_arrow_down"
-      expand-icon-class="expandicon">
-      <template v-slot:header> <!-- this is the header line template -->
-        <q-item-section side @click.stop="see">
-          <q-icon :name="open ? 'folder_open' : 'folder'" color="folder"/>
-        </q-item-section>
+    switch-toggle-side
+    dense
+    dense-toggle
+    v-model="open"
+    :header-style="isSelected ? 'background-color:var(--q-color-selected)' : ''"
+    expand-icon="keyboard_arrow_down"
+    expand-icon-class="expandicon">
+    <template v-slot:header> <!-- this is the header line template -->
+      <q-item-section side @click.stop="see">
+        <q-icon :name="open ? 'folder_open' : 'folder'" color="folder"/>
+      </q-item-section>
 
-        <q-item-section no-wrap :class="{ isSelected: isSelected }">
-          <q-item-label class="ellipsis">
-            <q-spinner-ios color="loader" v-if="isloading"/>
-            <span :class="{ wasDeleted: wasdeleted, noBackup: isnew }" @click.stop="see">
-              {{name}}
-            </span>
-            <q-icon name="done" color="updated" v-if="isUpdate"/>
-            <q-icon name="call_merge" color="modified" v-else-if="wasmodified"/>
-            <q-icon name="arrow_upward" color="nobackup" v-else-if="isnew"/>
-            <q-icon name="arrow_downward" color="deleted" v-else-if="wasdeleted"/>
-            <q-icon name="block " color="filtered" v-else-if="isfiltered"/>
-          </q-item-label>
-        </q-item-section>
+      <q-item-section no-wrap :class="{ isSelected: isSelected }">
+        <q-item-label class="ellipsis">
+          <q-spinner-ios color="loader" v-if="isloading"/>
+          <span :class="{ wasDeleted: wasdeleted, noBackup: isnew }" @click.stop="see">
+            {{name}}
+          </span>
+          <q-icon name="done" color="updated" v-if="isUpdate"/>
+          <q-icon name="call_merge" color="modified" v-else-if="wasmodified"/>
+          <q-icon name="arrow_upward" color="nobackup" v-else-if="isnew"/>
+          <q-icon name="arrow_downward" color="deleted" v-else-if="wasdeleted"/>
+          <q-icon name="block " color="filtered" v-else-if="isfiltered"/>
+        </q-item-label>
+      </q-item-section>
 
-        <q-item-section side no-wrap>
-           <q-btn-group flat rounded>
-            <q-btn round color="button" flat size="sm" icon="restore"/>
-          </q-btn-group>
-        </q-item-section>
+      <q-item-section side no-wrap>
+         <q-btn-group flat rounded>
+          <q-btn round color="button" flat size="sm" icon="restore"/>
+        </q-btn-group>
+      </q-item-section>
 
-      </template>
+    </template>
 
-      <div v-if="isOpen" style="margin-left:1em">
-        <node v-bind="nodeProps"/>
-      </div>
+    <div v-if="isOpen" style="margin-left:1em">
+      <node v-bind="nodeProps"/>
+    </div>
   </q-expansion-item>
 </template>
 
 <script>
 export default {
-  name: 'tree',
+  name: 'directory',
   data () {
     return {
       open: false
@@ -119,7 +117,7 @@ export default {
     }
   },
   mounted () {
-    console.log('mounted entry', this.entry)
+    // console.log('mounted entry', this.entry)
   }
 }
 </script>
