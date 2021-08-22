@@ -4,17 +4,19 @@ import path from 'path'
 
 // const onlocal = true
 
-const getType = stat => stat.isFile() ? 'f' : stat.isDirectory() ? 'd' : stat.isFIFO() ? 'p' : stat.isSocket() ? 's' : stat.isSymbolicLink() ? 'l' : undefined
+const getType = stat => stat.isFile() ? 'f' : stat.isDirectory() ? 'd' : stat.isFIFO() ? 'p' : stat.isSocket()
+  ? 's' : stat.isSymbolicLink() ? 'l' : stat.isBlockDevice() ? 'b' : stat.isCharacterDevice() ? 'c' : undefined
+
 export async function* readdir (dir) {
   try {
     const fullpath = path.normalize(`${dir}/`)
-    const stat = await fs.promises.stat(fullpath)
+    const stat = await fs.promises.lstat(fullpath)
     if (stat.isDirectory()) {
       const files = await fs.promises.readdir(fullpath)
       for await (const file of files) {
         try { // catch error individualy. This way it doesn't ends the loop
           const filename = path.join(fullpath, file)
-          const stat = await fs.promises.stat(filename)
+          const stat = await fs.promises.lstat(filename)
           // const isdir = stat.isDirectory()
           const type = getType(stat)
           yield {

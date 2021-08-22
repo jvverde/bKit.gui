@@ -7,19 +7,20 @@
 
       <q-item-section no-wrap>
         <q-item-label class="ellipsis">
-          <span :class="{ wasDeleted: wasdeleted, noBackup: isnew }">
+          <span :style="`color:var(--q-color-${getcolor})`">
             {{name}}
           </span>
           <q-icon name="done" color="updated" v-if="isUpdate"/>
-          <q-icon name="call_merge" color="modified" v-else-if="wasmodified"/>
-          <q-icon name="arrow_upward" color="nobackup" v-else-if="isnew"/>
-          <q-icon name="arrow_downward" color="deleted" v-else-if="wasdeleted"/>
-          <q-icon name="block " color="filtered" v-else-if="isfiltered"/>
+          <q-icon name="call_merge" color="modified" v-else-if="needUpdate"/>
+          <q-icon name="arrow_upward" color="nobackup" v-else-if="onlyLocal"/>
+          <q-icon name="arrow_downward" color="deleted" v-else-if="onlyBackup"/>
+          <!-- q-icon name="block " color="filtered" v-else-if="isfiltered"/ -->
         </q-item-label>
       </q-item-section>
 
       <q-item-section side no-wrap>
          <q-btn-group flat rounded>
+          <q-btn round color="button" flat size="sm" icon="help" @click="debug"/>
           <q-btn round color="button" flat size="sm" icon="restore"/>
         </q-btn-group>
       </q-item-section>
@@ -44,25 +45,12 @@ export default {
     }
   },
   computed: {
-    isSelected () {
-      return this.path === this.displayNode
-    },
-    selectedNode: {
-      get () {
-        return this.displayNode
-      },
-      set (val) {
-        this.$emit('update:displayNode', val)
-      }
-    },
-    isloading () {
-      return this.loading
-    },
-    isdir () {
-      return this.entry.isdir
-    },
-    isroot () {
-      return this.entry.isroot
+    getcolor () {
+      if (this.isUpdate) return 'updated'
+      else if (this.needUpdate) return 'modified'
+      else if (this.onlyLocal) return 'nobackup'
+      else if (this.onlyBackup) return 'deleted'
+      return undefined
     },
     path () {
       return this.entry.path
@@ -70,57 +58,37 @@ export default {
     name () {
       return this.entry.name
     },
-    leaf () {
-      return !this.isdir
-    },
     isOpen () {
       return this.open && this.isdir
     },
-    onbackup () { // We should be very carefully with this one
-      return !!this.entry.onbackup // && !!this.entry.markAsUnverified
+    onbackup () {
+      return !!this.entry.onbackup
     },
     onlocal () {
       return !!this.entry.onlocal
     },
-    wasdeleted () { return this.onbackup && !this.onlocal },
-    isfiltered () { return !!this.entry.isfiltered },
-    isnew () { return !this.onbackup && this.onlocal && !!this.entry.isnew },
-    wasmodified () { return this.onbackup && this.onlocal && !!this.entry.wasmodified },
-    isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified }
+    onlyBackup () { return this.entry.onlyBackup === true },
+    // isfiltered () { return !!this.entry.isfiltered },
+    onlyLocal () { return this.entry.onlyLocal === true },
+    isUpdate () { return this.entry.updated === true },
+    needUpdate () { return this.entry.needUpdate === true }
   },
   watch: {
   },
   methods: {
+    debug () {
+      console.log('mounted entry', this.entry)
+    }
   },
   mounted () {
-    // console.log('mounted entry', this.entry)
   }
 }
 </script>
 
 <style lang="scss">
   @import 'src/css/app.scss';
-  .isSelected {
-    color:$bkit;
-    .wasDeleted {
-      color: $bkit;
-    }
-  }
-  .wasDeleted {
-    color: $deleted;
-  }
   .noBackup {
     color: $nobackup;
     color: var(--q-color-nobackup);
   }
-  .expandicon, .noexpandicon {
-    margin: 0px;
-    padding: 0px;
-    padding-right: 5px;
-    color: $openclose;
-  }
-  .noexpandicon {
-    visibility: hidden;
-  }
-
 </style>

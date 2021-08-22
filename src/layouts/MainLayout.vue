@@ -58,11 +58,11 @@ const { ipcRenderer, remote: { app } } = require('electron')
 import info from 'src/helpers/info'
 import { catched } from 'src/helpers/notify'
 import { mapGetters, mapActions } from 'vuex'
-import bkitmenu from 'src/components/Menu'
+import bkitmenu from './components/Menu'
 
-import { colors } from 'quasar'
+// import { colors } from 'quasar'
 
-colors.setBrand('light', '#DDD')
+// colors.setBrand('light', '#DDD')
 // colors.setBrand('missing', '#F30')
 // console.log(colors)
 

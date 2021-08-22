@@ -18,6 +18,15 @@ export class Entry {
   get hasBackup () {
     return this.remote instanceof Object
   }
+  get onBoth () {
+    return !!this.onlocal && !!this.onbackup
+  }
+  get onlyLocal () {
+    return !!this.onlocal && !this.onbackup
+  }
+  get onlyBackup () {
+    return !this.onlocal && !!this.onbackup
+  }
   get isdir () {
     return this.type === 'd'
   }
@@ -27,12 +36,17 @@ export class Entry {
   get isfile () {
     return this.type === 'f'
   }
+  get needUpdate () {
+    const { diff, isdir } = this
+    if (!diff) return undefined
+    const times = diff['mtimeMs']
+    const hasDifferenttimes = times instanceof Array && Math.floor(times[0] / 1000) !== Math.floor(times[1] / 1000)
+    if (isdir) {
+      return hasDifferenttimes
+    } else return 'size' in diff || hasDifferenttimes
+  }
   get updated () {
-    const { diff, isnotdir, hasBackup } = this
-    if (!hasBackup) return undefined
-    if (isnotdir) {
-      return !('size' in diff || 'mtimeMs' in diff)
-    } else return !('mtimeMs' in diff)
+    return !!this.onBoth && !this.needUpdate
   }
   get snap () {
     const { remote } = this
@@ -189,8 +203,10 @@ export default {
     async installWatcher () {
       if (this.watcher) {
         await this.watcher.close()
+        console.log('Add watcher', this.fullpath)
         this.watcher.add(this.fullpath)
       } else {
+        console.log('Start Watcher', this.fullpath)
         this.watcher = chokidar.watch(this.fullpath, chokidarOptions)
       }
       this.watcher.on('all', (event, path) => {

@@ -44,8 +44,6 @@
 
 <script>
 
-// import fs from 'fs'
-
 import { colors } from 'quasar'
 import { Photoshop, Material, Chrome, Compact, Sketch, Slider } from 'vue-color'
 
