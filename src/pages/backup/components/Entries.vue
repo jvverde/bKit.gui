@@ -1,9 +1,9 @@
  <template>
-  <div>
-    <div>
+  <div class="full-width">
+    <div class="full-width">
       <directory v-for="folder in folders" :key="folder.path" :entry="folder"/>
     </div>
-    <div>
+    <div class="full-width">
       <file v-for="file in files" :key="file.path" :entry="file"/>
     </div>
   </div>
@@ -27,17 +27,10 @@ import dirminxin from 'src/mixins/directory'
 
 export default {
   name: 'Entries',
-  data () {
-    return {
-      open: false
-    }
-  },
   mixins: [dirminxin],
   components: {
     directory: () => import('./Directory'),
     file: () => import('./File')
-  },
-  props: {
   },
   computed: {
     childrens () {
@@ -48,75 +41,10 @@ export default {
     },
     files () {
       return this.childrens.filter(e => !e.isdir)
-    },
-    isSelected () {
-      return this.path === this.displayNode
-    },
-    isloading () {
-      return this.loading
-    },
-    isdir () {
-      return this.entry.isdir
-    },
-    isroot () {
-      return this.entry.isroot
-    },
-    path () {
-      return this.entry.path
-    },
-    leaf () {
-      return !this.isdir
-    },
-    isOpen () {
-      return this.open && this.isdir
-    },
-    onbackup () { // We should be very carefully with this one
-      return !!this.entry.onbackup // && !!this.entry.markAsUnverified
-    },
-    onlocal () {
-      return !!this.entry.onlocal
-    },
-    wasdeleted () { return this.onbackup && !this.onlocal },
-    isfiltered () { return !!this.entry.isfiltered },
-    isnew () { return !this.onbackup && this.onlocal && !!this.entry.isnew },
-    wasmodified () { return this.onbackup && this.onlocal && !!this.entry.wasmodified },
-    isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified },
-    token () {
-      return [this.path, this.snap, this.rvid, this.eventdate].join('|')
     }
-  },
-  watch: {
-  },
-  methods: {
-  },
-  mounted () {
   }
 }
 </script>
 
 <style lang="scss">
-  @import 'src/css/app.scss';
-  .isSelected {
-    color:$bkit;
-    .wasDeleted {
-      color: $bkit;
-    }
-  }
-  .wasDeleted {
-    color: $deleted;
-  }
-  .noBackup {
-    color: $nobackup;
-    color: var(--q-color-nobackup);
-  }
-  .expandicon, .noexpandicon {
-    margin: 0px;
-    padding: 0px;
-    padding-right: 5px;
-    color: $openclose;
-  }
-  .noexpandicon {
-    visibility: hidden;
-  }
-
 </style>

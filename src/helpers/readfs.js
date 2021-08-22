@@ -46,7 +46,6 @@ export async function* readdir (dir) {
     }
   } catch (err) {
     warn(err, false)
-    throw err
   }
 }
 

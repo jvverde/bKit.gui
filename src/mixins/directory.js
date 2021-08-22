@@ -3,6 +3,7 @@ import { readdir } from 'src/helpers/readfs'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
 import { listPath as listRemoteDir } from 'src/helpers/api'
 import path from 'path'
+import { warn } from 'src/helpers/notify'
 
 const exists = async (pathname) => fs.promises.access(pathname, fs.constants.F_OK)
 
@@ -151,7 +152,7 @@ export default {
           await this.readLocalDir()
           await this.installWatcher()
         } catch (err) {
-          console.log(err)
+          warn(err, false)
         }
       }
     }
@@ -174,7 +175,7 @@ export default {
         }
         if (fullpath === this.fullpath) this.localEntries = localEntries
       } catch (err) {
-        console.error(err)
+        warn(err, false)
       } finally {
         this.localloading = false
       }
@@ -195,7 +196,7 @@ export default {
         })
         this.backupEntries = backupEntries
       } catch (err) {
-        console.log(err)
+        warn(err, false)
       } finally {
         this.remoteloading = false
       }
@@ -213,7 +214,7 @@ export default {
         this.diskEvent = [event, path].join('|')
         console.log('Event', this.diskEvent)
         this.readLocalDir()
-      })
+      }).on('error', error => warn(`Watcher error: ${error} on path ${this.fullpath}`, false))
     }
   }
 }

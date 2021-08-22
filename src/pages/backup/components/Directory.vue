@@ -1,18 +1,22 @@
 <template>
-  <q-expansion-item
-    switch-toggle-side
-    dense
-    dense-toggle
-    v-model="open"
-    :header-style="isSelected ? 'background-color:var(--q-color-selected)' : ''"
-    expand-icon="keyboard_arrow_down"
-    expand-icon-class="expandicon">
-    <template v-slot:header> <!-- this is the header line template -->
-      <q-item-section side @click.stop="see">
-        <q-icon :name="open ? 'folder_open' : 'folder'" color="folder"/>
+  <q-list dense>
+    <q-item dense class="directory line" :style="isSelected ? 'background-color:var(--q-color-selected)' : ''">
+      <!--q-expansion-item
+        switch-toggle-side
+        dense
+        dense-toggle
+        v-model="open"
+        :header-style="isSelected ? 'background-color:var(--q-color-selected)' : ''"
+        expand-icon="keyboard_arrow_down"
+        expand-icon-class="expandicon"-->
+      <q-item-section side @click.stop="open = !open" class="cursor-pointer" no-wrap>
+        <q-item-label>
+          <q-icon :name="open ? 'expand_more' : 'chevron_right'"/>
+          <q-icon :name="open ? 'folder_open' : 'folder'" color="folder"/>
+        </q-item-label>
       </q-item-section>
 
-      <q-item-section no-wrap>
+      <q-item-section no-wrap  @click.stop="select" class="cursor-pointer" >
         <q-item-label class="ellipsis">
           <span :style="`color:var(--q-color-${getcolor})`">
             {{name}}
@@ -31,16 +35,17 @@
         </q-btn-group>
       </q-item-section>
 
-    </template>
-
-    <div v-if="open" style="margin-left:1em">
+    </q-item>
+    <q-item dense v-if="open" class="directory">
       <entries v-bind="nodeProps"/>
-    </div>
-  </q-expansion-item>
+    </q-item>
+  </q-list>
 </template>
 
 <script>
 import entryminxin from 'src/mixins/entry'
+import { mapGetters, mapMutations } from 'vuex'
+
 export default {
   name: 'directory',
   data () {
@@ -58,17 +63,22 @@ export default {
       return { fullpath, snap, rvid, mountpoint }
     },
     isSelected () {
-      return false
-    }
+      return this.getview === this.entry.fullpath
+    },
+    ...mapGetters('view', ['getview'])
   },
   watch: {
   },
   methods: {
+    ...mapMutations('view', ['setView']),
     debug (entry) {
       console.log(entry)
     },
     see () {
       this.open = true
+    },
+    select () {
+      this.setView(this.entry.fullpath)
     }
   },
   mounted () {
@@ -79,27 +89,16 @@ export default {
 
 <style lang="scss">
   @import 'src/css/app.scss';
+  .directory {
+    padding-right: 0 !important;
+  }
+  .directory.line:hover {
+    background-color: $grey-2;
+  }
   .isSelected {
     color:$bkit;
     .wasDeleted {
       color: $bkit;
     }
   }
-  .wasDeleted {
-    color: $deleted;
-  }
-  .noBackup {
-    color: $nobackup;
-    color: var(--q-color-nobackup);
-  }
-  .expandicon, .noexpandicon {
-    margin: 0px;
-    padding: 0px;
-    padding-right: 5px;
-    color: $openclose;
-  }
-  .noexpandicon {
-    visibility: hidden;
-  }
-
 </style>

@@ -1,8 +1,10 @@
 <template>
   <q-list dense>
-    <q-item> <!-- this is the header line template -->
+    <q-item dense class="file">
       <q-item-section side>
-        <q-icon name="description" color="file"/>
+        <q-item-label>
+          <q-icon name="description" color="file"/>
+        </q-item-label>
       </q-item-section>
 
       <q-item-section no-wrap>
@@ -48,4 +50,7 @@ export default {
 </script>
 
 <style lang="scss">
+  .file {
+    padding-right: 0 !important;
+  }
 </style>

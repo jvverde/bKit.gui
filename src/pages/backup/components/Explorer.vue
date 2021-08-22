@@ -28,19 +28,7 @@
 
       <template v-slot:before>
         <q-scroll-area class="fit" :thumb-style="thumbStyle" :bar-style="barStyle">
-          <raiz :fullpath="mountpoint" :snap="snap" :rvid="rvid" :mountpoint="mountpoint"/>
-          <q-list>
-          <!--             <tree
-              :entry="root"
-              :mountpoint="mountpoint"
-              :rvid="rvid"
-              :snap="snap"
-              :displayNode.sync="currentPath"
-              :selected.sync="selectedNode"
-              @restore="(...args) => $emit('restore', ...args)"
-              @backup="(...args) => $emit('backup', ...args)"
-              @show="show"/> -->
-          </q-list>
+          <raiz :fullpath="mountpoint" :snap="snap" :rvid="rvid" :mountpoint="mountpoint" style="padding-right: 8px"/>
         </q-scroll-area>
       </template>
 
