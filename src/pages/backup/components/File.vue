@@ -29,66 +29,23 @@
 </template>
 
 <script>
+import entryminxin from 'src/mixins/entry'
 export default {
   name: 'file',
   data () {
     return {
-      open: false
     }
   },
-  components: {
-  },
-  props: {
-    entry: {
-      type: Object,
-      required: true
-    }
-  },
+  mixins: [entryminxin],
   computed: {
-    getcolor () {
-      if (this.isUpdate) return 'updated'
-      else if (this.needUpdate) return 'modified'
-      else if (this.onlyLocal) return 'nobackup'
-      else if (this.onlyBackup) return 'deleted'
-      return undefined
-    },
-    path () {
-      return this.entry.path
-    },
-    name () {
-      return this.entry.name
-    },
-    isOpen () {
-      return this.open && this.isdir
-    },
-    onbackup () {
-      return !!this.entry.onbackup
-    },
-    onlocal () {
-      return !!this.entry.onlocal
-    },
-    onlyBackup () { return this.entry.onlyBackup === true },
-    // isfiltered () { return !!this.entry.isfiltered },
-    onlyLocal () { return this.entry.onlyLocal === true },
-    isUpdate () { return this.entry.updated === true },
-    needUpdate () { return this.entry.needUpdate === true }
-  },
-  watch: {
   },
   methods: {
     debug () {
       console.log('mounted entry', this.entry)
     }
-  },
-  mounted () {
   }
 }
 </script>
 
 <style lang="scss">
-  @import 'src/css/app.scss';
-  .noBackup {
-    color: $nobackup;
-    color: var(--q-color-nobackup);
-  }
 </style>

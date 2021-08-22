@@ -12,17 +12,16 @@
         <q-icon :name="open ? 'folder_open' : 'folder'" color="folder"/>
       </q-item-section>
 
-      <q-item-section no-wrap :class="{ isSelected: isSelected }">
+      <q-item-section no-wrap>
         <q-item-label class="ellipsis">
-          <q-spinner-ios color="loader" v-if="isloading"/>
-          <span :class="{ wasDeleted: wasdeleted, noBackup: isnew }" @click.stop="see">
+          <span :style="`color:var(--q-color-${getcolor})`">
             {{name}}
           </span>
           <q-icon name="done" color="updated" v-if="isUpdate"/>
-          <q-icon name="call_merge" color="modified" v-else-if="wasmodified"/>
-          <q-icon name="arrow_upward" color="nobackup" v-else-if="isnew"/>
-          <q-icon name="arrow_downward" color="deleted" v-else-if="wasdeleted"/>
-          <q-icon name="block " color="filtered" v-else-if="isfiltered"/>
+          <q-icon name="call_merge" color="modified" v-else-if="needUpdate"/>
+          <q-icon name="arrow_upward" color="nobackup" v-else-if="onlyLocal"/>
+          <q-icon name="arrow_downward" color="deleted" v-else-if="onlyBackup"/>
+          <!-- q-icon name="block " color="filtered" v-else-if="isfiltered"/ -->
         </q-item-label>
       </q-item-section>
 
@@ -34,13 +33,14 @@
 
     </template>
 
-    <div v-if="isOpen" style="margin-left:1em">
-      <node v-bind="nodeProps"/>
+    <div v-if="open" style="margin-left:1em">
+      <entries v-bind="nodeProps"/>
     </div>
   </q-expansion-item>
 </template>
 
 <script>
+import entryminxin from 'src/mixins/entry'
 export default {
   name: 'directory',
   data () {
@@ -48,14 +48,9 @@ export default {
       open: false
     }
   },
+  mixins: [entryminxin],
   components: {
-    node: () => import('./Node')
-  },
-  props: {
-    entry: {
-      type: Object,
-      required: true
-    }
+    entries: () => import('./Entries')
   },
   computed: {
     nodeProps () {
@@ -63,48 +58,8 @@ export default {
       return { fullpath, snap, rvid, mountpoint }
     },
     isSelected () {
-      return this.path === this.displayNode
-    },
-    selectedNode: {
-      get () {
-        return this.displayNode
-      },
-      set (val) {
-        this.$emit('update:displayNode', val)
-      }
-    },
-    isloading () {
-      return this.loading
-    },
-    isdir () {
-      return this.entry.isdir
-    },
-    isroot () {
-      return this.entry.isroot
-    },
-    path () {
-      return this.entry.path
-    },
-    name () {
-      return this.entry.name
-    },
-    leaf () {
-      return !this.isdir
-    },
-    isOpen () {
-      return this.open && this.isdir
-    },
-    onbackup () { // We should be very carefully with this one
-      return !!this.entry.onbackup // && !!this.entry.markAsUnverified
-    },
-    onlocal () {
-      return !!this.entry.onlocal
-    },
-    wasdeleted () { return this.onbackup && !this.onlocal },
-    isfiltered () { return !!this.entry.isfiltered },
-    isnew () { return !this.onbackup && this.onlocal && !!this.entry.isnew },
-    wasmodified () { return this.onbackup && this.onlocal && !!this.entry.wasmodified },
-    isUpdate () { return this.onbackup && this.onlocal && !this.isnew && !this.wasmodified }
+      return false
+    }
   },
   watch: {
   },

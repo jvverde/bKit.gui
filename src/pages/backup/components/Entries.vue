@@ -26,7 +26,7 @@ const compare = (a, b) => {
 import dirminxin from 'src/mixins/directory'
 
 export default {
-  name: 'node',
+  name: 'Entries',
   data () {
     return {
       open: false

@@ -79,7 +79,7 @@ import { Resource } from 'src/helpers/types'
 // import tree from './Tree'
 import item from './Item'
 import snaps from './Snaps'
-import raiz from './Node'
+import raiz from './Entries'
 // import fs from 'fs-extra'
 const { relative, join, sep, dirname } = require('path')
 const fs = require('fs')
