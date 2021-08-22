@@ -216,5 +216,13 @@ export default {
         this.readLocalDir()
       }).on('error', error => warn(`Watcher error: ${error} on path ${this.fullpath}`, false))
     }
+  },
+  async beforeDestroy () {
+    try {
+      await this.watcher.close()
+      console.log(`Whatcher on ${this.fullpath} closed`)
+    } catch (err) {
+      warn(err, false)
+    }
   }
 }
