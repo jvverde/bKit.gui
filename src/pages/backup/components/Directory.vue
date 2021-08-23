@@ -68,6 +68,14 @@ export default {
     ...mapGetters('view', ['getview'])
   },
   watch: {
+    getview: {
+      immediate: true,
+      handler (val, old) {
+        if (val && this.path && val.length > this.path.length && val.startsWith(this.path)) {
+          this.open = true
+        }
+      }
+    }
   },
   methods: {
     ...mapMutations('view', ['setView']),

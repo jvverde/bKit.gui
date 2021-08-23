@@ -7,6 +7,16 @@
         name="folder"
         @click="open"
         :color="getcolor">
+        <q-menu touch-position context-menu>
+          <q-list dense style="min-width: 100px">
+            <q-item clickable v-close-popup>
+              <q-item-section>Open...</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup>
+              <q-item-section>New</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
         <tooltip :label="description"/>
       </q-icon>
       <q-icon v-else
@@ -166,10 +176,11 @@ export default {
     // isRecoverable () { return this.hasbackup }
   },
   methods: {
-    ...mapMutations('view', ['setview']),
+    ...mapMutations('view', ['setView']),
     open () {
       console.log('open:', this.path)
-      this.$emit('open', this.path)
+      this.setView(this.path)
+      // this.$emit('open', this.path)
     },
     onVersionClick (snap) {
       console.log('Version snap', snap)

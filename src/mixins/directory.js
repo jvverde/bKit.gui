@@ -161,6 +161,7 @@ export default {
   },
   methods: {
     async readLocalDir () {
+      this.localEntries = {}
       try {
         this.localloading = 'Reading local disk'
         const fullpath = this.fullpath
@@ -181,6 +182,8 @@ export default {
       }
     },
     async readRemoteDir () {
+      this.backupEntries = {}
+      console.log('Try readRemoteDir of ', this.fullpath)
       try {
         this.remoteloading = 'Reading backup'
         const { snap, rvid, fullpath, mountpoint } = this

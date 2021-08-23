@@ -4,7 +4,7 @@ export const chokidarOptions = {
   useFsEvents: false,
   ignoreInitial: true,
   followSymlinks: false,
-  ignored: ['.before-restore-on*', 'pagefile.sys'],
+  ignored: ['.before-restore-on*', 'pagefile.sys', 'swapfile.sys', 'System Volume Information'],
   atomic: true,
   ignorePermissionErrors: true,
   persistent: true

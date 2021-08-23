@@ -19,6 +19,7 @@ export async function listDisksOnBackup () {
 }
 
 export async function listSnaps (rvid) {
+  if (!rvid) throw new Error(`The parameter rvid on listSnaps can't be '${rvid}'`)
   const serverURL = getServerURL()
   const { computer, bkituser } = await info()
   const { uuid, name, domain } = computer
@@ -27,6 +28,7 @@ export async function listSnaps (rvid) {
 }
 
 export async function listPath (rvid, snap, path) {
+  if (!snap || !rvid) throw new Error(`The parametera (rvid, snap) on listPath can't be ('${rvid}', '${snap}')`)
   const serverURL = getServerURL()
   const { computer, bkituser: profile } = await info()
   const { uuid, name, domain } = computer
@@ -34,7 +36,7 @@ export async function listPath (rvid, snap, path) {
   const { data: response } = await axios.get(`${serverURL}/v1/user/list/${uuid}/${name}/${domain}/${profile}/${rvid}/${snap}`, {
     params: { path }
   })
-  // console.log('response', response)
+  // if axios.get fail the children nodes won't have snap, rvid, uuid, etc. this will avoid future listPath request. This is a good side effect
   const remote = { server: serverURL, uuid, name, domain, profile, rvid, snap, path }
   return response.map(e => {
     return { ...e, remote }
