@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import entryminxin from 'src/mixins/entry'
+import entry from 'src/mixins/entry'
 import { mapGetters, mapMutations } from 'vuex'
 
 export default {
@@ -53,9 +53,9 @@ export default {
       open: false
     }
   },
-  mixins: [entryminxin],
+  mixins: [entry],
   components: {
-    entries: () => import('./Entries')
+    entries: () => import('./Listdir')
   },
   computed: {
     nodeProps () {
@@ -63,7 +63,7 @@ export default {
       return { fullpath, snap, rvid, mountpoint }
     },
     isSelected () {
-      return this.getview === this.entry.fullpath
+      return this.getview === this.fullpath
     },
     ...mapGetters('view', ['getview'])
   },
@@ -78,7 +78,7 @@ export default {
       this.open = true
     },
     select () {
-      this.setView(this.entry.fullpath)
+      this.setView(this.fullpath)
     }
   },
   mounted () {

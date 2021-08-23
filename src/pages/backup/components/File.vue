@@ -31,14 +31,14 @@
 </template>
 
 <script>
-import entryminxin from 'src/mixins/entry'
+import entry from 'src/mixins/entry'
 export default {
   name: 'file',
   data () {
     return {
     }
   },
-  mixins: [entryminxin],
+  mixins: [entry],
   computed: {
   },
   methods: {

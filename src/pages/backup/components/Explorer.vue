@@ -28,13 +28,16 @@
 
       <template v-slot:before>
         <q-scroll-area class="fit" :thumb-style="thumbStyle" :bar-style="barStyle">
-          <raiz :fullpath="mountpoint" :snap="snap" :rvid="rvid" :mountpoint="mountpoint" style="padding-right: 8px"/>
+          <listdir :fullpath="mountpoint" :snap="snap" :rvid="rvid" :mountpoint="mountpoint" style="padding-right: 8px"/>
         </q-scroll-area>
       </template>
 
       <template v-slot:after>
-         <q-scroll-area class="fit" :thumb-style="thumbStyle" :bar-style="barStyle">
-          <transition name="loading">
+        <q-scroll-area class="fit" :thumb-style="thumbStyle" :bar-style="barStyle">
+          <div class="q-pa-xs row justify-evenly q-gutter-sm relative-position">
+            <showdir :fullpath="currentpath" :snap="snap" :rvid="rvid" :mountpoint="mountpoint" style="padding-right: 8px"/>
+          </div>
+          <!--           <transition name="loading">
             <div v-show="loading" class="bkit-loading row justify-center relative-position">
               <q-spinner-ios color="loader" class="q-my-md"/>
               <div class="q-my-md q-ml-xs">{{loading}}...</div>
@@ -52,6 +55,7 @@
               @backup="backup"
             />
           </div>
+          -->
         </q-scroll-area>
       </template>
     </q-splitter>
@@ -63,11 +67,13 @@
 import { refreshlist, refreshsnap } from 'src/helpers/bkit'
 import { listPath as listRemoteDir } from 'src/helpers/api'
 import { Resource } from 'src/helpers/types'
+import { mapGetters } from 'vuex'
 
 // import tree from './Tree'
-import item from './Item'
+// import item from './Item'
 import snaps from './Snaps'
-import raiz from './Entries'
+import listdir from './Listdir'
+import showdir from './Showdir'
 // import fs from 'fs-extra'
 const { relative, join, sep, dirname } = require('path')
 const fs = require('fs')
@@ -120,7 +126,7 @@ export default {
   name: 'localexplorer',
   data () {
     return {
-      verticalSplitter: 55,
+      verticalSplitter: 25,
       thumbStyle,
       barStyle,
       watcher: undefined,
@@ -146,12 +152,15 @@ export default {
     }
   },
   components: {
-    raiz,
-    snaps,
+    listdir,
+    showdir,
+    snaps
     // tree,
-    item
+    // item
   },
   computed: {
+    ...mapGetters('view', ['getview']),
+    currentpath () { return this.getview || this.mountpoint },
     root () {
       const [isdir, isroot, path] = [true, true, this.mountpoint]
       const onbackup = !!this.snap

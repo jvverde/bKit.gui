@@ -1,24 +1,24 @@
 <template>
-  <div class="q-pa-xs bkit-item">
-    <div class="column no-wrap items-left">
+  <div class="q-pa-xs row no-wrap justify-between rounded-borders shadow-2 bkit-item">
+    <div class="column no-wrap items-center">
       <q-icon v-if="isdir"
         class="bkit-icon self-start"
         style="cursor:pointer"
         name="folder"
         @click="open"
-        :color="getcolor">
+        :color="color">
         <tooltip :label="description"/>
       </q-icon>
       <q-icon v-else
         class="bkit-icon self-start"
         name="description"
-        :color="getcolor">
+        :color="color">
         <tooltip :label="description"/>
       </q-icon>
       <div class="bkit-text" @click="debug">
         {{name}}
       </div>
-      <!-- div v-if="hasbackup && !wasdeleted"
+      <div v-if="hasbackup && !wasdeleted"
         style="margin-top:auto"
         class="row text-weight-light no-wrap">
         <q-btn-dropdown no-caps flat no-wrap
@@ -48,9 +48,9 @@
             </q-item>
           </q-list>
         </q-btn-dropdown>
-      </div -->
+      </div>
     </div>
-    <!-- div class="column justify-start">
+    <div class="column justify-start">
       <q-btn flat no-caps stack
         color="backup"
         icon="backup"
@@ -83,38 +83,39 @@
         <span class="text-weight-light">Recover</span>
         <tooltip label="Recover to a different location"/>
       </q-btn>
-    </div -->
+    </div>
   </div>
 </template>
 
 <script>
-// import { getVersions } from 'src/helpers/bkit'
+import { getVersions } from 'src/helpers/bkit'
 import tooltip from 'src/components/tooltip'
-import entry from 'src/mixins/entry'
-import { mapGetters, mapMutations } from 'vuex'
 
-// const path = require('path')
+const path = require('path')
 
 const moment = require('moment')
 moment.locale('en')
-// const obooleans = {
-//   type: Boolean,
-//   require: false
-// }
-// const colorOf = {
-//   deleted: 'deleted',
-//   update: 'updated',
-//   new: 'orange',
-//   modified: 'modified',
-//   filtered: 'filtered',
-//   unchecked: 'unchecked',
-//   nobackup: 'nobackup'
-// }
+const obooleans = {
+  type: Boolean,
+  require: false
+}
+const colorOf = {
+  deleted: 'deleted',
+  update: 'updated',
+  new: 'orange',
+  modified: 'modified',
+  filtered: 'filtered',
+  unchecked: 'unchecked',
+  nobackup: 'nobackup'
+}
 const nameOf = {
   deleted: 'Was deleted',
   update: 'Is update',
-  nobackup: 'Not in backup',
-  modified: 'Was modified'
+  new: 'Not in backup',
+  modified: 'Was modified',
+  filtered: 'Is filtered',
+  unchecked: 'Not checked yet! Wait...',
+  nobackup: 'Disk has no backup'
 }
 export default {
   name: 'item',
@@ -124,47 +125,61 @@ export default {
       loading: false
     }
   },
-  mixins: [entry],
   components: {
     tooltip
   },
   computed: {
-    ...mapGetters('view', ['getview']),
-    isdir () { return this.entry.isdir },
-    isfile () { return this.entry.isfile },
-    name () { return this.entry.name },
-    description () { return nameOf[this.status] }
-    // color () { return this.isdir && this.isUpdate ? 'updatedir' : colorOf[this.status] },
-    // description () { return nameOf[this.status] },
-    // hasbackup () { return this.checked && this.onbackup },
-    // wasdeleted () { return this.checked && this.onbackup && !this.onlocal },
-    // isUpdate () { return this.checked && this.onbackup && this.onlocal && !this.wasmodified },
-    // unchecked () { return !this.checked },
-    // hasversions () { return this.versions.length > 0 },
-    // status () {
-    //   if (this.unchecked) {
-    //     return 'unchecked'
-    //   } else if (this.isnew) {
-    //     return 'new'
-    //   } else if (this.wasmodified) {
-    //     return 'modified'
-    //   } else if (this.wasdeleted) {
-    //     return 'deleted'
-    //   } else if (this.isUpdate) {
-    //     return 'update'
-    //   } else if (this.isfiltered) {
-    //     return 'filtered'
-    //   } else if (this.nobackup) {
-    //     return 'nobackup'
-    //   }
-    //   return null
-    // },
-    // isBackupable () { return this.onlocal && (!this.isUpdate || this.isdir) },
-    // isRestorable () { return this.wasmodified || this.wasdeleted || (this.isdir && this.hasbackup) },
-    // isRecoverable () { return this.hasbackup }
+    color () { return this.isdir && this.isUpdate ? 'updatedir' : colorOf[this.status] },
+    description () { return nameOf[this.status] },
+    hasbackup () { return this.checked && this.onbackup },
+    wasdeleted () { return this.checked && this.onbackup && !this.onlocal },
+    isUpdate () { return this.checked && this.onbackup && this.onlocal && !this.wasmodified },
+    unchecked () { return !this.checked },
+    hasversions () { return this.versions.length > 0 },
+    status () {
+      if (this.unchecked) {
+        return 'unchecked'
+      } else if (this.isnew) {
+        return 'new'
+      } else if (this.wasmodified) {
+        return 'modified'
+      } else if (this.wasdeleted) {
+        return 'deleted'
+      } else if (this.isUpdate) {
+        return 'update'
+      } else if (this.isfiltered) {
+        return 'filtered'
+      } else if (this.nobackup) {
+        return 'nobackup'
+      }
+      return null
+    },
+    isBackupable () { return this.onlocal && (!this.isUpdate || this.isdir) },
+    isRestorable () { return this.wasmodified || this.wasdeleted || (this.isdir && this.hasbackup) },
+    isRecoverable () { return this.hasbackup }
+  },
+  props: {
+    isdir: obooleans,
+    isfile: obooleans,
+    onbackup: obooleans,
+    onlocal: obooleans,
+    checked: obooleans,
+    wasmodified: obooleans,
+    isnew: obooleans,
+    isfiltered: obooleans,
+    nobackup: obooleans,
+    path: {
+      type: String,
+      require: true
+    },
+    name: {
+      type: String,
+      default: function () {
+        return path.basename(this.path)
+      }
+    }
   },
   methods: {
-    ...mapMutations('view', ['setview']),
     open () {
       console.log('open:', this.path)
       this.$emit('open', this.path)
@@ -173,21 +188,21 @@ export default {
       console.log('Version snap', snap)
       this.$emit('usesnap', snap)
     },
-    // async getVersions () {
-    //   const versions = []
-    //   this.loading = true
-    //   // bkit.bash('./versions.sh', [this.path], {
-    //   try {
-    //     const entries = await getVersions(this.path)
-    //     // console.log('Versions:', entries)
-    //     entries.forEach(e => versions.push(e))
-    //   } catch (err) {
-    //     console.error('Catch in getVersions', err)
-    //   } finally {
-    //     this.loading = false
-    //     this.versions = versions
-    //   }
-    // },
+    async getVersions () {
+      const versions = []
+      this.loading = true
+      // bkit.bash('./versions.sh', [this.path], {
+      try {
+        const entries = await getVersions(this.path)
+        // console.log('Versions:', entries)
+        entries.forEach(e => versions.push(e))
+      } catch (err) {
+        console.error('Catch in getVersions', err)
+      } finally {
+        this.loading = false
+        this.versions = versions
+      }
+    },
     restore () {
       this.$emit('restore', this.path, this.isdir)
     },

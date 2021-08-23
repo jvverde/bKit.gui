@@ -1,11 +1,6 @@
  <template>
-  <div class="full-width">
-    <div class="full-width">
-      <directory v-for="folder in folders" :key="folder.path" :entry="folder"/>
-    </div>
-    <div class="full-width">
-      <file v-for="file in files" :key="file.path" :entry="file"/>
-    </div>
+  <div class="bkit-showdir full-width row wrap justify-left">
+    <item v-for="children in childrens" :key="children.path" :entry="children"/>
   </div>
 </template>
 <script>
@@ -23,24 +18,17 @@ const compare = (a, b) => {
   else return 0
 }
 
-import dirminxin from 'src/mixins/directory'
+import dir from 'src/mixins/directory'
 
 export default {
-  name: 'Entries',
-  mixins: [dirminxin],
+  name: 'show-content',
+  mixins: [dir],
   components: {
-    directory: () => import('./Directory'),
-    file: () => import('./File')
+    item: () => import('./Item')
   },
   computed: {
     childrens () {
       return [...this.entries].sort(compare)
-    },
-    folders () {
-      return this.childrens.filter(e => e.isdir)
-    },
-    files () {
-      return this.childrens.filter(e => !e.isdir)
     }
   }
 }
