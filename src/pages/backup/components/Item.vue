@@ -112,7 +112,7 @@ moment.locale('en')
 // }
 const nameOf = {
   deleted: 'Was deleted',
-  update: 'Is update',
+  updated: 'Is update',
   nobackup: 'Not in backup',
   modified: 'Was modified'
 }
@@ -133,7 +133,9 @@ export default {
     isdir () { return this.entry.isdir },
     isfile () { return this.entry.isfile },
     name () { return this.entry.name },
-    description () { return nameOf[this.status] }
+    description () {
+      return nameOf[this.status]
+    }
     // color () { return this.isdir && this.isUpdate ? 'updatedir' : colorOf[this.status] },
     // description () { return nameOf[this.status] },
     // hasbackup () { return this.checked && this.onbackup },
