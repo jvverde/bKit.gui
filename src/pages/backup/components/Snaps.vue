@@ -38,30 +38,35 @@ moment.relativeTimeThreshold('h', 47)
 moment.relativeTimeThreshold('d', 59)
 moment.relativeTimeThreshold('M', 23)
 
-import { listSnaps } from 'src/helpers/api'
+// import { listSnaps } from 'src/helpers/api'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 
 export default {
   name: 'Snaps',
   data () {
     return {
-      loading: false,
-      snaps: []
+      loading: false
     }
   },
   props: {
     rvid: {
       type: String,
       required: true
-    },
-    snap: {
-      type: String,
-      default: undefined
     }
   },
   computed: {
+    ...mapGetters('snaps', ['getSnaps', 'getCurrentSnap']),
+    snaps () {
+      return this.getSnaps.map(e => {
+        return {
+          date: moment.utc(e.snap.substring(5), 'YYYY.MM.DD-HH.mm.ss').local(),
+          id: e.snap
+        }
+      })
+    },
     currentSnap: {
-      get () { return this.snap },
-      set (val) { this.$emit('update:snap', val) }
+      get () { return (this.getCurrentSnap || {}).snap },
+      set (index) { this.setCurrentSnap(index) }
     },
     isEmpty () {
       return this.snaps.length === 0
@@ -73,31 +78,33 @@ export default {
     }
   },
   methods: {
+    ...mapActions('snaps', ['loadSnaps']),
+    ...mapMutations('snaps', ['useLastSnap', 'setCurrentSnap']),
     select (index) {
-      if (index >= 0) {
-        this.currentSnap = this.snaps[index].id
-      } else {
-        this.currentSnap = null
-      }
+      this.setCurrentSnap(index)
     },
     async load_snaps () {
-      this.snaps.splice(0, this.snaps.length) // empty snaps
-      await this.reload()
-    },
-    async reload () {
       this.loading = true
-      const names = await listSnaps(this.rvid)
-      for (const id of names) {
-        if (!this.snaps.find(e => e.id === id)) {
-          this.snaps.push({
-            date: moment.utc(id.substring(5), 'YYYY.MM.DD-HH.mm.ss').local(),
-            id
-          })
-        }
+      // this.snaps.splice(0, this.snaps.length) // empty snaps
+      try {
+        await this.loadSnaps(this.rvid)
+        this.useLastSnap()
+      } finally {
+        this.loading = false
       }
-      this.select(this.snaps.length - 1)
-      this.loading = false
     }
+    // async reload () {
+    //   const names = await listSnaps(this.rvid)
+    //   for (const id of names) {
+    //     if (!this.snaps.find(e => e.id === id)) {
+    //       this.snaps.push({
+    //         date: moment.utc(id.substring(5), 'YYYY.MM.DD-HH.mm.ss').local(),
+    //         id
+    //       })
+    //     }
+    //   }
+    //   this.select(this.snaps.length - 1)
+    // }
   },
   mounted () {
     this.load_snaps()

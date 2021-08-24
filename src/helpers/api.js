@@ -1,11 +1,13 @@
 'use strict'
 import axios from 'axios'
-import { Store } from 'src/store'
-import info from './info'
+// import { Store } from 'src/store'
+import info from 'src/helpers/info'
 
-const getServerURL = Store.getters['global/getServerURL']
+const getStore = () => import('src/store')
 
 export async function listDisksOnBackup () {
+  const { Store } = await getStore()
+  const getServerURL = Store.getters['global/getServerURL']
   try {
     const serverURL = getServerURL()
     const { computer, bkituser } = await info()
@@ -18,16 +20,20 @@ export async function listDisksOnBackup () {
   // return []
 }
 
-export async function listSnaps (rvid) {
+export async function listSnaps (rvid, raw = false) {
+  const { Store } = await getStore()
+  const getServerURL = Store.getters['global/getServerURL']
   if (!rvid) throw new Error(`The parameter rvid on listSnaps can't be '${rvid}'`)
   const serverURL = getServerURL()
   const { computer, bkituser } = await info()
   const { uuid, name, domain } = computer
   const { data: response } = await axios.get(`${serverURL}/v1/user/snaps/${uuid}/${name}/${domain}/${rvid}/${bkituser}`)
-  return response.map(e => e.snap)
+  return raw ? response : response.map(e => e.snap)
 }
 
 export async function listPath (rvid, snap, path) {
+  const { Store } = await getStore()
+  const getServerURL = Store.getters['global/getServerURL']
   if (!snap || !rvid) throw new Error(`The parametera (rvid, snap) on listPath can't be ('${rvid}', '${snap}')`)
   const serverURL = getServerURL()
   const { computer, bkituser: profile } = await info()

@@ -57,7 +57,7 @@ export default ({ router, store }) => {
         return Promise.reject(`${path} is not on backup`)
       }
     }
-    return Promise.reject(error)
+    return Promise.reject(error.response || error.request || error.message || error)
   })
 
   axios.interceptors.request.use(async (config) => {
@@ -81,7 +81,7 @@ export default ({ router, store }) => {
       console.log('You need to login first')
       router.push({ name: 'login' })
     } else {
-      return Promise.reject(error)
+      return Promise.reject(error.response || error.request || error.message || error)
     }
   })
 }

@@ -5,10 +5,9 @@ console.log('Get user and computer info')
 
 const username = require('os').userInfo().username
 
-const pUser = getUser()
-const pInfo = getComputerInfo()
-
-export default async function () {
+export default async () => {
+  const pUser = getUser()
+  const pInfo = getComputerInfo()
   const bkituser = await pUser
   const info = await pInfo
   const [domain, name, uuid] = info.split('|')

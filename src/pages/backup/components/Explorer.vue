@@ -2,7 +2,7 @@
   <div class="bkit-explorer relative-position">
     <q-toolbar class="bkit-toolbar justify-center" v-if="rvid">
       <keep-alive>
-        <snaps :rvid="rvid" :snap.sync="snap" ref="snaps"></snaps>
+        <snaps :rvid="rvid" ref="snaps"></snaps>
       </keep-alive>
     </q-toolbar>
     <q-toolbar inset v-if="isReady2Show">
@@ -73,7 +73,6 @@ export default {
       verticalSplitter: 25,
       thumbStyle,
       barStyle,
-      snap: undefined,
       sep
     }
   },
@@ -96,6 +95,8 @@ export default {
   },
   computed: {
     ...mapGetters('view', ['getview']),
+    ...mapGetters('snaps', ['getCurrentSnap']),
+    snap () { return (this.getCurrentSnap || {}).snap },
     currentpath () {
       return this.getview || this.mountpoint
     },

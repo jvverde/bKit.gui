@@ -16,6 +16,7 @@ Vue.use(Vuex)
 import global from './global'
 import auth from './auth'
 import view from './view'
+import snaps from './snaps'
 
 // From https://forum.quasar-framework.org/topic/4276/how-to-use-vuex-store-without-access-to-vue-instance/2
 // Don't if this is a SSR
@@ -23,7 +24,8 @@ export const Store = new Vuex.Store({
   modules: {
     global,
     auth,
-    view
+    view,
+    snaps
   },
 
   // enable strict mode (adds overhead!)
