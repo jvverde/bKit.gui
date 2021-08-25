@@ -4,12 +4,13 @@ export function someAction (context) {
 */
 import { getAccounts as getCredentials, addAccount as addCredentials, deleteAccount as removeCredentials } from 'src/helpers/credentials'
 
-export function addAccount ({ commit }, { user, server, password }) {
+export function addAccount ({ commit, getters }, { user, server, password }) {
   return new Promise(async (resolve, reject) => {
     try {
       console.log('Add account', user, server)
-      await addCredentials(`${user}@${server}`, password)
       commit('addAccount', { servername: server, user, autorized: true })
+      const serverURL = getters.getServerURL(server)
+      await addCredentials(`${user}@${serverURL}`, password)
       resolve(true)
     } catch (err) {
       reject(err)
@@ -20,7 +21,8 @@ export function addAccount ({ commit }, { user, server, password }) {
 export function delCredentials ({ commit, getters }, { user, servername }) {
   return new Promise(async (resolve, reject) => {
     try {
-      await removeCredentials(`${user}@${servername}`)
+      const serverURL = getters.getServerURL(servername)
+      await removeCredentials(`${user}@${serverURL}`)
       // Get a copy of this account and set autorized property to false
       const account = { ...getters.getAccount(servername, user), autorized: false }
       commit('updateAccount', account)
@@ -31,15 +33,19 @@ export function delCredentials ({ commit, getters }, { user, servername }) {
   })
 }
 
+const re = new RegExp('^(https?://)?(?<servername>[^:]+)(:(?<port>[0-9]+)?)')
 export function loadCredentials ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
       const credentials = await getCredentials()
       const accounts = credentials.map(u => {
-        const [user, servername] = u.split('@')
-        return { servername, user, autorized: true }
+        console.log('Found credentials for:', u)
+        const [user, serverURL] = u.split('@')
+        const match = serverURL.match(re)
+        const { groups: { servername, port } = {} } = match || {}
+        return { servername, user, autorized: true, hport: port }
       })
-      commit('updateAccounts', accounts)
+      commit('updateAccounts', accounts.filter(a => a.servername && a.user))
       resolve(accounts)
     } catch (err) {
       reject(err)

@@ -6,13 +6,10 @@ import info from 'src/helpers/info'
 const getStore = () => import('src/store')
 
 export async function listDisksOnBackup () {
-  const { Store } = await getStore()
-  const getServerURL = Store.getters['global/getServerURL']
   try {
-    const serverURL = getServerURL()
     const { computer, bkituser } = await info()
     const { uuid, name, domain } = computer
-    const { data: response } = await axios.get(`${serverURL}/v1/user/volumes/${uuid}/${name}/${domain}/${bkituser}`)
+    const { data: response } = await axios.get(`v1/user/volumes/${uuid}/${name}/${domain}/${bkituser}`)
     return response.map(d => d.volume)
   } catch (err) {
     console.error(err)

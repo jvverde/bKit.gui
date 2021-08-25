@@ -19,18 +19,23 @@ let noBackupParents = []
 const hasMissingParent = path => noBackupParents.some(e => path.startsWith(e))
 
 export default ({ router, store }) => {
+  const getServerURL = async () => {
+    const serverName = store.getters['global/serverName']
+    const getServer = store.getters['global/getServerURL']
+    return getServer(serverName)
+  }
+
   const autologin = async (username) => {
     console.info('Try autologin for user', username)
     try {
-      const serverName = store.getters['global/serverName']
-      const getServerURL = store.getters['global/getServerURL']
-      const serverURL = getServerURL(serverName)
-      const hashpass = await getPassword(`${username}@${serverName}`)
-
+      const serverURL = await getServerURL()
+      const hashpass = await getPassword(`${username}@${serverURL}`)
+      if (!hashpass) throw new Error("Can's find a user password")
       const token = await store.dispatch('auth/login', { username, serverURL, hashpass })
       return token
     } catch (err) {
       console.warn(err)
+      router.push({ name: 'login' })
     }
   }
 
@@ -61,10 +66,10 @@ export default ({ router, store }) => {
   })
 
   axios.interceptors.request.use(async (config) => {
-    const url = new URL(config.url)
-    if (url.pathname.match(re)) {
+    config.baseURL = config.baseURL || await getServerURL()
+    if (config.url.match(re)) {
       const current = store.getters['global/currentAccount']
-      const session = `${current.user}@${url.origin}`
+      const session = `${current.user}@${config.baseURL}`
       const token = store.getters['auth/accessToken'](session) || (await autologin(current.user))
       if (token) {
         config.headers['Authorization'] = 'Bearer ' + token
