@@ -1,3 +1,4 @@
+// This data is not supposed to change in the program lifetime
 'use strict'
 import { getUser, getComputerInfo } from 'src/helpers/bkit'
 
@@ -13,7 +14,7 @@ export const pInfo = new Promise((resolve, reject) => {
 })
 
 console.log(pReject)
-export default async ({ store }) => {
+export default async () => {
   try {
     const bkituser = await getUser()
     const computer = await getComputerInfo()

@@ -55,7 +55,8 @@ const os = require('os')
 const username = os.userInfo().username
 
 const { ipcRenderer, remote: { app } } = require('electron')
-import info from 'src/helpers/info'
+// import info from 'src/helpers/info'
+import { pInfo } from 'src/boot/computer'
 import { catched } from 'src/helpers/notify'
 import { mapGetters, mapActions } from 'vuex'
 import bkitmenu from './components/Menu'
@@ -137,7 +138,7 @@ export default {
       // this.msg = 'Find current server account'
       // await this.loadCurrentAccount()
       this.msg = 'Get local user'
-      const { bkituser } = await info()
+      const { bkituser } = await pInfo
       this.bkituser = bkituser
       // this.msg = 'Loading profiles'
       // await this.loadAccounts()
