@@ -8,6 +8,7 @@ module.exports = function (ctx) {
     // https://quasar.dev/quasar-cli/cli-documentation/boot-files
     boot: [
       'accounts',
+      'computer',
       'notify-defaults',
       'i18n',
       'axios',
