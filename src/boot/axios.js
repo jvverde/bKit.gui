@@ -18,6 +18,8 @@ const noBackupPaths = new Set()
 let noBackupParents = []
 const hasMissingParent = path => noBackupParents.some(e => path.startsWith(e))
 
+const promises = []
+
 export default ({ router, store }) => {
   const getServerURL = async () => {
     const serverName = store.getters['global/serverName']
@@ -35,12 +37,16 @@ export default ({ router, store }) => {
     try {
       const serverURL = await getServerURL()
       const hashpass = await getPassword(`${username}@${serverURL}`)
-      if (!hashpass) throw new Error("Can's find a user password")
+      if (!hashpass) throw new Error("Can't find a user password")
       const token = await store.dispatch('auth/login', { username, serverURL, hashpass })
       return token
     } catch (err) {
       console.warn('Auto login error:', err)
-      return askpass(username)
+      askpass(username)
+      return new Promise(resolve => promises.push(token => {
+        console.log('Resolve to', token)
+        resolve(token)
+      }))
     }
   }
 
@@ -57,6 +63,7 @@ export default ({ router, store }) => {
   axios.interceptors.request.use(async (config) => {
     config.baseURL = config.baseURL || await getServerURL()
     if (config.url.match(re)) {
+      console.log('Try to set token for', config.url)
       const current = store.getters['global/currentAccount']
       const session = `${current.user}@${config.baseURL}`
       const token = store.getters['auth/accessToken'](session) || (await autologin(current.user))
@@ -69,11 +76,21 @@ export default ({ router, store }) => {
   }, error => Promise.reject(error))
 
   axios.interceptors.response.use(response => {
+    if (response.data.token) {
+      console.log('Login token received', response.data.token)
+      promises.forEach(promise => promise(response.data.token))
+      promises.splice(0, promises.length) // reset promises
+    }
     return response
   }, error => {
     if (checkStatus(401, error)) {
       console.log('You need to login first')
-      return askpass()
+      const originalRequest = error.config
+      askpass()
+      return new Promise(resolve => promises.push(() => {
+        console.log('Resend original url', originalRequest.url)
+        resolve(axios(originalRequest))
+      }))
     } else if (checkStatus(404, error)) {
       const config = getconfig(error)
       const path = pathlike(config)
