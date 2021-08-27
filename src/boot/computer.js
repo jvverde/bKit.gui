@@ -13,7 +13,6 @@ export const pInfo = new Promise((resolve, reject) => {
   pReject = reject
 })
 
-console.log(pReject)
 export default async () => {
   try {
     const bkituser = await getUser()

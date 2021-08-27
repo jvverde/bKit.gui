@@ -25,6 +25,11 @@ export default ({ router, store }) => {
     return getServer(serverName)
   }
 
+  const askpass = async (user = store.getters['global/currentAccount'].user) => {
+    const server = store.getters['global/serverName']
+    return router.push({ name: 'login', params: { server, user } })
+  }
+
   const autologin = async (username) => {
     console.info('Try autologin for user', username)
     try {
@@ -34,8 +39,8 @@ export default ({ router, store }) => {
       const token = await store.dispatch('auth/login', { username, serverURL, hashpass })
       return token
     } catch (err) {
-      console.warn(err)
-      router.push({ name: 'login' })
+      console.warn('Auto login error:', err)
+      return askpass(username)
     }
   }
 
@@ -48,22 +53,6 @@ export default ({ router, store }) => {
     }
     return config
   }, error => Promise.reject(error))
-
-  axios.interceptors.response.use(response => {
-    return response
-  }, error => {
-    if (checkStatus(404, error)) {
-      const config = getconfig(error)
-      const path = pathlike(config)
-      if (rf.test(path)) {
-        console.log(`404 for ${path}. Put it on list of no parents backup`)
-        noBackupPaths.add(path)
-        noBackupParents = [...noBackupPaths].sort()
-        return Promise.reject(`${path} is not on backup`)
-      }
-    }
-    return Promise.reject(error.response || error.request || error.message || error)
-  })
 
   axios.interceptors.request.use(async (config) => {
     config.baseURL = config.baseURL || await getServerURL()
@@ -82,11 +71,18 @@ export default ({ router, store }) => {
   axios.interceptors.response.use(response => {
     return response
   }, error => {
-    if (error.response && error.response.status === 401) {
+    if (checkStatus(401, error)) {
       console.log('You need to login first')
-      router.push({ name: 'login' })
-    } else {
-      return Promise.reject(error.response || error.request || error.message || error)
-    }
+      return askpass()
+    } else if (checkStatus(404, error)) {
+      const config = getconfig(error)
+      const path = pathlike(config)
+      if (rf.test(path)) {
+        console.log(`404 for ${path}. Put it on list of no parents backup`)
+        noBackupPaths.add(path)
+        noBackupParents = [...noBackupPaths].sort()
+        return Promise.reject(`${path} is not on backup`)
+      }
+    } else return Promise.reject(error)
   })
 }

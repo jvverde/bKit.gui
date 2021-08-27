@@ -42,7 +42,7 @@ const routes = [
             props: true,
             component: () => import('components/Server/ListAccounts.vue'),
             children: [
-              { // This almost duplicated route is a workaround to deal wit push named route
+              { // This almost duplicated route is a workaround to deal with push named route
                 path: 'login/:user?',
                 name: 'login',
                 props: true,
