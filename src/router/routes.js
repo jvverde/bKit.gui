@@ -30,7 +30,7 @@ const routes = [
         path: 'login/:user?',
         name: 'login',
         props: true,
-        component: () => import('components/Auth/Signin.vue')
+        component: () => import('pages/Signin.vue')
       },
       {
         path: 'servers/:back?',
@@ -71,7 +71,7 @@ const routes = [
                     path: 'signin',
                     name: 'signin',
                     props: true,
-                    component: () => import('components/Auth/Signin.vue')
+                    component: () => import('pages/Signin.vue')
                   }
                 ]
               },

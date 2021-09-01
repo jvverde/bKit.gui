@@ -20,6 +20,10 @@ const hasMissingParent = path => noBackupParents.some(e => path.startsWith(e))
 
 const promises = []
 
+const setAuthorization = (config, token) => {
+  if (token) config.headers['Authorization'] = `Bearer ${token}`
+}
+
 export default ({ router, store }) => {
   const getServerURL = async () => {
     const serverName = store.getters['global/serverName']
@@ -68,10 +72,7 @@ export default ({ router, store }) => {
       const current = store.getters['global/currentAccount']
       const session = `${current.user}@${config.baseURL}`
       const token = store.getters['auth/accessToken'](session) || (await autologin(current.user))
-      if (token) {
-        config.headers['Authorization'] = 'Bearer ' + token
-      }
-      // Is a forbiden header config.headers['Accept-Encoding'] = 'gzip'
+      setAuthorization(config, token)
     }
     return config
   }, error => Promise.reject(error))
@@ -89,7 +90,7 @@ export default ({ router, store }) => {
       const originalRequest = error.config
       askpass()
       return new Promise(resolve => promises.push((token) => {
-        originalRequest.headers['Authorization'] = 'Bearer ' + token
+        setAuthorization(originalRequest, token)
         console.log('Resend original url', originalRequest.url)
         resolve(axios(originalRequest))
       }))
