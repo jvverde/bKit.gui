@@ -26,6 +26,13 @@ const routes = [
         }
       },
       {
+      // This almost duplicated route is a workaround to deal with push named route
+        path: 'login/:user?',
+        name: 'login',
+        props: true,
+        component: () => import('components/Auth/Signin.vue')
+      },
+      {
         path: 'servers/:back?',
         component: () => import('pages/Servers.vue'),
         name: 'servers',
@@ -42,12 +49,6 @@ const routes = [
             props: true,
             component: () => import('components/Server/ListAccounts.vue'),
             children: [
-              { // This almost duplicated route is a workaround to deal with push named route
-                path: 'login/:user?',
-                name: 'login',
-                props: true,
-                component: () => import('components/Auth/Signin.vue')
-              },
               {
                 path: 'show/:user',
                 name: 'Account',

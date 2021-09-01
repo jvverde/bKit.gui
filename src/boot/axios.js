@@ -4,7 +4,7 @@ import { getPassword } from 'src/helpers/credentials'
 
 Vue.prototype.$axios = axios
 
-const re = new RegExp('(/v[0-9]+)?/user/')
+const needAuthorization = new RegExp('(/v[0-9]+)?/user/')
 // http://10.1.1.4:8765/v1/user/list/E4E8DBC1-8869-4B41-AC4C-C673BD5E7B90/WIN11/WORKGROUP/Administrator/C.421BA879._.3.NTFS/@GMT-2021.08.23-14.12.43
 const rf = new RegExp('(/v[0-9]+)?/user/list/(.+/){5}@.+') // RE for URL of a list path within a snapshot
 
@@ -62,7 +62,8 @@ export default ({ router, store }) => {
 
   axios.interceptors.request.use(async (config) => {
     config.baseURL = config.baseURL || await getServerURL()
-    if (config.url.match(re)) {
+    const authorization = config.headers['Authorization']
+    if (!authorization && config.url.match(needAuthorization)) {
       console.log('Try to set token for', config.url)
       const current = store.getters['global/currentAccount']
       const session = `${current.user}@${config.baseURL}`
@@ -87,7 +88,8 @@ export default ({ router, store }) => {
       console.log('You need to login first')
       const originalRequest = error.config
       askpass()
-      return new Promise(resolve => promises.push(() => {
+      return new Promise(resolve => promises.push((token) => {
+        originalRequest.headers['Authorization'] = 'Bearer ' + token
         console.log('Resend original url', originalRequest.url)
         resolve(axios(originalRequest))
       }))
