@@ -122,6 +122,7 @@ export function loadCurrentAccount ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
       const profile = await getServer('-f')
+      if (!profile) return resolve(null)
       const account = parseAccount(profile)
       commit('setCurrentAccount', account)
       resolve(account)

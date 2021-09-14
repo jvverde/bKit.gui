@@ -24,7 +24,7 @@ const uAccount = ({ // Uniformization
 }
 
 export function addAccount (state, account) {
-  if (!account || !account.servername || !('user' in account)) throw new Error("Account dont' have a field servername or field user, or both")
+  if (!account || !account.servername || !('user' in account)) throw new Error("Account doesn't have a field 'servername' or field 'user', or both")
   const index = state.accounts.findIndex(s => s.servername === account.servername && (s.user === account.user || !s.user))
   if (index >= 0) {
     const newaccount = { ...state.accounts[index], ...uAccount(account) }
@@ -52,6 +52,6 @@ export function addAccounts (state, accounts) {
 export const updateAccounts = addAccounts
 
 export function setCurrentAccount (state, account) {
-  state.accounts.filter(s => s.current).forEach(s => (s.current = false))
+  state.accounts.filter(s => s.current).forEach(s => (s.current = false)) // Reset any current account
   addAccount(state, { ...account, current: true })
 }
