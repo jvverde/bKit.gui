@@ -84,7 +84,7 @@ export default {
   },
   mixins: [notify],
   computed: {
-    ...mapGetters('global', ['getServerURL']),
+    ...mapGetters('servers', ['getServerURL']),
     serverURL () {
       return this.getServerURL(this.server)
     },

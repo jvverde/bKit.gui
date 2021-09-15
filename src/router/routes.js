@@ -59,7 +59,7 @@ const routes = [
                 path: 'new',
                 name: 'NewAccount',
                 props: true,
-                component: () => import('components/Server/NewAccount.vue'),
+                component: () => import('pages/servers/NewAccount.vue'),
                 children: [
                   {
                     path: 'signup',
