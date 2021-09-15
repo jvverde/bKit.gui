@@ -33,21 +33,21 @@ const routes = [
         component: () => import('pages/Signin.vue')
       },
       {
-        path: 'servers/:back?',
-        component: () => import('pages/Servers.vue'),
+        path: 'servers',
+        component: () => import('pages/servers/'),
         name: 'servers',
         props: true,
         children: [
           {
             path: 'new/server',
             name: 'NewServer',
-            component: () => import('components/Server/NewServer.vue')
+            component: () => import('pages/servers/NewServer.vue')
           },
           {
             path: ':server/accounts',
             name: 'ListAccounts',
             props: true,
-            component: () => import('components/Server/ListAccounts.vue'),
+            component: () => import('pages/servers/ListAccounts.vue'),
             children: [
               {
                 path: 'show/:user',

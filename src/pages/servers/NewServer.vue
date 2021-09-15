@@ -2,23 +2,33 @@
   <div class="fit relative-position">
     <form @submit.prevent="add" class="column items-end q-gutter-y-lg absolute-center">
       <label class="self-start" style="margin-left:-2em">Add new server located at:</label>
-      <q-input outlined dense clearable standout
-        style="min-width:20em"
-        autofocus
-        @keyup.enter="add"
-        @keydown.tab="add"
-        type="text"
-        v-model="servername"
-        :loading="adding"
-        :error="!!error"
-        :error-message="`Server '${servername}' not found`"
-        @clear="error=false"
-        placeholder="IP Address or Server Name"
-        hint="Address of a bKit server"
-        label="Server address">
-        <template v-slot:append>
-        </template>
-      </q-input>
+      <div class="row no-wrap q-gutter-x-lg">
+        <div>
+          <q-btn-toggle v-model="protocol" spread no-caps toggle-color="green-9" color="grey" text-color="white"
+            :options="[
+              {label: 'https', value: 'https'},
+              {label: 'http', value: 'http'}
+            ]"
+          />
+        </div>
+        <q-input outlined dense clearable standout
+          style="min-width:20em"
+          autofocus
+          @keyup.enter="add"
+          @keydown.tab="add"
+          type="text"
+          v-model="servername"
+          :loading="adding"
+          :error="!!error"
+          :error-message="`Server '${servername}' not found`"
+          @clear="error=false"
+          placeholder="IP Address or Server Name"
+          hint="Address of a bKit server"
+          label="Server address">
+          <template v-slot:append>
+          </template>
+        </q-input>
+      </div>
       <q-input type="number" max="65335" min="1"
         dense borderless
         v-model.number="port" label="Port Number">
@@ -44,29 +54,35 @@ export default {
   data () {
     return {
       servername: undefined,
-      port: 8766,
-      // sport: 8766,
+      protocol: 'https',
+      setport: undefined,
       adding: false,
       error: false
     }
   },
+  computed: {
+    port: {
+      get () { return this.setport ? this.setport : this.protocol === 'https' ? 8766 : 8765 },
+      set (port) { this.setport = port }
+    }
+  },
   methods: {
-    ...mapMutations('global', ['addAccount']),
+    ...mapMutations('servers', ['addServer']),
     async add () {
       if (!this.servername || !this.port) return
-      const url = `https://${this.servername}:${this.port}/info`
+      const url = `${this.protocol}://${this.servername}:${this.port}/v1/info`
       try {
         this.adding = true
         const { data } = await axios.get(url)
-        console.log('data', data)
+        console.log('data:', data)
         const server = {
           servername: this.servername,
-          user: undefined,
           hport: this.port,
           iport: data.iport,
           bport: data.bport
         }
-        await this.addAccount(server)
+        console.log('server:', server)
+        this.addServer(server)
         this.$router.replace({ name: 'ListAccounts', params: { server: server.servername } })
       } catch (err) {
         warn(err)

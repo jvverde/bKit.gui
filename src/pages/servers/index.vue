@@ -1,23 +1,27 @@
 <template>
   <q-page padding class="fit column no-wrap items-center relative-position">
-    <div class="q-pa-sm q-mt-sm  q-gutter-x-sm row items-center full-width self-start">
+    <div v-if="hasServers"
+      class="q-pa-sm q-mt-sm  q-gutter-x-sm row items-center full-width self-start">
       <div>Manage server:</div>
       <div @click="change(servername)"
         v-for="(servername, index) in servernames" :key="index">
-        <q-btn flat :color="color(servername)" icon="storage" :icon-right="isSelected(servername) ? 'done' : ''">
+        <q-btn flat :color="style(servername).color" icon="storage" :icon-right="sytle(servername).icon">
           <span style="color:black">{{servername}}</span>
         </q-btn>
       </div>
       <div style="margin-left:auto" class="q-my-sm">
-         <q-btn class="q-px-sm" rounded icon="add" label="New Server" no-caps dense size="sm" @click="add"/>
+        <q-btn round icon="add" dense size="sm" @click="add"/>
       </div>
+    </div>
+    <div v-else-if="noServers" class="fit column items-center justify-center">
+      <q-btn v-show="!loading" rounded icon="add" label="Add a server" no-caps size="xl" @click="add"/>
     </div>
     <div class="fit relative-position routerview">
       <router-view></router-view>
     </div>
     <q-inner-loading :showing="loading">
       <q-spinner-ios size="xl" color="loader"/>
-      <span>{{msg}}</span>
+      <span v-if="msg">{{msg}}</span>
     </q-inner-loading>
   </q-page>
 </template>
@@ -37,10 +41,11 @@ export default {
       error: false
     }
   },
-  props: ['back'],
   computed: {
     ...mapGetters('global', ['serverAddresses']),
     loading () { return this.msg && this.msg.length > 0 },
+    hasServers () { return this.serverAddresses.length > 0 },
+    noServers () { return !this.hasServers && this.$route.name === 'servers' },
     servernames () { return [...this.serverAddresses].sort() }
   },
   watch: {
@@ -58,6 +63,7 @@ export default {
       }
     },
     '$route' (to, from) {
+      console.log('$route', to)
       if (to.name === 'ListAccounts' && to.params && to.params.server) {
         console.log('Route to server', to.params.server)
         this.selectedServer = to.params.server
@@ -73,8 +79,8 @@ export default {
     isSelected (servername) {
       return servername === this.selectedServer
     },
-    color (servername) {
-      return this.isSelected(servername) ? 'active' : ''
+    style (servername) {
+      return this.isSelected(servername) ? { color: 'active', icon: 'done' } : {}
     },
     listAccounts (servername = this.selectedServer) {
       if (servername) {
@@ -93,7 +99,7 @@ export default {
     },
     change2current () {
       return this.getCurrentAccount()
-        .then(cserver => this.change(cserver.servername))
+        .then((server = {}) => this.change(server.servername))
     },
     async load () {
       try {
@@ -113,9 +119,6 @@ export default {
   mounted () {
     console.log('Mount server')
     this.load()
-  },
-  activated () {
-    console.log('ACTIVATED')
   }
 }
 </script>

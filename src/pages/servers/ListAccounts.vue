@@ -162,7 +162,7 @@ export default {
         this.load(this.selected)
       } else {
         const cserver = await this.getCurrentAccount()
-        if (cserver.servername === this.server) {
+        if (cserver && cserver.servername === this.server) {
           console.log('Go to current Server')
           this.load(cserver)
         } else {

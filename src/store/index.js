@@ -14,6 +14,7 @@ Vue.use(Vuex)
  * with the Store instance.
  */
 import global from './global'
+import servers from './servers'
 import auth from './auth'
 import view from './view'
 import snaps from './snaps'
@@ -23,6 +24,7 @@ import snaps from './snaps'
 export const Store = new Vuex.Store({
   modules: {
     global,
+    servers,
     auth,
     view,
     snaps

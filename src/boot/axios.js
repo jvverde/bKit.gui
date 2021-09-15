@@ -55,6 +55,7 @@ export default ({ router, store }) => {
   }
 
   axios.interceptors.request.use(async (config) => {
+    // Avoid send to server requests of type /v1/user/list/somepath if parent hasn't in server
     if (rf.test(config.url)) {
       const path = pathlike(config)
       if (hasMissingParent(path)) {
