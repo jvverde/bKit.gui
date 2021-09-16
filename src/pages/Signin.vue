@@ -54,7 +54,7 @@
 
 import { required } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
-import { mapGetters, mapActions } from 'vuex'
+import { mapActions } from 'vuex'
 import { hash } from 'src/helpers/secrets'
 import { LoginError } from 'src/helpers/errors'
 
@@ -84,10 +84,6 @@ export default {
   },
   mixins: [notify],
   computed: {
-    ...mapGetters('servers', ['getServerURL']),
-    serverURL () {
-      return this.getServerURL(this.server)
-    },
     ready () {
       return !this.$v.form.$error && this.form.username && this.form.password
     },
@@ -108,11 +104,11 @@ export default {
       if (!this.ready) return
       this.submiting = true
       try {
-        const { username, serverURL, server, hashpass } = this
+        const { username, server: serverURL, hashpass } = this
         await this.login({ username, serverURL, hashpass })
-        this.addAccount({ user: username, server, password: hashpass })
+        // this.addAccount({ user: username, server, password: hashpass })
         console.log('Go back now')
-        this.$router.back()
+        // this.$router.back()
       } catch (err) {
         console.warn('err:', err)
         if (err instanceof LoginError) {

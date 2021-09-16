@@ -32,7 +32,7 @@ export default ({ router, store }) => {
   }
 
   const askpass = async (user = store.getters['global/currentAccount'].user) => {
-    const server = store.getters['global/serverName']
+    const server = store.getters['servers/serverURL']
     return router.push({ name: 'login', params: { server, user } })
   }
 
