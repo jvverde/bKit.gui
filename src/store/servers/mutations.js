@@ -1,5 +1,7 @@
+const getURL = ({ proto = 'https', hport = 8765, name }) => `${proto}://${name}:${hport}`
+
 const uServer = ({ // Uniformization
-  servername,
+  name,
   hport = 8765,
   sport = 8766,
   iport = 8760,
@@ -10,7 +12,8 @@ const uServer = ({ // Uniformization
   ...extra
 }) => {
   return {
-    servername,
+    name,
+    url: getURL({ proto, hport, name }),
     hport,
     iport,
     bport,
@@ -22,10 +25,11 @@ const uServer = ({ // Uniformization
 }
 
 export function addServer (state, server) {
-  if (!server || !server.servername) throw new Error("Server doesn't have a field 'servername'")
-  const index = state.servers.findIndex(s => s.servername === server.servername)
+  if (!server || !server.name) throw new Error("Server doesn't have a field 'name'")
+  server = uServer(server)
+  const index = state.servers.findIndex(s => s.url === server.url)
   if (index >= 0) {
-    const newserver = { ...state.servers[index], ...uServer(server) }
+    const newserver = { ...state.servers[index], ...server }
     state.servers.splice(index, 1, newserver)
   } else {
     state.servers.push(uServer(server))
@@ -35,7 +39,7 @@ export function addServer (state, server) {
 export const updateServer = addServer
 
 export function delServer (state, server) {
-  const index = state.servers.findIndex(s => s.servername === server.servername)
+  const index = state.servers.findIndex(s => s.url === server.url)
   if (index >= 0) {
     return state.servers.splice(index, 1)
   } else {

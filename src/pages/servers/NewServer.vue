@@ -47,7 +47,7 @@
 import axios from 'axios'
 // import { changeServer } from 'src/helpers/bkit'
 import { warn } from 'src/helpers/notify'
-import { mapMutations } from 'vuex'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'Servers',
@@ -67,7 +67,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations('servers', ['addServer']),
+    ...mapActions('servers', ['addServer']),
     async add () {
       if (!this.servername || !this.port) return
       const url = `${this.protocol}://${this.servername}:${this.port}/v1/info`
@@ -76,14 +76,15 @@ export default {
         const { data } = await axios.get(url)
         console.log('data:', data)
         const server = {
-          servername: this.servername,
+          proto: this.protocol,
+          name: this.servername,
           hport: this.port,
           iport: data.iport,
           bport: data.bport
         }
-        console.log('server:', server)
-        this.addServer(server)
-        this.$router.replace({ name: 'ListAccounts', params: { server: server.servername } })
+        const server2 = await this.addServer(server)
+        console.log('server:', server2)
+        this.$router.replace({ name: 'ListAccounts', params: { server: server2.url } })
       } catch (err) {
         warn(err)
       } finally {
