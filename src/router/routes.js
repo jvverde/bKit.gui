@@ -53,7 +53,7 @@ const routes = [
                 path: 'show/:user',
                 name: 'Account',
                 props: true,
-                component: () => import('components/Server/Account.vue')
+                component: () => import('pages/servers/Account.vue')
               },
               {
                 path: 'new',

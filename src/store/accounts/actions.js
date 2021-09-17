@@ -2,15 +2,15 @@
 export function someAction (context) {
 }
 */
-import { getAccounts as getCredentials, addAccount as addCredentials, deleteAccount as removeCredentials } from 'src/helpers/credentials'
+import { getAccounts as getCredentials, addAccount as addCredentials, deleteAccount as deleteCredentials } from 'src/helpers/credentials'
 
-export function addAccount ({ commit, getters }, { user, server, password }) {
+export function addAccount ({ commit, getters }, { user, serverURL, password }) {
   return new Promise(async (resolve, reject) => {
     try {
-      console.log('Add account', user, server)
-      commit('addAccount', { servername: server, user, autorized: true })
-      const serverURL = getters.getServerURL(server)
-      await addCredentials(`${user}@${serverURL}`, password)
+      const name = `${user}@${serverURL}`
+      console.log('Add account', name)
+      commit('addAccount', { serverURL, user, name, autorized: true })
+      await addCredentials(name, password)
       resolve(true)
     } catch (err) {
       reject(err)
@@ -18,15 +18,13 @@ export function addAccount ({ commit, getters }, { user, server, password }) {
   })
 }
 
-export function delCredentials ({ commit, getters }, { user, servername }) {
+export function removeCredentials ({ commit, getters }, account) {
   return new Promise(async (resolve, reject) => {
     try {
-      const serverURL = getters.getServerURL(servername)
-      await removeCredentials(`${user}@${serverURL}`)
-      // Get a copy of this account and set autorized property to false
-      const account = { ...getters.getAccount(servername, user), autorized: false }
-      commit('updateAccount', account)
-      resolve(true)
+      await deleteCredentials(account.name)
+      const unAuthAccount = { ...account, autorized: false }
+      commit('updateAccount', unAuthAccount)
+      resolve(unAuthAccount)
     } catch (err) {
       reject(err)
     }
@@ -38,14 +36,12 @@ export function loadCredentials ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
       const credentials = await getCredentials()
-      const accounts = credentials.map(u => {
-        console.log('Found credentials for:', u)
-        const [user, serverURL] = u.split('@')
-        const match = serverURL.match(re)
-        const { groups: { servername, port } = {} } = match || {}
-        return { servername, user, autorized: true, hport: port }
+      const accounts = credentials.map(name => {
+        console.log('Found credentials for:', name)
+        const [user, serverURL] = name.split('@')
+        return { name, serverURL, user, autorized: true }
       })
-      commit('updateAccounts', accounts.filter(a => a.servername && a.user))
+      commit('updateAccounts', accounts)
       resolve(accounts)
     } catch (err) {
       reject(err)
@@ -56,20 +52,18 @@ export function loadCredentials ({ commit }) {
 /* Operations related with accounts defined on filesystem on ETCDIR */
 import { listServers, getServer, changeServer, deleteServer, initServer } from 'src/helpers/bkit'
 
-const parseAccount = (line, profile = true) => {
-  if (!line) return {}
-  const [user, url] = line.split('@')
+const parseAccount = (name, profile = true) => {
+  if (!name) return {}
+  const [user, url] = name.split('@')
   const [servername, , section, iport, bport, rport, uport, hport] = url.split(':')
-  return { servername, user, section, iport, bport, rport, uport, hport, profile }
+  return { name, servername, user, section, iport, bport, rport, uport, hport, profile }
 }
 
 export function loadAccounts ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
       const serversList = await listServers('-f')
-      const accounts = serversList.map(server => {
-        return parseAccount(server)
-      })
+      const accounts = serversList.map(server => parseAccount(server))
       commit('updateAccounts', accounts)
       resolve(accounts)
     } catch (e) {
@@ -109,7 +103,7 @@ export function removeAccount ({ commit }, account) {
   return new Promise(async (resolve, reject) => {
     try {
       if (account.profile) await deleteServer(account)
-      if (account.autorized) await removeCredentials(`${account.user}@${account.servername}`)
+      if (account.autorized) await deleteCredentials(`${account.user}@${account.servername}`)
       commit('delAccount', account)
       resolve(true)
     } catch (e) {

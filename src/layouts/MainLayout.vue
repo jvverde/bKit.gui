@@ -97,7 +97,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['account', 'currentProfiles']),
+    ...mapGetters('accounts', ['currentProfiles']),
     loading () { return this.msg && this.msg.length > 0 },
     user () {
       return this.bkituser
@@ -121,7 +121,7 @@ export default {
     bkitmenu
   },
   methods: {
-    ...mapActions('global', ['setCurrentAccount', 'loadCurrentAccount', 'loadAccounts']),
+    ...mapActions('accounts', ['setCurrentAccount']),
     async changeserver (account) {
       try {
         this.msg = `Change to account ${account.user}@${account.servername}`
@@ -135,13 +135,9 @@ export default {
   },
   async mounted () {
     try {
-      // this.msg = 'Find current server account'
-      // await this.loadCurrentAccount()
       this.msg = 'Get local user'
       const { bkituser } = await pInfo
       this.bkituser = bkituser
-      // this.msg = 'Loading profiles'
-      // await this.loadAccounts()
     } catch (err) {
       catched(err)
     } finally {

@@ -95,7 +95,7 @@ export default {
     hashpass () { return hash(this.password) }
   },
   methods: {
-    ...mapActions('global', ['addAccount']),
+    ...mapActions('accounts', ['addAccount']),
     ...mapActions('auth', ['login']),
     cancel () {
       this.$router.back()
@@ -106,7 +106,7 @@ export default {
       try {
         const { username, server: serverURL, hashpass } = this
         await this.login({ username, serverURL, hashpass })
-        // this.addAccount({ user: username, server, password: hashpass })
+        this.addAccount({ user: username, serverURL, password: hashpass })
         console.log('Go back now')
         // this.$router.back()
       } catch (err) {

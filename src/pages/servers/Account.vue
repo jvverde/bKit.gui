@@ -93,7 +93,7 @@ export default {
   },
   props: ['server', 'user'],
   computed: {
-    ...mapGetters('global', ['getAccount', 'currentAccount']),
+    ...mapGetters('accounts', ['getAccount', 'currentAccount']),
     loading () { return this.msg && this.msg.length > 0 },
     profile: {
       get () { return this.account.profile === true },
@@ -115,14 +115,15 @@ export default {
           this.setCredentails()
         } else {
           console.log('Unset credentials to', val)
-          this.removeCredentials()
+          this.removeCredentials(this.account)
         }
       }
     },
-    account () { return this.getAccount(this.server, this.user) || {} },
+    accountName () { return `${this.user}@${this.server}` }
+    account () { return this.getAccount(this.accountName) || {} },
     isDefault: {
       get () {
-        return this.currentAccount && this.currentAccount.servername === this.account.servername && this.currentAccount.user === this.account.user
+        return this.currentAccount && this.currentAccount.serverURL === this.account.serverURL && this.currentAccount.user === this.account.user
       },
       set (val) {
         if (val) this.setAccountAsDefault()
@@ -134,13 +135,13 @@ export default {
   watch: {
   },
   methods: {
-    ...mapActions('global', ['delCredentials', 'deleteProfile', 'initProfile', 'setCurrentAccount', 'removeAccount']),
+    ...mapActions('account', ['removeCredentials', 'deleteProfile', 'initProfile', 'setCurrentAccount', 'removeAccount']),
     cancel () {
       this.$router.back()
     },
     async setAccountAsDefault () {
       try {
-        this.msg = `Change to server ${this.account.user}@${this.account.servername}`
+        this.msg = `Change to server ${this.account.user}@${this.account.serverURL}`
         await this.setCurrentAccount(this.account)
       } catch (err) {
         catched(err)
@@ -176,11 +177,7 @@ export default {
       const params = { server: this.server, user: this.user }
       this.$router.push({ name: 'login', params })
     },
-    async removeCredentials () {
-      const { user, server: servername } = this
-      this.delCredentials({ user, servername })
-    },
-    async remove () {
+    remove () {
       console.log('Remove account', this.account)
       this.removeAccount(this.account)
     }

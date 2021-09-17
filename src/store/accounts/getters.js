@@ -1,3 +1,6 @@
+export function currentAccount (state) {
+  return state.accounts.filter(s => s.current === true)[0]
+}
 export function account (state) {
   return currentAccount(state) || {}
 }
@@ -7,35 +10,23 @@ export function currentAuthorized (state) {
 export function currentProfiles (state) {
   return state.accounts.filter(s => s.profile === true)
 }
-export function currentAccount (state) {
-  return state.accounts.filter(s => s.current === true)[0]
-}
-export function serverAddresses (state) {
-  return [...new Set(state.accounts.map(s => s.servername))]
-}
-export function serverNames (state) {
-  return serverAddresses(state)
-}
-export function serverName (state) {
-  return (currentAccount(state) || {}).servername
-}
+
 export function accountName (state) {
-  const account = currentAccount(state)
-  return account ? `${account.user}@${account.servername}` : undefined
+  const account = currentAccount(state) || {}
+  return account.name
 }
+export function accountServerURL (state) {
+  const account = currentAccount(state) || {}
+  return account.serverURL
+}
+
 export function getAccount (state) {
-  return (servername, user) => {
-    return state.accounts.filter(s => s.servername === servername && s.user === user)[0]
-  }
-}
-export function getAccountsByServername (state) {
   return (name) => {
-    return state.accounts.filter(s => s.servername === name)
+    return state.accounts.filter(s => s.name === name)[0]
   }
 }
-export function getServerURL (state) {
-  return (name = serverName(state)) => {
-    const server = state.accounts.filter(s => s.servername === name)[0] || { servername: name, hport: 8765 }
-    return `http://${server.servername}:${server.hport}`
+export function getAccountsByServerURL (state) {
+  return (url) => {
+    return state.accounts.filter(s => s.serverURL === url)
   }
 }

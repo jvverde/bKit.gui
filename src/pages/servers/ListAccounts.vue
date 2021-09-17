@@ -61,7 +61,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['getAccountsByServername']),
+    ...mapGetters('accounts', ['getAccountsByServerURL']),
     selected: {
       get () {
         return this.currentOf[this.server]
@@ -71,7 +71,7 @@ export default {
       }
     },
     accounts () {
-      return [...this.getAccountsByServername(this.server).filter(a => a.user)].sort(compbyuser)
+      return [...this.getAccountsByServerURL(this.server).filter(a => a.user)].sort(compbyuser)
     },
     length () { return this.accounts.length },
     zero () { return this.length === 0 },
@@ -141,7 +141,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('global', ['delCredentials', 'getCurrentAccount']),
+    ...mapActions('account', ['getCurrentAccount']),
     add () {
       this.$router.push({ name: 'NewAccount', params: { server: this.server } })
     },

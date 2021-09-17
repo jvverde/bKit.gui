@@ -75,7 +75,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('global', ['loadCredentials', 'loadAccounts', 'getCurrentAccount']),
+    ...mapActions('accounts', ['loadCredentials', 'loadAccounts', 'getCurrentAccount']),
     isSelected (servername) {
       return servername === this.selectedServer
     },

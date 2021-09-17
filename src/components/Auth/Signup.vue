@@ -99,7 +99,7 @@
 import axios from 'axios'
 import { required, minLength, maxLength, email, sameAs } from 'vuelidate/lib/validators'
 import notify from 'src/mixins/notify'
-import { mapGetters, mapActions } from 'vuex'
+import { mapActions } from 'vuex'
 import { hash, hmac, decrypt } from 'src/helpers/secrets'
 // import { addAccount } from 'src/helpers/credentials'
 
@@ -172,9 +172,8 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['getServerURL']),
     serverURL () {
-      return this.getServerURL(this.server)
+      return this.server
     },
     ready () {
       return this.$v.form.$invalid === false
@@ -199,7 +198,7 @@ export default {
   },
   mixins: [notify],
   methods: {
-    ...mapActions('global', ['addAccount']),
+    ...mapActions('accounts', ['addAccount']),
     cancel () {
       this.$router.back()
     },
@@ -211,10 +210,10 @@ export default {
         const challenge = decrypt(this.response.echallenge, this.code)
         const proof = hmac(challenge, this.hashpass)
         const confirm = { email: this.email, username: this.username, proof }
-        const { data: response } = await axios.post(`${this.serverURL}/v1/auth/confirm`, confirm)
+        const { data: response } = await axios.post(`${this.server}/v1/auth/confirm`, confirm)
         this.response = response
         this.code = undefined
-        this.addAccount({ user: this.username, server: this.server, password: this.hashpass })
+        this.addAccount({ user: this.username, serverURL: this.server, password: this.hashpass })
         this.$router.back()
       } catch (err) {
         this.catch(err)
@@ -227,7 +226,7 @@ export default {
       try {
         this.submiting = true
         const obj = compose(this.form)
-        const { data: response } = await axios.post(`${this.serverURL}/v1/auth/signup`, obj)
+        const { data: response } = await axios.post(`${this.server}/v1/auth/signup`, obj)
         this.response = response
         this.code = null
       } catch (err) {
