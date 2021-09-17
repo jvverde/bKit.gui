@@ -38,3 +38,10 @@ export function getAccountsByServerURL (state) {
     return state.accounts.filter(s => s.serverURL === url)
   }
 }
+
+export const getAccountsOf = state => account => {
+  const keys = Object.keys(account)
+  return state.accounts.filter(s => keys.every(k => s[k] === account[k]))
+}
+
+export const getAccounts = state => state.accounts

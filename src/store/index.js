@@ -38,7 +38,6 @@ export const Store = new Vuex.Store({
 export default function (/* { ssrContext } */) {
   // const Store = new Vuex.Store({
   //   modules: {
-  //     global
   //   },
 
   //   // enable strict mode (adds overhead!)

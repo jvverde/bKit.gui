@@ -108,7 +108,7 @@ export default {
         await this.login({ username, serverURL, hashpass })
         this.addAccount({ user: username, serverURL, password: hashpass })
         console.log('Go back now')
-        // this.$router.back()
+        this.$router.back()
       } catch (err) {
         console.warn('err:', err)
         if (err instanceof LoginError) {

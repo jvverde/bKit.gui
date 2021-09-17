@@ -141,7 +141,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('account', ['getCurrentAccount']),
+    ...mapActions('accounts', ['getCurrentAccount']),
     add () {
       this.$router.push({ name: 'NewAccount', params: { server: this.server } })
     },

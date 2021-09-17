@@ -5,7 +5,7 @@
       <div>Manage server:</div>
       <div @click="change(servername)"
         v-for="(servername, index) in servernames" :key="index">
-        <q-btn flat :color="style(servername).color" icon="storage" :icon-right="sytle(servername).icon">
+        <q-btn flat :color="color(servername)" icon="storage" :icon-right="icon(servername)" no-caps>
           <span style="color:black">{{servername}}</span>
         </q-btn>
       </div>
@@ -79,8 +79,14 @@ export default {
     isSelected (servername) {
       return servername === this.selectedServer
     },
-    style (servername) {
+    mystyle (servername) {
       return this.isSelected(servername) ? { color: 'active', icon: 'done' } : {}
+    },
+    color (servername) {
+      return this.mystyle(servername).color
+    },
+    icon (servername) {
+      return this.mystyle(servername).icon
     },
     listAccounts (servername = this.selectedServer) {
       if (servername) {
@@ -103,11 +109,11 @@ export default {
     },
     async load () {
       try {
-        this.msg = 'Loading profiles'
-        await this.loadAccounts()
-        this.msg = 'Loading credentials'
-        await this.loadCredentials()
-        this.msg = 'Get Current Server'
+        // this.msg = 'Loading profiles'
+        // await this.loadAccounts()
+        // this.msg = 'Loading credentials'
+        // await this.loadCredentials()
+        // this.msg = 'Get Current Server'
         this.change2current()
       } catch (e) {
         catched(e)

@@ -2,16 +2,17 @@
 export function someAction (context) {
 }
 */
-import { getAccounts as getCredentials, addAccount as addCredentials, deleteAccount as deleteCredentials } from 'src/helpers/credentials'
+import { getAccounts as getCredentials, addAccount as addCredentials, deleteAccount as deleteCredentials, getPassword } from 'src/helpers/credentials'
 
 export function addAccount ({ commit, getters }, { user, serverURL, password }) {
   return new Promise(async (resolve, reject) => {
     try {
       const name = `${user}@${serverURL}`
-      console.log('Add account', name)
-      commit('addAccount', { serverURL, user, name, autorized: true })
+      const account = { serverURL, user, name, autorized: true }
+      console.log('Add account', account)
+      commit('addAccount', account)
       await addCredentials(name, password)
-      resolve(true)
+      resolve(getters.getAccountsOf(account)[0]) // Resolve to same account but full updated
     } catch (err) {
       reject(err)
     }
@@ -24,7 +25,7 @@ export function removeCredentials ({ commit, getters }, account) {
       await deleteCredentials(account.name)
       const unAuthAccount = { ...account, autorized: false }
       commit('updateAccount', unAuthAccount)
-      resolve(unAuthAccount)
+      resolve(getters.getAccountsOf({ autorized: false })) // Resolve to all not authorized accounts
     } catch (err) {
       reject(err)
     }
@@ -32,7 +33,7 @@ export function removeCredentials ({ commit, getters }, account) {
 }
 
 // const re = new RegExp('^(https?://)?(?<servername>[^:]+)(:(?<port>[0-9]+)?)')
-export function loadCredentials ({ commit }) {
+export function loadCredentials ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
       const credentials = await getCredentials()
@@ -42,7 +43,7 @@ export function loadCredentials ({ commit }) {
         return { name, serverURL, user, autorized: true }
       })
       commit('updateAccounts', accounts)
-      resolve(accounts)
+      resolve(getters.getAccountsOf({ autorized: true })) // Resolve to all authorized accounts
     } catch (err) {
       reject(err)
     }
@@ -59,77 +60,87 @@ const parseAccount = (name, profile = true) => {
   return { name, servername, user, section, iport, bport, rport, uport, hport, profile }
 }
 
-export function loadAccounts ({ commit }) {
+export function loadAccounts ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
       const serversList = await listServers('-f')
       const accounts = serversList.map(server => parseAccount(server))
       commit('updateAccounts', accounts)
-      resolve(accounts)
+      resolve(getters.getAccountsOf({ profile: true })) // Resolve to all accounts with a profile
     } catch (e) {
       reject(e)
     }
   })
 }
 
-export function deleteProfile ({ commit }, account) {
+export function deleteProfile ({ commit, getters }, account) {
   return new Promise(async (resolve, reject) => {
     try {
       await deleteServer(account)
       const unserv = { ...account, profile: false }
       commit('updateAccount', unserv)
-      resolve(unserv)
+      resolve(getters.getAccountsOf(unserv)[0]) // Resolve to same account but full updated
     } catch (e) {
       reject(e)
     }
   })
 }
 
-export function initProfile ({ commit }, { account: profile, pass }) {
+export function initProfile ({ commit, getters }, { account: profile, pass }) {
+  console.info('initProfile', profile)
   return new Promise(async (resolve, reject) => {
     try {
       await deleteServer(profile)
       const answer = await initServer(profile, pass)
       const account = parseAccount(answer)
       commit('updateAccount', account)
-      resolve(account)
+      resolve(getters.getAccountsOf(account)[0]) // Resolve to same account but full updated
     } catch (e) {
       reject(e)
     }
   })
 }
 
-export function removeAccount ({ commit }, account) {
+export function removeAccount ({ commit, getters }, account) {
   return new Promise(async (resolve, reject) => {
     try {
       if (account.profile) await deleteServer(account)
       if (account.autorized) await deleteCredentials(account.name)
       commit('delAccount', account)
-      resolve(true)
+      resolve(getters.getAccounts) // Resolve to remaining accounts
     } catch (e) {
       reject(e)
     }
   })
 }
 
-export function loadCurrentAccount ({ commit }) {
+export function loadCurrentAccount ({ dispatch, commit, getters }) {
+  console.info('loadCurrentAccount', getters)
   return new Promise(async (resolve, reject) => {
     try {
       const profile = await getServer('-f')
-      if (!profile) return resolve(undefined)
-      const account = parseAccount(profile)
-      commit('setCurrentAccount', account)
-      resolve(account)
+      if (!profile) {
+        const account = getters.currentAuthorized[0]
+        if (!account) return resolve(undefined)
+        const pass = getPassword(account.name)
+        await dispatch('initProfile', { account, pass })
+        return dispatch('setCurrentAccount', account)
+      } else {
+        const account = parseAccount(profile)
+        commit('setCurrentAccount', account)
+        resolve(getters.currentAccount)
+      }
     } catch (e) {
       reject(e)
     }
   })
 }
 
-export function getCurrentAccount ({ commit, getters }) {
+export function getCurrentAccount ({ dispatch, commit, getters }) {
+  console.info('getCurrentAccount')
   return new Promise(async (resolve, reject) => {
     try {
-      const account = getters.currentAccount || await loadCurrentAccount({ commit })
+      const account = getters.currentAccount || await dispatch('loadCurrentAccount')
       resolve(account)
     } catch (e) {
       reject(e)
@@ -137,23 +148,24 @@ export function getCurrentAccount ({ commit, getters }) {
   })
 }
 
-export function setCurrentAccount ({ commit }, profile) {
+export function setCurrentAccount ({ commit, getters }, profile) {
+  console.info('setCurrentAccount', profile)
   return new Promise(async (resolve, reject) => {
     try {
       const answer = await changeServer(profile)
       const account = parseAccount(answer)
       commit('setCurrentAccount', account)
-      resolve(account)
+      resolve(getters.currentAccount)
     } catch (e) {
       reject(e)
     }
   })
 }
 
-export function currentAccount ({ commit, getters }, account) {
+export function currentAccount ({ dispatch }, account) {
   if (!account) {
-    return getCurrentAccount({ commit, getters })
+    return dispatch('getCurrentAccount')
   } else {
-    return setCurrentAccount({ commit }, account)
+    return dispatch('setCurrentAccount', account)
   }
 }
