@@ -3,6 +3,7 @@ const uAccount = ({ // Uniformization
   serverURL,
   section,
   user,
+  profile,
   hport = 8765,
   sport = 8766,
   iport = 8760,
@@ -11,12 +12,15 @@ const uAccount = ({ // Uniformization
   uport = 8763,
   ...extra
 }) => {
-  if (!name && user) name = `${user}@${serverURL}`
+  if (!serverURL) throw new Error("Account doesn't have a field 'serverURL'")
+  if (!user) throw new Error("Account doesn't have a field 'user'")
+  name = name || `${user}@${serverURL}`
   return {
     name,
     serverURL,
     user,
     section,
+    profile,
     hport,
     iport,
     bport,
@@ -27,9 +31,8 @@ const uAccount = ({ // Uniformization
 }
 
 export function addAccount (state, account) {
-  if (!account || !account.serverURL || !('user' in account)) throw new Error("Account doesn't have a field 'serverURL' or field 'user', or both")
   account = uAccount(account)
-  const index = state.accounts.findIndex(s => s.serverURL === account.serverURL && (s.user === account.user || !s.user))
+  const index = state.accounts.findIndex(s => s.name === account.name)
   if (index >= 0) {
     const newaccount = { ...state.accounts[index], ...account }
     state.accounts.splice(index, 1, newaccount)
@@ -57,5 +60,5 @@ export const updateAccounts = addAccounts
 
 export function setCurrentAccount (state, account) {
   state.accounts.filter(s => s.current).forEach(s => (s.current = false)) // Reset any current account
-  addAccount(state, { ...account, current: true })
+  updateAccount(state, { ...account, current: true })
 }

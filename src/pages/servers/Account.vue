@@ -154,9 +154,9 @@ export default {
       try {
         this.msg = 'Changing keys with server'
         if (this.autorized) {
-          const pass = await getPassword(`${this.user}@${this.server}`)
+          const pass = await getPassword(this.accountName)
           await this.initProfile({ account: this.account, pass })
-        }
+        } else throw new Error('You should login first')
       } catch (err) {
         catched(err)
       } finally {

@@ -103,7 +103,7 @@ export function removeAccount ({ commit }, account) {
   return new Promise(async (resolve, reject) => {
     try {
       if (account.profile) await deleteServer(account)
-      if (account.autorized) await deleteCredentials(`${account.user}@${account.servername}`)
+      if (account.autorized) await deleteCredentials(account.name)
       commit('delAccount', account)
       resolve(true)
     } catch (e) {

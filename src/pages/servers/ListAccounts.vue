@@ -161,10 +161,10 @@ export default {
         console.log('Show previous one')
         this.load(this.selected)
       } else {
-        const cserver = await this.getCurrentAccount()
-        if (cserver && cserver.servername === this.server) {
+        const currentAccount = await this.getCurrentAccount()
+        if (currentAccount && currentAccount.serverURL === this.server) {
           console.log('Go to current Server')
-          this.load(cserver)
+          this.load(currentAccount)
         } else {
           console.log('Go to first account')
           this.load(this.accounts[0])
