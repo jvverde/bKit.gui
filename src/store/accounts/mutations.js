@@ -21,6 +21,7 @@ const uAccount = ({ // Uniformization
   name = name || `${user}@${serverURL}`
   return {
     name,
+    servername,
     serverURL,
     user,
     section,

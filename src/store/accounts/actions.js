@@ -64,6 +64,7 @@ export function loadAccounts ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
       const serversList = await listServers('-f')
+      console.log('serversList', serversList)
       const accounts = serversList.map(server => parseAccount(server))
       commit('updateAccounts', accounts)
       resolve(getters.getAccountsOf({ profile: true })) // Resolve to all accounts with a profile
@@ -92,6 +93,7 @@ export function initProfile ({ commit, getters }, { account: profile, pass }) {
     try {
       await deleteServer(profile)
       const answer = await initServer(profile, pass)
+      if (!answer) throw new Error("Can't init the server")
       const account = parseAccount(answer)
       commit('updateAccount', account)
       resolve(getters.getAccountsOf(account)[0]) // Resolve to same account but full updated
@@ -122,7 +124,7 @@ export function loadCurrentAccount ({ dispatch, commit, getters }) {
       if (!profile) {
         const account = getters.currentAuthorized[0]
         if (!account) return resolve(undefined)
-        const pass = getPassword(account.name)
+        const pass = await getPassword(account.name)
         await dispatch('initProfile', { account, pass })
         return dispatch('setCurrentAccount', account)
       } else {
