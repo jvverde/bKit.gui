@@ -101,7 +101,6 @@
 import axios from 'axios'
 import { required, minLength, maxLength, sameAs } from 'vuelidate/lib/validators'
 import { catched } from 'src/helpers/notify'
-import { mapGetters } from 'vuex'
 import crypto from 'crypto'
 
 const mustbecaps = (v = '') => Promise.resolve(v.match(/^[A-Z]{8}$/))
@@ -178,7 +177,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['getServerURL']),
     waitcode: {
       get () { return this.response && this.status === 1 },
       set () { this.status = 2 }
@@ -188,7 +186,7 @@ export default {
       return !this.$v.form.username.$invalid && this.form.username
     },
     serverURL () {
-      return this.getServerURL(this.server)
+      return this.server
     }
   },
   props: ['server'],

@@ -1,5 +1,6 @@
 const uAccount = ({ // Uniformization
   name,
+  servername,
   serverURL,
   section,
   user,
@@ -12,8 +13,9 @@ const uAccount = ({ // Uniformization
   uport = 8763,
   ...extra
 }) => {
-  if (!serverURL) throw new Error("Account doesn't have a field 'serverURL'")
+  if (!serverURL && !servername) throw new Error("Account doesn't have a field 'serverURL' nor 'servername'")
   if (!user) throw new Error("Account doesn't have a field 'user'")
+  serverURL = serverURL || `http://${servername}:${hport}`
   name = name || `${user}@${serverURL}`
   return {
     name,
@@ -44,7 +46,7 @@ export function addAccount (state, account) {
 export const updateAccount = addAccount
 
 export function delAccount (state, account) {
-  const index = state.accounts.findIndex(s => s.serverURL === account.serverURL && s.user === account.user)
+  const index = state.accounts.findIndex(s => s.name === account.name)
   if (index >= 0) {
     return state.accounts.splice(index, 1)
   } else {

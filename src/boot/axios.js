@@ -25,21 +25,19 @@ const setAuthorization = (config, token) => {
 }
 
 export default ({ router, store }) => {
-  const getServerURL = async () => {
-    const serverName = store.getters['global/serverName']
-    const getServer = store.getters['global/getServerURL']
-    return getServer(serverName)
-  }
+  const getCurrentAccount = () => store.getters['accounts/account']
+  const getCurrentUser = () => store.getters['accounts/account'].user
+  const getCurrentServerURL = () => store.getters['accounts/account'].serverURL
 
-  const askpass = async (user = store.getters['global/currentAccount'].user) => {
-    const server = store.getters['servers/serverURL']
+  const askpass = (user = getCurrentUser()) => {
+    const server = getCurrentServerURL()
     return router.push({ name: 'login', params: { server, user } })
   }
 
   const autologin = async (username) => {
     console.info('Try autologin for user', username)
     try {
-      const serverURL = await getServerURL()
+      const serverURL = getCurrentServerURL()
       const hashpass = await getPassword(`${username}@${serverURL}`)
       if (!hashpass) throw new Error("Can't find a user password")
       const token = await store.dispatch('auth/login', { username, serverURL, hashpass })
@@ -66,11 +64,11 @@ export default ({ router, store }) => {
   }, error => Promise.reject(error))
 
   axios.interceptors.request.use(async (config) => {
-    config.baseURL = config.baseURL || await getServerURL()
+    config.baseURL = config.baseURL || getCurrentServerURL()
     const authorization = config.headers['Authorization']
     if (!authorization && config.url.match(needAuthorization)) {
       console.log('Try to set token for', config.url)
-      const current = store.getters['global/currentAccount']
+      const current = store.getters['accounts/currentAccount']
       const session = `${current.user}@${config.baseURL}`
       const token = store.getters['auth/accessToken'](session) || (await autologin(current.user))
       setAuthorization(config, token)
