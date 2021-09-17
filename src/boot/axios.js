@@ -25,7 +25,7 @@ const setAuthorization = (config, token) => {
 }
 
 export default ({ router, store }) => {
-  const getCurrentAccount = () => store.getters['accounts/account']
+  // const getCurrentAccount = () => store.getters['accounts/account']
   const getCurrentUser = () => store.getters['accounts/account'].user
   const getCurrentServerURL = () => store.getters['accounts/account'].serverURL
 

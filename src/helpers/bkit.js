@@ -5,8 +5,8 @@ import { Store } from 'src/store'
 
 const path = require('path')
 const nill = () => null
-const accountName = () => Store.getters['global/accountName']
-const serverName = () => Store.getters['global/serverName']
+const accountName = () => Store.getters['accounts/accountName']
+const serverName = () => Store.getters['accounts/serverName']
 
 /* ------------------ define queues and proxis/caches --------------- */
 import Queue, { QueueLast, QueueByKey } from './queue'

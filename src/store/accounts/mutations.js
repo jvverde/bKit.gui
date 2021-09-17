@@ -1,3 +1,4 @@
+const urlre = new RegExp('https?://([^:]+):[0-9]+')
 const uAccount = ({ // Uniformization
   name,
   servername,
@@ -16,6 +17,7 @@ const uAccount = ({ // Uniformization
   if (!serverURL && !servername) throw new Error("Account doesn't have a field 'serverURL' nor 'servername'")
   if (!user) throw new Error("Account doesn't have a field 'user'")
   serverURL = serverURL || `http://${servername}:${hport}`
+  servername = servername || serverURL.replace(urlre, '$1')
   name = name || `${user}@${serverURL}`
   return {
     name,

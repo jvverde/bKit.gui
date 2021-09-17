@@ -119,7 +119,7 @@ export default {
         }
       }
     },
-    accountName () { return `${this.user}@${this.server}` }
+    accountName () { return `${this.user}@${this.server}` },
     account () { return this.getAccount(this.accountName) || {} },
     isDefault: {
       get () {

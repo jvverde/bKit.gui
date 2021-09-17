@@ -11,15 +11,15 @@
         />
 
         <q-toolbar-title>
-          <div v-if="account && account.servername" class="row no-wrap">
+          <div v-if="account.name" class="row no-wrap">
             <span>bKit Account:</span>
-             <q-btn flat dense no-caps :label="`${account.user}@${account.servername}`" :loading="loading">
+             <q-btn flat dense no-caps :label="`${account.name}`" :loading="loading">
                 <q-menu v-if="accounts.length > 0"
                   transition-show="jump-down"
                   transition-hide="jump-up">
                   <q-list v-for="(account, index) in accounts" :key="index">
                     <q-item clickable dense v-close-popup :active="account.current" @click="changeserver(account)">
-                      <q-item-section>{{account.user}}@{{account.servername}}</q-item-section>
+                      <q-item-section>{{account.name}}</q-item-section>
                       <q-item-section side v-if="account.current">
                         <q-icon name="done" color="active"/>
                       </q-item-section>
@@ -97,7 +97,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('accounts', ['currentProfiles']),
+    ...mapGetters('accounts', ['account', 'currentProfiles']),
     loading () { return this.msg && this.msg.length > 0 },
     user () {
       return this.bkituser

@@ -23,6 +23,10 @@ export function accountServerURL (state) {
   const account = currentAccount(state) || {}
   return account.serverURL
 }
+export function serverName (state) {
+  const account = currentAccount(state) || {}
+  return account.servername
+}
 
 export function getAccount (state) {
   return (name) => {

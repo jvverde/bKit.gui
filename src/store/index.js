@@ -13,7 +13,7 @@ Vue.use(Vuex)
  * async/await or return a Promise which resolves
  * with the Store instance.
  */
-import global from './global'
+import accounts from './accounts'
 import servers from './servers'
 import auth from './auth'
 import view from './view'
@@ -23,7 +23,7 @@ import snaps from './snaps'
 // Don't if this is a SSR
 export const Store = new Vuex.Store({
   modules: {
-    global,
+    accounts,
     servers,
     auth,
     view,

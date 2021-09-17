@@ -31,7 +31,7 @@ export function removeCredentials ({ commit, getters }, account) {
   })
 }
 
-const re = new RegExp('^(https?://)?(?<servername>[^:]+)(:(?<port>[0-9]+)?)')
+// const re = new RegExp('^(https?://)?(?<servername>[^:]+)(:(?<port>[0-9]+)?)')
 export function loadCredentials ({ commit }) {
   return new Promise(async (resolve, reject) => {
     try {
