@@ -61,7 +61,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('accounts', ['getAccountsByServerURL']),
+    ...mapGetters('accounts', ['getAccountsByServerURL', 'currentAccount']),
     selected: {
       get () {
         return this.currentOf[this.server]
@@ -71,18 +71,18 @@ export default {
       }
     },
     accounts () {
-      return [...this.getAccountsByServerURL(this.server).filter(a => a.user)].sort(compbyuser)
+      return [...this.getAccountsByServerURL(this.server)].sort(compbyuser)
     },
     length () { return this.accounts.length },
     zero () { return this.length === 0 },
     one () { return this.length === 1 },
     some () { return !this.zero },
-    currentAccount () {
-      return this.$route.name === 'Account' ? {
-        user: this.$route.params.user,
-        servername: this.$route.params.server
-      } : {}
-    },
+    // currentAccount () {
+    //   return this.$route.name === 'Account' ? {
+    //     user: this.$route.params.user,
+    //     servername: this.$route.params.server
+    //   } : {}
+    // },
     noChildren () { return this.$route.name === 'ListAccounts' }
   },
   props: ['server'],
@@ -98,7 +98,7 @@ export default {
       handler (to, from) {
         console.log('Watch $route', to.name)
         if (to && to.params && to.name === 'Account') {
-          this.selected = this.accounts.find(a => a.servername === to.params.server && a.user === to.params.user)
+          this.selected = this.accounts.find(a => a.serverURL === to.params.server && a.user === to.params.user)
         }
       }
     },
@@ -108,7 +108,7 @@ export default {
       handler (accounts, old) {
         console.log('Watch Accounts')
         // Here we are only interested on changes in the number of accounts (new or removed) under same server
-        if (old && old.length && accounts && accounts.length && accounts[0].servername !== old[0].servername) {
+        if (old && old.length && accounts && accounts.length && accounts[0].serverURL !== old[0].serverURL) {
           console.log('Do nothing when change servername')
         } else if (accounts && old && accounts.length !== old.length) {
           const selected = this.selected || {}
@@ -124,7 +124,7 @@ export default {
               this.load(accounts[index])
             } else if (accounts.length < old.length) {
               console.log('Detected a possible removed account')
-              const index = old.findIndex(a => a.user === selected.user && a.servername === selected.servername)
+              const index = old.findIndex(a => a.user === selected.user && a.serverURL === selected.serverURL)
               if (index === -1) {
                 console.log('Not found the removed account. Do nothing')
               } else if (index >= accounts.length) {
@@ -146,18 +146,18 @@ export default {
       this.$router.push({ name: 'NewAccount', params: { server: this.server } })
     },
     isCurrent (account) {
-      return account && this.currentAccount && account.servername === this.currentAccount.servername && account.user === this.currentAccount.user
+      return account && this.currentAccount && account.name === this.currentAccount.name
     },
     color (account) {
       return this.isCurrent(account) ? 'active' : ''
     },
     load (account) {
-      if (!account || !account.servername || !account.user) return
-      this.$router.push({ name: 'Account', params: { server: account.servername, user: account.user } }).catch(() => {})
+      if (!account || !account.serverURL || !account.user) return
+      this.$router.push({ name: 'Account', params: { server: account.serverURL, user: account.user } }).catch(() => {})
     },
     async selectOne () {
       console.log('SelectOne')
-      if (this.selected && this.accounts.find(a => a.user === this.selected.user && a.servername === this.selected.servername)) {
+      if (this.selected && this.accounts.find(a => a.name === this.selected.name)) {
         console.log('Show previous one')
         this.load(this.selected)
       } else {

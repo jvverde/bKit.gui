@@ -63,7 +63,6 @@ export default {
       }
     },
     '$route' (to, from) {
-      console.log('$route', to)
       if (to.name === 'ListAccounts' && to.params && to.params.server) {
         console.log('Route to server', to.params.server)
         this.selectedServer = to.params.server

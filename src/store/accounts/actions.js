@@ -53,10 +53,11 @@ export function loadCredentials ({ commit, getters }) {
 /* Operations related with accounts defined on filesystem on ETCDIR */
 import { listServers, getServer, changeServer, deleteServer, initServer } from 'src/helpers/bkit'
 
-const parseAccount = (name, profile = true) => {
-  if (!name) return {}
-  const [user, url] = name.split('@')
+const parseAccount = (line, profile = true) => {
+  if (!line) return {}
+  const [user, url] = line.split('@')
   const [servername, , section, iport, bport, rport, uport, hport] = url.split(':')
+  const name = `${user}@http://${servername}:${hport}`
   return { name, servername, user, section, iport, bport, rport, uport, hport, profile }
 }
 
