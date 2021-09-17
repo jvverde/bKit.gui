@@ -97,7 +97,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['currentAccount']),
+    ...mapGetters('accounts', ['currentAccount']),
     splitter: {
       get: function () {
         const length = 10 * (this.restores.length + this.backups.length)

@@ -1,7 +1,7 @@
 // import { getServer, getUser } from 'src/helpers/bkit'
 import { Store } from 'src/store'
 
-const account = () => Store.getters['global/account']
+const account = () => Store.getters['accounts/account']
 
 const routes = [
   {
@@ -18,7 +18,7 @@ const routes = [
         component: () => import('pages/backup/BackupPage.vue'),
         name: 'backup',
         beforeEnter: (to, from, next) => {
-          if (account()) { // Currently this do nothins as accounts always returns an object
+          if (account()) { // Currently this do nothing as account() always returns an object
             next()
           } else {
             next({ name: 'servers', params: { back: 'backup' } })

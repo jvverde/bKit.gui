@@ -1,7 +1,7 @@
 'use strict'
 import { Store } from 'src/store'
 
-const servername = () => Store.getters['global/serverName']
+const servername = () => Store.getters['accounts/accountServerURL']
 
 const deepclone = require('lodash.clonedeep')
 

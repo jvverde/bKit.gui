@@ -42,11 +42,11 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('global', ['serverAddresses']),
+    ...mapGetters('accounts', ['servers']),
     loading () { return this.msg && this.msg.length > 0 },
-    hasServers () { return this.serverAddresses.length > 0 },
+    hasServers () { return this.servers.length > 0 },
     noServers () { return !this.hasServers && this.$route.name === 'servers' },
-    servernames () { return [...this.serverAddresses].sort() }
+    servernames () { return [...this.servers].sort() }
   },
   watch: {
     selectedServer: {

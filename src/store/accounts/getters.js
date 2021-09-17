@@ -11,6 +11,10 @@ export function currentProfiles (state) {
   return state.accounts.filter(s => s.profile === true)
 }
 
+export function servers (state) {
+  return state.accounts.map(s => s.serverURL)
+}
+
 export function accountName (state) {
   const account = currentAccount(state) || {}
   return account.name
