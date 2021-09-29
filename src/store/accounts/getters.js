@@ -35,6 +35,7 @@ export function getAccount (state) {
 }
 export function getAccountsByServerURL (state) {
   return (url) => {
+    console.log('getAccountsByServerURL', url, state.accounts)
     return state.accounts.filter(s => s.serverURL === url)
   }
 }

@@ -73,9 +73,12 @@ export default {
     accounts () {
       return [...this.getAccountsByServerURL(this.server)].sort(compbyuser)
     },
-    length () { return this.accounts.length },
-    zero () { return this.length === 0 },
-    one () { return this.length === 1 },
+    naccounts () {
+      console.log('accounts', this.accounts)
+      return this.accounts.length
+    },
+    zero () { return this.naccounts === 0 },
+    one () { return this.naccounts === 1 },
     some () { return !this.zero },
     // currentAccount () {
     //   return this.$route.name === 'Account' ? {
