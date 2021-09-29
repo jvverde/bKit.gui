@@ -55,7 +55,7 @@ export default {
         return this.$route.params.server
       },
       set (url) {
-        this.listAccounts(url)
+        this.$router.push({ name: 'ListAccounts', params: { server: url } }).catch(() => {})
       }
     }
   },
@@ -69,7 +69,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('accounts', ['loadCredentials', 'loadAccounts', 'getCurrentAccount']),
+    ...mapActions('accounts', ['getCurrentAccount']),
     isSelected (serverURL) {
       return serverURL === this.selectedServer
     },
@@ -81,9 +81,6 @@ export default {
     },
     icon (serverURL) {
       return this.mystyle(serverURL).icon
-    },
-    listAccounts (serverURL) {
-      this.$router.push({ name: 'ListAccounts', params: { server: serverURL } }).catch(() => {})
     },
     change (serverURL) {
       if (this.servers.includes(serverURL)) {
