@@ -42,20 +42,21 @@ export default {
     serversList () { return [...this.servers].sort() },
     selectedServer: {
       get () {
-        return this.$route.params.server
+        return this.server
       },
       set (url) {
         this.$router.push({ name: 'ListAccounts', params: { server: url } }).catch(() => {})
       }
     }
   },
+  props: ['server'], // Is only defined for sub-paths
   watch: {
     selectedServer (serverURL) {
       lastServer = serverURL
     },
     servers (names) {
       if (this.selectedServer && names.includes(this.selectedServer)) return // Do nothing if selected server is already included in the servers list
-      this.change2current() // Otherwise changeTo to current server
+      this.guess2change() // Otherwise changeTo to current server
     }
   },
   methods: {
@@ -79,7 +80,7 @@ export default {
         this.selectedServer = this.server[0]
       }
     },
-    async change2current () {
+    async guess2change () {
       const current = await this.getCurrentAccount()
       if (current) {
         this.changeTo(current.serverURL)
@@ -97,7 +98,7 @@ export default {
     if (lastServer) { // Use last server to avoid annoying the user experience
       this.changeTo(lastServer)
     } else {
-      this.change2current()
+      this.guess2change()
     }
   }
 }

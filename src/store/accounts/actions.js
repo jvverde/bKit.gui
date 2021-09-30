@@ -9,7 +9,7 @@ export function addAccount ({ commit, getters }, { user, serverURL, password }) 
     try {
       const name = `${user}@${serverURL}`
       const account = { serverURL, user, name, autorized: true }
-      console.log('Add account', account)
+      console.info('Add account', account)
       commit('addAccount', account)
       await addCredentials(name, password)
       resolve(getters.getAccountsOf(account)[0]) // Resolve to same account but full updated
@@ -38,7 +38,7 @@ export function loadCredentials ({ commit, getters }) {
     try {
       const credentials = await getCredentials()
       const accounts = credentials.map(name => {
-        console.log('Found credentials for:', name)
+        console.info('Found credentials for:', name)
         const [user, serverURL] = name.split('@')
         return { name, serverURL, user, autorized: true }
       })
@@ -65,7 +65,7 @@ export function loadAccounts ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
       const serversList = await listServers('-f')
-      console.log('serversList', serversList)
+      console.info('serversList', serversList)
       const accounts = serversList.map(server => parseAccount(server))
       commit('updateAccounts', accounts)
       resolve(getters.getAccountsOf({ profile: true })) // Resolve to all accounts with a profile
@@ -89,7 +89,6 @@ export function deleteProfile ({ commit, getters }, account) {
 }
 
 export function initProfile ({ commit, getters }, { account: profile, pass }) {
-  console.info('initProfile', profile)
   return new Promise(async (resolve, reject) => {
     try {
       await deleteServer(profile)
@@ -118,7 +117,6 @@ export function removeAccount ({ commit, getters }, account) {
 }
 
 export function loadCurrentAccount ({ dispatch, commit, getters }) {
-  console.info('loadCurrentAccount', getters)
   return new Promise(async (resolve, reject) => {
     try {
       const profile = await getServer('-f')
@@ -140,7 +138,6 @@ export function loadCurrentAccount ({ dispatch, commit, getters }) {
 }
 
 export function getCurrentAccount ({ dispatch, commit, getters }) {
-  console.info('getCurrentAccount')
   return new Promise(async (resolve, reject) => {
     try {
       const account = getters.currentAccount || await dispatch('loadCurrentAccount')
@@ -152,7 +149,6 @@ export function getCurrentAccount ({ dispatch, commit, getters }) {
 }
 
 export function setCurrentAccount ({ commit, getters }, profile) {
-  console.info('setCurrentAccount', profile)
   return new Promise(async (resolve, reject) => {
     try {
       const answer = await changeServer(profile)

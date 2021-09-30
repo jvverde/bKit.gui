@@ -40,17 +40,8 @@ const compbyuser = (a, b) => {
   return 0
 }
 
-// const findNewElePosition = (a, b) => {
-//   // find the position of the first of new elements
-//   // assuming a.length > b.length
-//   for (let i = 0; i < b.length; i++) {
-//     const ae = a[i]
-//     if (!b.find(be => be.user === ae.user && be.serverURL === ae.serverURL)) return i
-//   }
-//   return b.length
-// }
-
 import { mapGetters, mapActions } from 'vuex'
+const lastSelected = {}
 
 export default {
   name: 'ListAccounts',
@@ -64,13 +55,10 @@ export default {
     ...mapGetters('accounts', ['getAccountsByServerURL', 'currentAccount']),
     selected: {
       get () {
-        // return this.currentOf[this.server]
-        const { server, user } = this.$route.params
-        return this.accounts.find(a => a.serverURL === server && a.user === user)
+        return this.accounts.find(a => a.serverURL === this.server && a.user === this.user)
       },
       set (account) {
         this.$router.push({ name: 'Account', params: { server: account.serverURL, user: account.user } }).catch(() => {})
-        // this.$set(this.currentOf, this.server, val)
       }
     },
     accounts () {
@@ -80,41 +68,21 @@ export default {
       return this.accounts.map(a => a.name)
     },
     naccounts () {
-      console.log('accounts', this.accounts)
       return this.accounts.length
     },
     zero () { return this.naccounts === 0 },
     one () { return this.naccounts === 1 },
     some () { return !this.zero },
-    // currentAccount () {
-    //   return this.$route.name === 'Account' ? {
-    //     user: this.$route.params.user,
-    //     servername: this.$route.params.server
-    //   } : {}
-    // },
     noAccounts () { return this.$route.name === 'ListAccounts' }
   },
-  props: ['server'],
+  props: ['server', 'user'], // User is only defined for sub-paths
   watch: {
-    // server: {
-    //   immediate: true,
-    //   handler (servername, old) {
-    //     this.selectOne()
-    //   }
-    // },
-    // $route: {
-    //   immediate: true,
-    //   handler (to, from) {
-    //     console.log('Watch $route', to.name)
-    //     if (to && to.params && to.name === 'Account') {
-    //       this.selected = this.accounts.find(a => a.serverURL === to.params.server && a.user === to.params.user)
-    //     }
-    //   }
-    // },
+    selected (account) {
+      if (account) lastSelected[this.server] = account
+    },
     accounts (accounts) {
-      console.log('Watch Accounts')
       if (this.selected && this.accountNames.includes(this.selected.name)) return // Do nothing if selected account is already included in the accounts list
-      this.change2current() // Otherwise changeTo to current account
+      this.guess2change() // Otherwise changeTo to current account
     }
   },
   methods: {
@@ -128,44 +96,26 @@ export default {
     color (account) {
       return this.isSelected(account) ? 'active' : ''
     },
-    // load (account) {
-    //   if (!account || !account.serverURL || !account.user) return
-    //   this.$router.push({ name: 'Account', params: { server: account.serverURL, user: account.user } }).catch(() => {})
-    // },
-    changeTo (account) {
+    changeTo (account = {}) {
       if (this.accountNames.includes(account.name)) {
         this.selected = account
       } else {
         this.selected = this.accounts[0]
       }
     },
-    async change2current () {
-      const current = await this.getCurrentAccount()
-      if (current) {
+    async guess2change () {
+      const last = lastSelected[this.server]
+      if (last && this.accountNames.includes(last.name)) {
+        this.selected = last
+      } else {
+        const current = await this.getCurrentAccount()
         this.changeTo(current)
-      } else { // Else go to selected Account whichever it is
-        this.changeTo(this.selected)
       }
     }
-    // ,
-    // async selectOne () {
-    //   console.log('SelectOne')
-    //   if (this.selected && this.accounts.find(a => a.name === this.selected.name)) {
-    //     console.log('Show previous one')
-    //     this.load(this.selected)
-    //   } else {
-    //     const currentAccount = await this.getCurrentAccount()
-    //     if (currentAccount && currentAccount.serverURL === this.server) {
-    //       console.log('Go to current Server')
-    //       this.load(currentAccount)
-    //     } else {
-    //       console.log('Go to first account')
-    //       this.load(this.accounts[0])
-    //     }
-    //   }
-    // }
   },
   async mounted () {
+    const { user } = this.$route.params
+    if (!user) this.guess2change()
   },
   beforeUpdate () {
   },
