@@ -33,7 +33,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('accounts', ['getAccounts']),
+    ...mapGetters('accounts', ['getAccounts', 'accountServerURL']),
     servers () {
       return [...new Set(this.getAccounts.map(a => a.serverURL))]
     },
@@ -64,14 +64,14 @@ export default {
     isSelected (serverURL) {
       return serverURL === this.selectedServer
     },
-    mystyle (serverURL) {
-      return this.isSelected(serverURL) ? { color: 'active', icon: 'done' } : {}
+    isCurrent (serverURL) {
+      return serverURL === this.accountServerURL
     },
     color (serverURL) {
-      return this.mystyle(serverURL).color
+      return this.isSelected(serverURL) ? 'active' : ''
     },
     icon (serverURL) {
-      return this.mystyle(serverURL).icon
+      return this.isCurrent(serverURL) ? 'done' : ''
     },
     changeTo (serverURL) {
       if (this.servers.includes(serverURL)) {

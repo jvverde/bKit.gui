@@ -9,6 +9,7 @@
           @click="changeTo(account)"
           :color="color(account)"
           :outline="isSelected(account)"
+          :icon-right="icon(account)"
           icon="person">
           {{account.user}}
         </q-chip>
@@ -52,7 +53,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('accounts', ['getAccountsByServerURL', 'currentAccount']),
+    ...mapGetters('accounts', ['getAccountsByServerURL', 'accountName']),
     selected: {
       get () {
         return this.accounts.find(a => a.serverURL === this.server && a.user === this.user)
@@ -90,11 +91,18 @@ export default {
     add () {
       this.$router.push({ name: 'NewAccount', params: { server: this.server } })
     },
+    isCurrent (account) {
+      return account && account.name === this.accountName
+    },
     isSelected (account) {
       return account && this.selected && account.name === this.selected.name
     },
     color (account) {
       return this.isSelected(account) ? 'active' : ''
+    },
+    icon (account) {
+      // return 'done'
+      return this.isCurrent(account) ? 'done' : ''
     },
     changeTo (account = {}) {
       if (this.accountNames.includes(account.name)) {
