@@ -57,8 +57,9 @@ const parseAccount = (line, profile = true) => {
   if (!line) return {}
   const [user, url] = line.split('@')
   const [servername, , section, iport, bport, rport, uport, hport] = url.split(':')
-  const name = `${user}@http://${servername}:${hport}`
-  return { name, servername, user, section, iport, bport, rport, uport, hport, profile }
+  const serverURL = `http://${servername}:${hport}`
+  const name = `${user}@${serverURL}`
+  return { name, serverURL, servername, user, section, iport, bport, rport, uport, hport, profile }
 }
 
 export function loadAccounts ({ commit, getters }) {

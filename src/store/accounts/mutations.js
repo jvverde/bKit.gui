@@ -36,12 +36,14 @@ const uAccount = ({ // Uniformization
 }
 
 export function addAccount (state, account) {
-  account = uAccount(account)
-  const index = state.accounts.findIndex(s => s.name === account.name)
+  // account = uAccount(account) => DONT do that here. You ruin the newaccount construction bellow
+  const index = state.accounts.findIndex(s => s.serverURL === account.serverURL && s.user === account.user)
   if (index >= 0) {
     const newaccount = { ...state.accounts[index], ...account }
-    state.accounts.splice(index, 1, newaccount)
+    console.log('update account', newaccount)
+    state.accounts.splice(index, 1, uAccount(newaccount))
   } else {
+    console.log('add account', account.name, account)
     state.accounts.push(uAccount(account))
   }
 }

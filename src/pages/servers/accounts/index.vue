@@ -20,8 +20,8 @@
         <div>Please add a new one</div>
         <q-btn class="q-mt-xl" icon="add" label="New Account" rounded no-caps dense @click="add"/>
       </div>
-      <div v-else-if="some" style="margin-left:auto" class="q-my-sm">
-        <q-btn class="q-px-sm" icon="add" label="New Account" rounded no-caps dense size="sm" @click="add"/>
+      <div v-else-if="some" class="q-my-sm">
+        <q-btn icon="add" round no-caps dense size="sm" @click="add"/>
       </div>
     </div>
     <q-inner-loading :showing="loading">
@@ -59,7 +59,7 @@ export default {
         return this.accounts.find(a => a.serverURL === this.server && a.user === this.user)
       },
       set (account) {
-        this.$router.push({ name: 'Account', params: { server: account.serverURL, user: account.user } }).catch(() => {})
+        if (account) this.$router.push({ name: 'Account', params: { server: account.serverURL, user: account.user } }).catch(() => {})
       }
     },
     accounts () {
