@@ -30,7 +30,7 @@ const routes = [
         path: 'login/:user?',
         name: 'login',
         props: true,
-        component: () => import('pages/Signin.vue')
+        component: () => import('pages/servers/accounts/Signin.vue')
       },
       {
         path: 'servers',
@@ -41,37 +41,37 @@ const routes = [
           {
             path: 'new/server',
             name: 'NewServer',
-            component: () => import('pages/servers/NewServer.vue')
+            component: () => import('pages/servers/New.vue')
           },
           {
             path: ':server/accounts',
             name: 'ListAccounts',
             props: true,
-            component: () => import('pages/servers/ListAccounts.vue'),
+            component: () => import('pages/servers/accounts/'),
             children: [
               {
                 path: 'show/:user',
                 name: 'Account',
                 props: true,
-                component: () => import('pages/servers/Account.vue')
+                component: () => import('pages/servers/accounts/Show.vue')
               },
               {
                 path: 'new',
                 name: 'NewAccount',
                 props: true,
-                component: () => import('pages/servers/NewAccount.vue'),
+                component: () => import('pages/servers/accounts/New.vue'),
                 children: [
                   {
                     path: 'signup',
                     name: 'signup',
                     props: true,
-                    component: () => import('components/Auth/Signup.vue')
+                    component: () => import('pages/servers/accounts/Signup.vue')
                   },
                   {
                     path: 'signin',
                     name: 'signin',
                     props: true,
-                    component: () => import('pages/Signin.vue')
+                    component: () => import('pages/servers/accounts/Signin.vue')
                   }
                 ]
               },
