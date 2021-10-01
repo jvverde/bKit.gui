@@ -32,7 +32,9 @@ export function removeCredentials ({ commit, getters }, account) {
   })
 }
 
-// const re = new RegExp('^(https?://)?(?<servername>[^:]+)(:(?<port>[0-9]+)?)')
+// const re = new RegExp('^(?<schema>https?)://(?<servername>[^:]+)(:(?<port>[0-9]+)?)')
+const regex = /^https/i
+
 export function loadCredentials ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -40,7 +42,9 @@ export function loadCredentials ({ commit, getters }) {
       const accounts = credentials.map(name => {
         console.info('Found credentials for:', name)
         const [user, serverURL] = name.split('@')
-        return { name, serverURL, user, autorized: true }
+        const secure = regex.test(serverURL)
+        const [schema, servername, port] = serverURL.split(/:[/]{2}|:/)
+        return { name, serverURL, user, autorized: true, secure, schema, servername, port }
       })
       commit('updateAccounts', accounts)
       resolve(getters.getAccountsOf({ autorized: true })) // Resolve to all authorized accounts
@@ -56,10 +60,10 @@ import { listServers, getServer, changeServer, deleteServer, initServer } from '
 const parseAccount = (line, profile = true) => {
   if (!line) return {}
   const [user, url] = line.split('@')
-  const [servername, , section, iport, bport, rport, uport, hport] = url.split(':')
+  const [servername, , section, iport, bport, rport, uport, hport, sport] = url.split(':')
   const serverURL = `http://${servername}:${hport}`
   const name = `${user}@${serverURL}`
-  return { name, serverURL, servername, user, section, iport, bport, rport, uport, hport, profile }
+  return { name, serverURL, servername, user, section, iport, bport, rport, uport, hport, sport, profile }
 }
 
 export function loadAccounts ({ commit, getters }) {

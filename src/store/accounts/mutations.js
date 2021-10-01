@@ -6,6 +6,7 @@ const uAccount = ({ // Uniformization
   section,
   user,
   profile,
+  schema,
   hport = 8765,
   sport = 8766,
   iport = 8760,
@@ -16,17 +17,21 @@ const uAccount = ({ // Uniformization
 }) => {
   if (!serverURL && !servername) throw new Error("Account doesn't have a field 'serverURL' nor 'servername'")
   if (!user) throw new Error("Account doesn't have a field 'user'")
-  serverURL = serverURL || `http://${servername}:${hport}`
+
+  serverURL = serverURL || `${schema || 'http'}://${servername}:${/^https$/i.test() ? sport : hport}`
   servername = servername || serverURL.replace(urlre, '$1')
   name = name || `${user}@${serverURL}`
+
   return {
     name,
     servername,
     serverURL,
+    schema,
     user,
     section,
     profile,
     hport,
+    sport,
     iport,
     bport,
     rport,
@@ -37,13 +42,16 @@ const uAccount = ({ // Uniformization
 
 export function addAccount (state, account) {
   // account = uAccount(account) => DONT do that here. You ruin the newaccount construction bellow
-  const index = state.accounts.findIndex(s => s.serverURL === account.serverURL && s.user === account.user)
+  const index = account.secure
+    ? state.accounts.findIndex(s => s.user === account.user && s.servername === account.servername && s.sport === account.port)
+    : state.accounts.findIndex(s => s.user === account.user && s.serverURL === account.serverURL)
+  if (account.secure) console.log('INDEX', index, account)
   if (index >= 0) {
     const newaccount = { ...state.accounts[index], ...account }
-    console.log('update account', newaccount)
+    // console.log('update account', newaccount)
     state.accounts.splice(index, 1, uAccount(newaccount))
   } else {
-    console.log('add account', account.name, account)
+    // console.log('add account', account.name, account)
     state.accounts.push(uAccount(account))
   }
 }
