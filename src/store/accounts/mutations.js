@@ -45,7 +45,7 @@ export function addAccount (state, account) {
   const index = account.secure
     ? state.accounts.findIndex(s => s.user === account.user && s.servername === account.servername && s.sport === account.port)
     : state.accounts.findIndex(s => s.user === account.user && s.serverURL === account.serverURL)
-  if (account.secure) console.log('INDEX', index, account)
+
   if (index >= 0) {
     const newaccount = { ...state.accounts[index], ...account }
     // console.log('update account', newaccount)

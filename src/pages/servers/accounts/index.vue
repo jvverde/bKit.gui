@@ -2,7 +2,7 @@
   <div class="fit relative-position column no-wrap">
     <div class="q-pa-sm q-gutter-x-sm row items-center full-width self-start">
       <div v-if="some">
-        Registered account<span v-if="!one">s</span> for server {{server}}:
+        Registered account<span v-if="several">s</span> for server {{server}}:
       </div>
       <div v-for="(account, index) in accounts" :key="index">
         <q-chip clickable
@@ -14,7 +14,7 @@
           {{account.user}}
         </q-chip>
       </div>
-      <div v-if="noAccounts && zero" class="absolute-center column items-center q-gutter-x-sm z-top">
+      <div v-if="zero && isListAccount" class="absolute-center column items-center q-gutter-x-sm z-top">
         <div class="text-h6">No accounts</div>
         <div>You don't have any account configured for server {{server}}</div>
         <div>Please add a new one</div>
@@ -24,9 +24,6 @@
         <q-btn icon="add" round no-caps dense size="sm" @click="add"/>
       </div>
     </div>
-    <q-inner-loading :showing="loading">
-      <q-spinner-ios size="xl" color="loader"/>
-    </q-inner-loading>
     <div class="fit relative-position routerview">
       <router-view></router-view>
     </div>
@@ -48,8 +45,6 @@ export default {
   name: 'ListAccounts',
   data () {
     return {
-      currentOf: {},
-      loading: false
     }
   },
   computed: {
@@ -72,11 +67,11 @@ export default {
       return this.accounts.length
     },
     zero () { return this.naccounts === 0 },
-    one () { return this.naccounts === 1 },
+    several () { return this.naccounts > 1 },
     some () { return !this.zero },
-    noAccounts () { return this.$route.name === 'ListAccounts' }
+    isListAccount () { return this.$route.name === 'ListAccounts' }
   },
-  props: ['server', 'user'], // User is only defined for sub-paths
+  props: ['server', 'user'], // User is only defined/used for/in sub-paths
   watch: {
     selected (account) {
       if (account) lastSelected[this.server] = account
@@ -124,6 +119,7 @@ export default {
   async mounted () {
     const { user } = this.$route.params
     if (!user) this.guess2change()
+    console.log('router', this.$route)
   },
   beforeUpdate () {
   },

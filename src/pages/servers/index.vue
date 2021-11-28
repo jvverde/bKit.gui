@@ -54,8 +54,8 @@ export default {
     selectedServer (serverURL) {
       lastServer = serverURL
     },
-    servers (names) {
-      if (this.selectedServer && names.includes(this.selectedServer)) return // Do nothing if selected server is already included in the servers list
+    servers (list) {
+      if (this.selectedServer && list.includes(this.selectedServer)) return // Do nothing if selected server is already included in the servers list
       this.guess2change() // Otherwise changeTo to current server
     }
   },
@@ -77,7 +77,7 @@ export default {
       if (this.servers.includes(serverURL)) {
         this.selectedServer = serverURL
       } else {
-        this.selectedServer = this.server[0]
+        this.selectedServer = this.servers[0]
       }
     },
     async guess2change () {

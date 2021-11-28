@@ -70,7 +70,6 @@ export function loadAccounts ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
       const serversList = await listServers('-f')
-      console.info('serversList', serversList)
       const accounts = serversList.map(server => parseAccount(server))
       commit('updateAccounts', accounts)
       resolve(getters.getAccountsOf({ profile: true })) // Resolve to all accounts with a profile
