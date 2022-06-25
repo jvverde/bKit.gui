@@ -94,5 +94,9 @@
   },
   "browserslist": [
     "last 1 version, not dead, ie >= 11"
-  ]
+  ],
+  "volta": {
+    "node": "14.19.3",
+    "npm": "8.13.1"
+  }
 }
