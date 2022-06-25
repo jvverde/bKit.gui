@@ -79,7 +79,7 @@ import backup from './components/Backup'
 import tooltip from 'src/components/tooltip'
 import { listLocalDisks } from 'src/helpers/bkit'
 import { listDisksOnBackup } from 'src/helpers/api'
-
+// n
 import { mapGetters } from 'vuex'
 
 export default {
@@ -111,6 +111,33 @@ export default {
         this.mark = 100 - val
       }
     },
+    diskname () {
+      return disk => {
+        const name = disk.name.replace(/\\$/, '') // remove ending backslash
+        if (name && name !== '_') {
+          return `${name}`
+        } else return ''
+      }
+    },
+    disklabel () {
+      return disk => {
+        // console.log(disk.label, disk.name)
+        if (disk.label && disk.label !== '_') {
+          return `${disk.label}`
+        } else if (!disk.name || disk.name === '_') {
+          return `[${disk.uuid}]`
+        } else return ''
+      }
+    },
+    color () {
+      return disk => {
+        if (disk.present === true) {
+          return 'ok'
+        } else if (disk.present === false) {
+          return 'missing'
+        } else return 'initial'
+      }
+    },
     showConsole () {
       return this.backups.length > 0 || this.restores.length > 0
     }
@@ -128,27 +155,6 @@ export default {
     tooltip
   },
   methods: {
-    color (disk) {
-      if (disk.present === true) {
-        return 'ok'
-      } else if (disk.present === false) {
-        return 'missing'
-      } else return 'initial'
-    },
-    diskname (disk) {
-      const name = disk.name.replace(/\\$/, '') // remove ending backslash
-      if (name && name !== '_') {
-        return `${name}`
-      } else return ''
-    },
-    disklabel (disk) {
-      if (disk.label && disk.label !== '_') {
-        return `${disk.label}`
-      } else if (!disk.name || disk.name === '_') {
-        return `[${disk.uuid}]`
-      } else return ''
-    },
-
     async getDisksOnBackup () {
       const disks = await listDisksOnBackup() || []
       for (const rvid of disks) {

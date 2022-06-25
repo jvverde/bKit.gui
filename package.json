@@ -43,7 +43,7 @@
   ],
   "dependencies": {
     "@growthbunker/vuedarkmode": "^0.5.56",
-    "@quasar/extras": "^1.12.2",
+    "@quasar/extras": "^1.13.5",
     "axios": "^0.21.4",
     "chokidar": "^3.4.1",
     "electron-log": "^4.2.1",
@@ -59,7 +59,7 @@
     "moment": "^2.26.0",
     "node-forge": "^0.10.0",
     "node-powershell": "^4.0.0",
-    "quasar": "^1.17.0",
+    "quasar": "^1.18.9",
     "upath": "^1.2.0",
     "vue-color": "^2.7.1",
     "vue-i18n": "^8.20.0",
