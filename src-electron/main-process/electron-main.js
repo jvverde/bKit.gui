@@ -1,3 +1,6 @@
+// SEE this when possible
+// https://stackoverflow.com/questions/44391448/electron-require-is-not-defined
+
 import {
   app,
   BrowserWindow,

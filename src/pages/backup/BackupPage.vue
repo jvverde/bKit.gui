@@ -159,7 +159,9 @@ export default {
       const disks = await listDisksOnBackup() || []
       for (const rvid of disks) {
         console.log('RVID:', rvid)
-        const [letter, uuid, label] = rvid.split('.')
+        // const [letter, uuid, label] = rvid.split('.')
+        const match = rvid.match(/^(?<letter>.)\.(?<uuid>[^.]+)\.(?<label>.+)\.(.+)\.(.+)$/)
+        const { letter, uuid, label } = match.groups
         const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label)
         if (index >= 0) {
           const updatedisk = { ...this.disks[index], rvid, letter, present: true, id: rvid }

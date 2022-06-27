@@ -1,4 +1,6 @@
 // import { getServer, getUser } from 'src/helpers/bkit'
+// today: 26-06-2022
+
 import { Store } from 'src/store'
 
 const account = () => Store.getters['accounts/account']
