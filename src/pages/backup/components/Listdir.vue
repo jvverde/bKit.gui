@@ -29,7 +29,7 @@ export default {
   name: 'Entries',
   mixins: [dir],
   components: {
-    directory: () => import('./Directory'),
+    directory: () => import('./Directory'), /* Directory also dynamically import this moddule */
     file: () => import('./File')
   },
   computed: {

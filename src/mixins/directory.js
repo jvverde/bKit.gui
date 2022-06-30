@@ -3,6 +3,7 @@ import { readdir } from 'src/helpers/readfs'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
 import { listPath as listRemoteDir } from 'src/helpers/api'
 import path from 'path'
+import Entry from 'src/helpers/entry'
 import { warn } from 'src/helpers/notify'
 
 const exists = async (pathname) => fs.promises.access(pathname, fs.constants.F_OK)
@@ -10,58 +11,6 @@ const exists = async (pathname) => fs.promises.access(pathname, fs.constants.F_O
 const bkitPath = (base, fullpath) => {
   let upath = base ? path.relative(base, fullpath) : fullpath
   return path.normalize(upath).split(path.sep).join(path.posix.sep)
-}
-
-export class Entry {
-  constructor (obj) {
-    Object.assign(this, obj)
-  }
-  get hasBackup () {
-    return this.remote instanceof Object
-  }
-  get onBoth () {
-    return !!this.onlocal && !!this.onbackup
-  }
-  get onlyLocal () {
-    return !!this.onlocal && !this.onbackup
-  }
-  get onlyBackup () {
-    return !this.onlocal && !!this.onbackup
-  }
-  get isdir () {
-    return this.type === 'd'
-  }
-  get isnotdir () {
-    return this.type !== 'd'
-  }
-  get isfile () {
-    return this.type === 'f'
-  }
-  get needUpdate () {
-    const { diff, isdir } = this
-    if (!diff) return undefined
-    const times = diff['mtimeMs']
-    const hasDifferenttimes = times instanceof Array && Math.floor(times[0] / 1000) !== Math.floor(times[1] / 1000)
-    if (isdir) {
-      return hasDifferenttimes
-    } else return 'size' in diff || hasDifferenttimes
-  }
-  get updated () {
-    return !!this.onBoth && !this.needUpdate
-  }
-  get snap () {
-    const { remote } = this
-    if (remote) return remote.snap
-    return undefined
-  }
-  get rvid () {
-    const { remote } = this
-    if (remote) return remote.rvid
-    return undefined
-  }
-  get fullpath () {
-    return this.path
-  }
 }
 
 const diff = (a = {}, b = {}) => {
@@ -113,9 +62,10 @@ export default {
     endpoint () {
       return [this.snap, this.rvid, this.mountpoint, this.fullpath]
     },
-    secured () {
+    localBackuped () { /* Files/Dirs in backup */
       const { localEntries, backupEntries } = this
       const keys = Object.keys(localEntries)
+      /* Filter keys by ones whom also are keys of backupEntries, and then joins both entries properties */
       return keys.filter(k => backupEntries[k] instanceof Object).map(k => new Entry(join(localEntries[k], backupEntries[k])))
     },
     onlyLocal () {
@@ -129,7 +79,7 @@ export default {
       return keys.filter(k => !(localEntries[k] instanceof Object)).map(k => new Entry(backupEntries[k]))
     },
     entries () {
-      const r = [...this.secured, ...this.onlyLocal, ...this.onlyBackup]
+      const r = [...this.localBackuped, ...this.onlyLocal, ...this.onlyBackup]
       // console.log('Entries', r)
       return r
     }

@@ -55,7 +55,7 @@ export default {
   },
   mixins: [entry],
   components: {
-    entries: () => import('./Listdir')
+    entries: () => import('./Listdir') /* Listdir also dynamically import this moddule */
   },
   computed: {
     nodeProps () {
