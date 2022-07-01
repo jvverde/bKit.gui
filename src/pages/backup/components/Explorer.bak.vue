@@ -37,7 +37,8 @@
           <div class="q-pa-xs row justify-evenly q-gutter-sm relative-position">
             <showdir :fullpath="currentpath" :snap="snap" :rvid="rvid" :mountpoint="mountpoint" style="padding-right: 8px"/>
           </div>
-          <!--           <transition name="loading">
+          <!--
+          <transition name="loading">
             <div v-show="loading" class="bkit-loading row justify-center relative-position">
               <q-spinner-ios color="loader" class="q-my-md"/>
               <div class="q-my-md q-ml-xs">{{loading}}...</div>

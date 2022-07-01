@@ -90,8 +90,6 @@ export default {
     listdir,
     showdir,
     snaps
-    // tree,
-    // item
   },
   computed: {
     ...mapGetters('view', ['getview']),
