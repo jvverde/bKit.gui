@@ -30,7 +30,10 @@ export async function listPath (rvid, snap, path) {
   const { data: response } = await axios.get(`/v1/user/list/${uuid}/${name}/${domain}/${profile}/${rvid}/${snap}`, {
     params: { path }
   })
-  // if axios.get fail the children nodes won't have snap, rvid, uuid, etc. this will avoid future listPath request. This is a good side effect
+  /*
+    if axios.get fail for a given path, its children nodes won't have snap, rvid, uuid, etc.
+    This will avoid future listPath request. This is a good side effect
+  */
   const remote = { uuid, name, domain, profile, rvid, snap, path }
   return response.map(e => {
     return { ...e, remote }

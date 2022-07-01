@@ -62,23 +62,23 @@ export default {
     endpoint () {
       return [this.snap, this.rvid, this.mountpoint, this.fullpath]
     },
-    localBackuped () { /* Files/Dirs in backup */
+    localBackuped () { /* Local Files/Dirs on backup */
       const { localEntries, backupEntries } = this
       const keys = Object.keys(localEntries)
       /* Filter keys by ones whom also are keys of backupEntries, and then joins both entries properties */
       return keys.filter(k => backupEntries[k] instanceof Object).map(k => new Entry(join(localEntries[k], backupEntries[k])))
     },
-    onlyLocal () {
+    onlyLocal () { /* Local Files/Dirs NOT on backup */
       const { localEntries, backupEntries } = this
       const keys = Object.keys(localEntries)
       return keys.filter(k => !(backupEntries[k] instanceof Object)).map(k => new Entry(localEntries[k]))
     },
-    onlyBackup () {
+    onlyBackup () { /* Files/Dirs on backup but no stored locally (previous delete!?) */
       const { backupEntries, localEntries } = this
       const keys = Object.keys(backupEntries)
       return keys.filter(k => !(localEntries[k] instanceof Object)).map(k => new Entry(backupEntries[k]))
     },
-    entries () {
+    entries () { // All of them
       const r = [...this.localBackuped, ...this.onlyLocal, ...this.onlyBackup]
       // console.log('Entries', r)
       return r
@@ -119,11 +119,12 @@ export default {
         await exists(fullpath)
         const entries = await readdir(fullpath) // readdir is an async generator
         const localEntries = {}
-        for await (const entry of entries) {
+        for await (const entry of entries) { // as it is a generator we need to use await
           entry.onlocal = true
           entry.mountpoint = this.mountpoint
           localEntries[entry.name] = entry
         }
+        // Forget if meanwhile this.fullpath changed
         if (fullpath === this.fullpath) this.localEntries = localEntries
       } catch (err) {
         warn(err, false)
@@ -140,7 +141,7 @@ export default {
         const upath = bkitPath(mountpoint, fullpath)
         console.log('readRemoteDir', upath)
         const entries = await listRemoteDir(rvid, snap, upath)
-        if (fullpath !== this.fullpath) return
+        if (fullpath !== this.fullpath) return // Forget if meanwhile this.fullpath changed
         const backupEntries = {}
         entries.forEach(entry => {
           entry.onbackup = true

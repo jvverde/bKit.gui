@@ -38,7 +38,7 @@ export default class Entry {
     } else return 'size' in diff || hasDifferenttimes
   }
   get updated () {
-    // A entry is updated it it exist in both sides and not need an update
+    // A entry is updated if it exist in both sides and not need an update
     return !!this.onBoth && !this.needUpdate
   }
   get snap () {

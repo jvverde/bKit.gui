@@ -48,8 +48,8 @@ import { relative, join, sep } from 'path'
 import { mapGetters, mapMutations } from 'vuex'
 
 import snaps from './Snaps'
-import listdir from './Listdir'
-import showdir from './Showdir'
+import listdir from './leftPanel/Listdir'
+import showdir from './rightPanel/Showdir'
 
 const thumbStyle = {
   right: '4px',

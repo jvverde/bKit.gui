@@ -23,9 +23,6 @@ export async function* readdir (dir) {
             path: filename,
             name: file,
             type,
-            // isdir,
-            // isfile: !isdir,
-            // onlocal
             stat
           }
         } catch (err) {
@@ -39,8 +36,6 @@ export async function* readdir (dir) {
         path: fullpath,
         name,
         type,
-        // onlocal,
-        // isfile: true,
         stat
       }
     }

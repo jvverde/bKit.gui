@@ -33,7 +33,7 @@
 <script>
 import entry from 'src/mixins/entry'
 export default {
-  name: 'file',
+  name: 'FileEntry',
   data () {
     return {
     }

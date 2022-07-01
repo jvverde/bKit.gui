@@ -47,7 +47,7 @@ import entry from 'src/mixins/entry'
 import { mapGetters, mapMutations } from 'vuex'
 
 export default {
-  name: 'directory',
+  name: 'DirEntry',
   data () {
     return {
       open: false
@@ -55,7 +55,7 @@ export default {
   },
   mixins: [entry],
   components: {
-    entries: () => import('./Listdir') /* Listdir also dynamically import this moddule */
+    entries: () => import('./Listdir') /* Listdir.vue also dynamically import this moddule */
   },
   computed: {
     nodeProps () {
