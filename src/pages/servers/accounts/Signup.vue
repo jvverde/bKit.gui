@@ -148,7 +148,7 @@ export default {
             console.log(`Check ${value}`)
             axios.get(`${this.serverURL}/v1/auth/check/${value}`)
               .then(({ data: { message } }) => {
-                resolve(message === 'available')
+                resolve(/available/.test(message))
               })
               .catch((err) => {
                 this.catch(err)
