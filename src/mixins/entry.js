@@ -1,3 +1,10 @@
+const nameOf = {
+  deleted: 'Was deleted',
+  updated: 'Is update',
+  nobackup: 'Not in backup',
+  modified: 'Was modified'
+}
+
 export default {
   props: {
     entry: {
@@ -6,6 +13,8 @@ export default {
     }
   },
   computed: {
+    isdir () { return this.entry.isdir },
+    isfile () { return this.entry.isfile },
     status () {
       if (this.isUpdate) return 'updated'
       else if (this.needUpdate) return 'modified'
@@ -13,6 +22,7 @@ export default {
       else if (this.onlyBackup) return 'deleted'
       return undefined
     },
+    description () { return nameOf[this.status] },
     getcolor () {
       return this.status
     },

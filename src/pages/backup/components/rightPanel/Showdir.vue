@@ -1,7 +1,12 @@
 <!-- Show dir and files on rigth sie panel -->
 <template>
-  <div class="bkit-showdir full-width row wrap justify-left">
-    <item v-for="children in childrens" :key="children.path" :entry="children"/>
+  <div class="fit">
+    <q-inner-loading :showing="!done">
+      <q-spinner-ios size="100px" color="loader"/>
+    </q-inner-loading>
+    <div class="bkit-showdir full-width row wrap justify-left">
+      <item v-for="children in childrens" :key="children.name" :entry="children"/>
+    </div>
   </div>
 </template>
 <script>

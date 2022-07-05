@@ -36,19 +36,13 @@
 // import { getVersions } from 'src/helpers/bkit'
 import tooltip from 'src/components/tooltip'
 import entry from 'src/mixins/entry'
-import { mapGetters, mapMutations } from 'vuex'
+import { mapMutations } from 'vuex'
 
 // const path = require('path')
 
 const moment = require('moment')
 moment.locale('en')
 
-const nameOf = {
-  deleted: 'Was deleted',
-  updated: 'Is update',
-  nobackup: 'Not in backup',
-  modified: 'Was modified'
-}
 export default {
   name: 'item',
   data () {
@@ -62,12 +56,6 @@ export default {
     tooltip
   },
   computed: {
-    ...mapGetters('view', ['getview']),
-    isdir () { return this.entry.isdir },
-    isfile () { return this.entry.isfile },
-    name () { return this.entry.name },
-    description () { return nameOf[this.status] },
-    needUpdate () { return this.entry.needUpdate }
   },
   methods: {
     ...mapMutations('view', ['setView']),

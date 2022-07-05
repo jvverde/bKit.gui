@@ -59,6 +59,9 @@ export default {
     }
   },
   computed: {
+    done () {
+      return !this.remoteloading && !this.localloading
+    },
     endpoint () {
       return [this.snap, this.rvid, this.mountpoint, this.fullpath]
     },
@@ -79,10 +82,18 @@ export default {
       return keys.filter(k => !(localEntries[k] instanceof Object)).map(k => new Entry(backupEntries[k]))
     },
     entries () { // All of them
+      return [...this.localBackuped, ...this.onlyLocal, ...this.onlyBackup].map(e => {
+        e.done = this.done
+        return e
+      })
+    }
+    /*
+    entries () { // All of them
       const r = [...this.localBackuped, ...this.onlyLocal, ...this.onlyBackup]
       // console.log('Entries', r)
       return r
     }
+    */
   },
   watch: {
     endpoint: {
@@ -90,7 +101,12 @@ export default {
       deep: true,
       async handler (endpoint, old) {
         // console.log('New endpoint', endpoint)
-        await this.readRemoteDir()
+        try {
+          await this.readRemoteDir()
+        } catch (err) {
+          warn(err, false)
+        } finally {
+        }
       }
     },
     fullpath: {
@@ -103,6 +119,7 @@ export default {
           await this.installWatcher()
         } catch (err) {
           warn(err, false)
+        } finally {
         }
       }
     }

@@ -5,18 +5,20 @@ const getSeconds = ms => Math.floor(ms / 1000)
 export default class Entry {
   constructor (obj) {
     Object.assign(this, obj)
+    this._done = false
   }
   get hasBackup () {
     return this.remote instanceof Object
   }
   get onBoth () {
-    return !!this.onlocal && !!this.onbackup
+    return this.onlocal && this.onbackup
   }
+  // We oly can say if a files is onlylocal or only on backup after both checks are done
   get onlyLocal () {
-    return !!this.onlocal && !this.onbackup
+    return this._done && this.onlocal && !this.onbackup
   }
   get onlyBackup () {
-    return !this.onlocal && !!this.onbackup
+    return this._done && !this.onlocal && this.onbackup
   }
   get isdir () {
     return this.type === 'd'
@@ -39,7 +41,7 @@ export default class Entry {
   }
   get updated () {
     // A entry is updated if it exist in both sides and not need an update
-    return !!this.onBoth && !this.needUpdate
+    return this.onBoth && !this.needUpdate
   }
   get snap () {
     const { remote } = this
@@ -53,5 +55,11 @@ export default class Entry {
   }
   get fullpath () {
     return this.path
+  }
+  set done (b) {
+    this._done = b
+  }
+  get done () {
+    return this._done
   }
 }
