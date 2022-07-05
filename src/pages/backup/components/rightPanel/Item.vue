@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-xs bkit-item">
+  <div class="q-pa-xs bkit-item row">
     <div class="column no-wrap items-left">
       <q-icon v-if="isdir"
         class="bkit-icon self-start"
@@ -28,6 +28,18 @@
           </q-item>
         </q-list>
       </q-menu>
+    </div>
+    <div class="column justify-start">
+      <q-btn flat no-caps stack
+        color="backup"
+        icon="backup"
+        size="sm"
+        dense
+        ripple
+        @click="backup"
+        :class="{inactive: !showBackup}">
+        <span class="text-weight-light">Backup</span>
+      </q-btn>
     </div>
   </div>
 </template>
@@ -73,9 +85,6 @@ export default {
     },
     recover () {
       this.$emit('recover', this.path, this.isdir)
-    },
-    backup () {
-      this.$emit('backup', this.path)
     },
     debug () {
       console.log(this)

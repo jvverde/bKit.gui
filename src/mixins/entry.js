@@ -5,6 +5,8 @@ const nameOf = {
   modified: 'Was modified'
 }
 
+import { mapGetters, mapMutations } from 'vuex'
+
 export default {
   props: {
     entry: {
@@ -13,6 +15,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('backup', ['isQueued']),
     isdir () { return this.entry.isdir },
     isfile () { return this.entry.isfile },
     status () {
@@ -45,6 +48,15 @@ export default {
     // isfiltered () { return !!this.entry.isfiltered },
     onlyLocal () { return this.entry.onlyLocal === true },
     isUpdate () { return this.entry.updated === true },
-    needUpdate () { return this.entry.needUpdate === true }
+    needUpdate () { return this.entry.needUpdate === true },
+    isBackupable () { return this.onlyLocal || this.needUpdate },
+    onBackupQueue () { return this.isQueued(this.fullpath) },
+    showBackup () { return this.isBackupable && !this.onBackupQueue }
+  },
+  methods: {
+    ...mapMutations('backup', ['add2backup']),
+    backup () {
+      this.add2backup(this.fullpath)
+    }
   }
 }

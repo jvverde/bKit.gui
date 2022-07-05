@@ -18,6 +18,7 @@ import servers from './servers'
 import auth from './auth'
 import view from './view'
 import snaps from './snaps'
+import backup from './backup'
 
 // From https://forum.quasar-framework.org/topic/4276/how-to-use-vuex-store-without-access-to-vue-instance/2
 // Don't if this is a SSR
@@ -27,7 +28,8 @@ export const Store = new Vuex.Store({
     servers,
     auth,
     view,
-    snaps
+    snaps,
+    backup
   },
 
   // enable strict mode (adds overhead!)
