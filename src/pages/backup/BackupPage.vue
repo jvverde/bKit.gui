@@ -40,7 +40,7 @@
               :name="disk.id"
               v-for="disk in disks"
               :key="disk.id">
-                <explorer v-bind="disk" @backup="backup" @restore="restore" @recover="recover"/>
+                <explorer v-bind="disk" @restore="restore" @recover="recover"/>
             </q-tab-panel>
           </q-tab-panels>
         </div>
@@ -57,13 +57,13 @@
               :resource="resource"
               @destroy="destroy_restore(index)"
             />
-            <backup
+<!--             <backup
               v-for="(backup, index) in backups"
               :key="'P-' + index"
               :path="backup.path"
               :done="backup.done"
               @destroy="destroy_backup(index)"
-            />
+            /> -->
           </q-list>
         </div>
       </template>
@@ -75,7 +75,7 @@
 
 import explorer from './components/Explorer'
 import restore from './components/Restore'
-import backup from './components/Backup'
+// import backup from './components/Backup'
 import tooltip from 'src/components/tooltip'
 import { listLocalDisks } from 'src/helpers/bkit'
 import { listDisksOnBackup } from 'src/helpers/api'
@@ -92,7 +92,7 @@ export default {
       disktab: '',
       disks: [],
       restores: [],
-      backups: [],
+      // backups: [],
       currentdisk: {}
     }
   },
@@ -100,7 +100,7 @@ export default {
     ...mapGetters('accounts', ['currentAccount']),
     splitter: {
       get: function () {
-        const length = 10 * (this.restores.length + this.backups.length)
+        const length = 10 * (this.restores.length)
         if (this.mark === 0) return Math.max(30, 100 - length)
         else if (length > 2 * this.mark) {
           return Math.max(30, 100 - 0.6 * length)
@@ -139,7 +139,7 @@ export default {
       }
     },
     showConsole () {
-      return this.backups.length > 0 || this.restores.length > 0
+      return this.restores.length > 0
     }
   },
   watch: {
@@ -151,7 +151,7 @@ export default {
   components: {
     explorer,
     restore,
-    backup,
+    // backup,
     tooltip
   },
   methods: {
@@ -196,16 +196,16 @@ export default {
       // resource.options.push('--dry-run')
       this.restores.push(resource)
     },
-    backup (path, done) {
-      this.backups.push({ path, done })
-    },
+    // backup (path, done) {
+    //   this.backups.push({ path, done })
+    // },
     destroy_restore (index) {
       this.restores.splice(index, 1)
     },
-    destroy_backup (index) {
-      this.backups.splice(index, 1)
-      console.log('Destroy', index, this.backups)
-    },
+    // destroy_backup (index) {
+    //   this.backups.splice(index, 1)
+    //   console.log('Destroy', index, this.backups)
+    // },
     async load () {
       this.loading = true
       await this.getLocalDisks()
