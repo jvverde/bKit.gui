@@ -60,15 +60,15 @@ function _bash (name, args = [], events = {}, done = nill) {
   const stoptimeout = () => {
     if (fd._timeout) clearTimeout(fd._timeout)
   }
-  const inittimeout = (timeout = 60000) => {
+  const inittimeout = (timeout = 600000) => {
     fd._timeout = setTimeout(mytimeout, timeout)
   }
-  const resettimeout = (timeout = 60000) => {
+  const resettimeout = (timeout = 600000) => {
     stoptimeout()
     inittimeout(timeout)
   }
 
-  inittimeout(60000)
+  inittimeout(6000000) // 100 minutos
 
   fd.on('close', (code) => {
     console.log('Done spawn', scriptname, ...args)

@@ -12,7 +12,8 @@ module.exports = function (ctx) {
       'notify-defaults',
       'i18n',
       'axios',
-      'vuelidate'
+      'vuelidate',
+      'vue-draggable-resizable'
     ],
 
     // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-css

@@ -1,34 +1,38 @@
 <template>
-  <div v-show="show" class="fixed-full fullscreen">
-      <q-card class="bg-primary text-white">
+  <div v-show="show" class="fixed-full fullscreen row justify-center items-center content-center capa">
+    <vue-draggable-resizable>
+      <q-card class="bg-secondary text-white">
         <q-bar>
           <q-space />
 
-          <q-btn dense flat icon="minimize" @click="maximizedToggle = false" :disable="!maximizedToggle">
+          <!-- q-btn dense flat icon="minimize" @click="maximizedToggle = false" :disable="!maximizedToggle">
             <q-tooltip v-if="maximizedToggle" content-class="bg-white text-primary">Minimize</q-tooltip>
           </q-btn>
           <q-btn dense flat icon="crop_square" @click="maximizedToggle = true" :disable="maximizedToggle">
             <q-tooltip v-if="!maximizedToggle" content-class="bg-white text-primary">Maximize</q-tooltip>
-          </q-btn>
+          </q-btn -->
           <q-btn dense flat icon="close" @click="show = false">
             <q-tooltip content-class="bg-white text-primary">Close</q-tooltip>
           </q-btn>
         </q-bar>
 
-        <q-card-section>
-          <div class="text-h6">backups in progress</div>
+        <q-card-section class="q-pt-xs q-pb-xs">
+          <div class="text-h6">Backups in progress</div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
-          <backup
-            v-for="(path, index) in paths2Backup"
-            :key="'P-' + index + path"
-            :path="path"
-            @destroy="destroy_backup(index)"
-          />
+        <q-card-section class="list q-pt-none q-ma-xs overflow-auto bg-grey-10 text-white">
+          <q-list dark>
+            <backup
+              v-for="(path, index) in paths2Backup"
+              :key="'P-' + index + path"
+              :path="path"
+              @destroy="destroy_backup(index)"
+            />
+          </q-list>
         </q-card-section>
       </q-card>
-    </div>
+    </vue-draggable-resizable>
+  </div>
 </template>
 
 <script>
@@ -64,7 +68,11 @@ export default {
 </script>
 
 <style scoped lang="scss">
-  .bpro {
-    top: 0;
+  .capa {
+    background-color: rgba(128, 128, 128, 0.5);
+  }
+  .list {
+    max-height: 80vh;
+    max-width: 99vw;
   }
 </style>

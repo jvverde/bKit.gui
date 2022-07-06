@@ -62,6 +62,7 @@
     "quasar": "^1.18.9",
     "upath": "^1.2.0",
     "vue-color": "^2.7.1",
+    "vue-draggable-resizable": "^2.3.0",
     "vue-i18n": "^8.20.0",
     "vuelidate": "^0.7.5",
     "windows-scheduler": "^1.0.1"

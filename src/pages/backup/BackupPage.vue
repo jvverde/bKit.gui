@@ -161,6 +161,7 @@ export default {
         console.log('RVID:', rvid)
         // const [letter, uuid, label] = rvid.split('.')
         const match = rvid.match(/^(?<letter>.)\.(?<uuid>[^.]+)\.(?<label>.+)\.(.+)\.(.+)$/)
+        if (!match) continue
         const { letter, uuid, label } = match.groups
         const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label)
         if (index >= 0) {

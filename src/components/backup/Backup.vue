@@ -3,8 +3,10 @@
     <q-item-section>
       <q-item-label>
         <q-spinner-ios color="loader" v-if="isRunning"/>
-        <q-icon name="check" color="green" v-if="isDone"/>
-        <q-icon name="warning" color="warning" v-if="error">
+        <q-icon name="hourglass_empty" color="red" v-else-if="isStarting"/>
+        <q-icon name="view_timeline" color="red" v-else-if="onQueue"/>
+        <q-icon name="check" color="green" v-else-if="isDone"/>
+        <q-icon name="warning" color="warning" v-else-if="error">
           <tooltip :label="error"/>
         </q-icon>
         <span>{{status}} backup of {{path}}</span>
@@ -26,19 +28,19 @@
           <tooltip label="Number of errors"/>
         </q-badge>
       </q-item-label>
-      <q-item-label caption v-if="isRunning && phase">
-        Phase {{phase}}: {{phasemsg}}
+      <q-item-label caption v-if="isRunning">
+        <span class="q-pl-lg">Phase {{phase}}: {{phasemsg}}</span>
       </q-item-label>
       <q-item-label caption v-if="isRunning && currentline">
-        {{currentline}}
+        <span class="q-pl-lg">{{currentline}}</span>
       </q-item-label>
     </q-item-section>
     <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
     <q-item-section side v-if="isDismissible">
-      <q-btn flat round icon="close" color="dismiss" size="xs" @click.stop="deleted = true"/>
+      <q-btn flat round icon="close" color="dismiss" size="sm" @click.stop="deleted = true"/>
     </q-item-section>
     <q-item-section side v-if="isCancelable">
-      <q-btn flat round icon="stop" color="cancel" size="xs" @click.stop="cancel"/>
+      <q-btn flat round icon="stop" color="cancel" size="sm" @click.stop="cancel"/>
     </q-item-section>
   </q-item>
 </template>
@@ -95,6 +97,9 @@ export default {
     isFinished () {
       return this.finished === true
     },
+    isStarting () {
+      return this.status === 'Starting'
+    },
     isRunning () {
       return this.status === 'Running' && !this.isFinished
     },
@@ -108,13 +113,13 @@ export default {
       return this.status === 'Enqueued'
     },
     isCancelable () {
-      return !this.isDone && !this.isCanceled
+      return this.status && !this.isDone && !this.isCanceled
     },
     isDryRun () {
-      return this.dryrun
+      return this.status && this.dryrun
     },
     isDismissible () {
-      return this.isDone || this.isCanceled
+      return this.status && (this.isDone || this.isCanceled)
     }
   },
   components: {
@@ -153,32 +158,35 @@ export default {
     }, match, line) {
       size = Number(size)
       bytes = Number(bytes)
-      this.status = 'Running'
-      this.currentline = line
-      if (X === 'f') {
-        this.total.add(size, bytes)
-        if (Y === '<') {
-          this.transferred.add(size, bytes)
-          if (this.phase === 1) this.files.add(size, bytes)
-        } else if (Y === '.') {
-          this.updated.add(size, bytes)
-          if (this.phase === 1) this.files.add(size, bytes)
-        } else if (Y === 'h') {
-          this.hlinks.add(size, bytes)
-        } else if (Y === 'c') {
-          this.created.add(size, bytes)
+      this.$nextTick(() => {
+        this.status = 'Running'
+        this.currentline = line
+        console.log(line)
+        if (X === 'f') {
+          this.total.add(size, bytes)
+          if (Y === '<') {
+            this.transferred.add(size, bytes)
+            if (this.phase === 1) this.files.add(size, bytes)
+          } else if (Y === '.') {
+            this.updated.add(size, bytes)
+            if (this.phase === 1) this.files.add(size, bytes)
+          } else if (Y === 'h') {
+            this.hlinks.add(size, bytes)
+          } else if (Y === 'c') {
+            this.created.add(size, bytes)
+          }
+        } else if (X === 'd') {
+          this.dirs.add(size, bytes)
+        } else if (X === 'L') {
+          this.slinks.add(size, bytes)
+        } else if (X === 'S') {
+          this.specials.add(size, bytes)
+        } else if (X === 'D') {
+          this.devices.add(size, bytes)
+        } else {
+          throw new Error(`Itemize YXcstpoguax with wrong value on X=${X}`)
         }
-      } else if (X === 'd') {
-        this.dirs.add(size, bytes)
-      } else if (X === 'L') {
-        this.slinks.add(size, bytes)
-      } else if (X === 'S') {
-        this.specials.add(size, bytes)
-      } else if (X === 'D') {
-        this.devices.add(size, bytes)
-      } else {
-        throw new Error(`Itemize YXcstpoguax with wrong value on X=${X}`)
-      }
+      })
     },
     async backup () {
       this.error = null
@@ -187,7 +195,7 @@ export default {
         // rsyncoptions: ['--dry-run'],
         sent: this.sent,
         newphase: ({ phase, msg }) => {
-          console.log('Phase', phase, this.path)
+          console.log('Phase', phase, msg)
           this.status = 'Running'
           this.phase = 0 | phase
           this.phasemsg = msg
@@ -220,9 +228,11 @@ export default {
         console.log('Backup Done with code', code)
         this.done(this.path)
         this.ok = true
+        this.status = 'Done'
       }).catch(e => {
         console.error('Backup catch error', e, this.path)
         this.error = e
+        this.status = 'Error'
       }).finally(() => {
         this.finished = true
       })
@@ -230,7 +240,7 @@ export default {
   },
   mounted () {
     console.log('backup', this.path)
-    // this.backup()
+    this.backup()
   },
   beforeUpdate () {
     // console.log('beforeUpdate', this.path)
