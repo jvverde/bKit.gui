@@ -229,7 +229,8 @@ export default {
     }
   },
   mounted () {
-    this.backup()
+    console.log('backup', this.path)
+    // this.backup()
   },
   beforeUpdate () {
     // console.log('beforeUpdate', this.path)

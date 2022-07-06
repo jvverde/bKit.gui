@@ -47,14 +47,7 @@
       <q-spinner-ios size="xl" color="loader"/>
       <span>{{msg}}</span>
     </q-inner-loading>
-    <div v-show="showProcess">
-      <backup
-        v-for="(path, index) in getList"
-        :key="'P-' + index + path"
-        :path="path"
-        @destroy="destroy_backup(index)"
-      />
-    </div>
+    <backupProgress/>
   </q-layout>
 </template>
 
@@ -68,7 +61,7 @@ import { pInfo } from 'src/boot/computer'
 import { catched } from 'src/helpers/notify'
 import { mapGetters, mapActions } from 'vuex'
 import bkitmenu from './components/Menu'
-import backup from 'src/components/backup/Backup'
+import backupProgress from './components/BackupProgress'
 
 // import { colors } from 'quasar'
 
@@ -101,14 +94,12 @@ export default {
       msg: undefined,
       leftDrawerOpen: false,
       bkituser: undefined,
-      showProcess: false,
       version: app.getVersion(),
       hostname: os.hostname()
     }
   },
   computed: {
     ...mapGetters('accounts', ['account', 'currentProfiles']),
-    ...mapGetters('backup', ['getList']),
     loading () { return this.msg && this.msg.length > 0 },
     user () {
       return this.bkituser
@@ -130,7 +121,7 @@ export default {
   },
   components: {
     bkitmenu,
-    backup
+    backupProgress
   },
   methods: {
     ...mapActions('accounts', ['setCurrentAccount']),
