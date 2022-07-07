@@ -7,6 +7,7 @@ import Entry from 'src/helpers/entry'
 import { warn } from 'src/helpers/notify'
 
 // const exists = async (pathname) => fs.promises.access(pathname, fs.constants.F_OK)
+// const rescape = s => s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 
 const bkitPath = (base, fullpath) => {
   let upath = base ? path.relative(base, fullpath) : fullpath
@@ -106,6 +107,7 @@ export default {
         } catch (err) {
           warn(err, false)
         } finally {
+          // console.log(this.entries)
         }
       }
     },
@@ -157,12 +159,14 @@ export default {
       try {
         this.remoteloading = 'Reading backup'
         const upath = bkitPath(mountpoint, fullpath)
-        console.log('readRemoteDir', upath)
+        console.log('ReadRemoteDir', upath)
         const entries = await listRemoteDir(rvid, snap, upath)
         // if (fullpath !== this.fullpath) return // Forget if meanwhile this.fullpath changed
         entries.forEach(entry => {
           entry.onbackup = true
+          // This 2 lines are required for cases where a local entry was deleted
           entry.path = entry.path || path.join(fullpath, entry.name)
+          entry.mountpoint = entry.mountpoint || mountpoint
           backupEntries[entry.name] = entry
         })
       } catch (err) {
