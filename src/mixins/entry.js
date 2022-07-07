@@ -15,7 +15,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('backup', ['isQueued']),
+    ...mapGetters('backups', ['isQueued']),
     ...mapGetters('snaps', ['isLastSnap']),
     isdir () { return this.entry.isdir },
     isfile () { return this.entry.isfile },
@@ -52,12 +52,17 @@ export default {
     needUpdate () { return this.entry.needUpdate === true },
     isBackupable () { return this.onlyLocal || this.needUpdate },
     onBackupQueue () { return this.isQueued(this.fullpath) },
-    showBackup () { return this.isLastSnap && this.isBackupable && !this.onBackupQueue }
+    showBackup () { return this.isLastSnap && this.isBackupable && !this.onBackupQueue },
+    isRestorable () { return this.needUpdate || this.onlyBackup }
   },
   methods: {
-    ...mapMutations('backup', ['add2backup']),
+    ...mapMutations('backups', ['add2backup']),
     backup () {
       this.add2backup(this.fullpath)
+    },
+    restore () {
+      console.log('RESTORE', this.path, this.isdir)
+      // this.add2backup(this.fullpath)
     }
   }
 }

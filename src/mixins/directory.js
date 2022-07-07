@@ -1,4 +1,4 @@
-import fs from 'fs'
+// import fs from 'fs'
 import { readdir } from 'src/helpers/readfs'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
 import { listPath as listRemoteDir } from 'src/helpers/api'
@@ -6,7 +6,7 @@ import path from 'path'
 import Entry from 'src/helpers/entry'
 import { warn } from 'src/helpers/notify'
 
-const exists = async (pathname) => fs.promises.access(pathname, fs.constants.F_OK)
+// const exists = async (pathname) => fs.promises.access(pathname, fs.constants.F_OK)
 
 const bkitPath = (base, fullpath) => {
   let upath = base ? path.relative(base, fullpath) : fullpath
@@ -114,7 +114,7 @@ export default {
       async handler (dir, oldir) {
         // console.log('New fullpath', dir)
         try {
-          await exists(dir)
+          // await exists(dir)
           await this.readLocalDir()
           await this.installWatcher()
         } catch (err) {
@@ -129,24 +129,24 @@ export default {
   methods: {
     async readLocalDir () {
       this.localEntries = {}
+      const fullpath = this.fullpath
+      console.log('readLocalDir', fullpath)
+      const localEntries = {}
       try {
         this.localloading = 'Reading local disk'
-        const fullpath = this.fullpath
-        console.log('readLocalDir', fullpath)
-        await exists(fullpath)
+        // await exists(fullpath)
         const entries = await readdir(fullpath) // readdir is an async generator
-        const localEntries = {}
         for await (const entry of entries) { // as it is a generator we need to use await
           entry.onlocal = true
           entry.mountpoint = this.mountpoint
           localEntries[entry.name] = entry
         }
-        // Forget if meanwhile this.fullpath changed
-        if (fullpath === this.fullpath) this.localEntries = localEntries
       } catch (err) {
         warn(err, false)
       } finally {
         this.localloading = false
+        // Forget if meanwhile this.fullpath changed
+        if (fullpath === this.fullpath) this.localEntries = localEntries
       }
     },
     async readRemoteDir () {
@@ -162,6 +162,7 @@ export default {
         // if (fullpath !== this.fullpath) return // Forget if meanwhile this.fullpath changed
         entries.forEach(entry => {
           entry.onbackup = true
+          entry.path = entry.path || path.join(fullpath, entry.name)
           backupEntries[entry.name] = entry
         })
       } catch (err) {

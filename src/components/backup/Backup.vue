@@ -135,7 +135,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations('backup', { backupDone: 'done' }),
+    ...mapMutations('backups', { backupDone: 'done' }),
     formatBytes,
     cancel () {
       if (this.pid) {

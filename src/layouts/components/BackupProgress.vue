@@ -51,7 +51,7 @@ export default {
     backup
   },
   computed: {
-    ...mapGetters('backup', { paths2Backup: 'getList' })
+    ...mapGetters('backups', { paths2Backup: 'getList' })
   },
   watch: {
     paths2Backup: {

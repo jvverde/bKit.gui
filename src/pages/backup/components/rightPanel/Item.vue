@@ -23,7 +23,7 @@
           <q-item clickable v-close-popup @click="open">
             <q-item-section>Open</q-item-section>
           </q-item>
-          <q-item clickable v-close-popup @click="backup">
+          <q-item clickable v-close-popup @click="backup" v-if="onlocal">
             <q-item-section>Backup</q-item-section>
           </q-item>
         </q-list>
@@ -39,6 +39,17 @@
         @click="backup"
         :class="{inactive: !showBackup}">
         <span class="text-weight-light">Backup</span>
+      </q-btn>
+      <q-btn flat no-caps stack
+        :color="needUpdate ? 'reset' : 'restore'"
+        icon="restore"
+        size="sm"
+        dense
+        ripple
+        @click="restore"
+        :class="{inactive: !isRestorable}">
+        <span class="text-weight-light">Restore</span>
+        <tooltip label="Restore to original location"/>
       </q-btn>
     </div>
   </div>
@@ -79,9 +90,6 @@ export default {
     onVersionClick (snap) {
       console.log('Version snap', snap)
       this.$emit('usesnap', snap)
-    },
-    restore () {
-      this.$emit('restore', this.path, this.isdir)
     },
     recover () {
       this.$emit('recover', this.path, this.isdir)

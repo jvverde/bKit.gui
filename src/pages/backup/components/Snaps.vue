@@ -56,7 +56,7 @@ export default {
   },
   computed: {
     ...mapGetters('snaps', ['getSnaps', 'getCurrentSnap']),
-    ...mapGetters('backup', ['getDone']),
+    ...mapGetters('backups', ['getDone']),
     snaps () {
       return this.getSnaps.map(e => {
         return {
