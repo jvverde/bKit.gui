@@ -9,7 +9,7 @@
       <template v-slot:before>
         <div class="row no-wrap fit">
           <div style="flex-shrink: 0" class="disks column no-wrap items-center">
-            <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px">
+            <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px" @click="$router.push('/')"/>
             <span class="text-center">Disks</span>
             <q-tabs
               v-model="disktab"

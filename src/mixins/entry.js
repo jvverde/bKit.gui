@@ -16,18 +16,19 @@ export default {
   },
   computed: {
     ...mapGetters('backup', ['isQueued']),
+    ...mapGetters('snaps', ['isLastSnap']),
     isdir () { return this.entry.isdir },
     isfile () { return this.entry.isfile },
     status () {
       if (this.isUpdate) return 'updated'
-      else if (this.needUpdate) return 'modified'
       else if (this.onlyLocal) return 'nobackup'
       else if (this.onlyBackup) return 'deleted'
+      else if (this.needUpdate) return 'modified'
       return undefined
     },
     description () { return nameOf[this.status] },
     getcolor () {
-      return this.status
+      return this.status === 'updated' && !this.isLastSnap ? 'older' : this.status
     },
     path () {
       return this.entry.path
@@ -51,7 +52,7 @@ export default {
     needUpdate () { return this.entry.needUpdate === true },
     isBackupable () { return this.onlyLocal || this.needUpdate },
     onBackupQueue () { return this.isQueued(this.fullpath) },
-    showBackup () { return this.isBackupable && !this.onBackupQueue }
+    showBackup () { return this.isLastSnap && this.isBackupable && !this.onBackupQueue }
   },
   methods: {
     ...mapMutations('backup', ['add2backup']),

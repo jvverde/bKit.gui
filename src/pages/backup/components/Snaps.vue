@@ -19,7 +19,7 @@
     <q-btn round flat icon="sync" color="bkit" size="xs"
       v-if="currentSnap"
       style="margin:auto 0"
-      @click.stop="reload()"
+      @click.stop="load_snaps(rvid)"
       :disable="loading"/>
     <span v-else-if="!loading">
       No snapshots yet
@@ -56,6 +56,7 @@ export default {
   },
   computed: {
     ...mapGetters('snaps', ['getSnaps', 'getCurrentSnap']),
+    ...mapGetters('backup', ['getDone']),
     snaps () {
       return this.getSnaps.map(e => {
         return {
@@ -75,6 +76,10 @@ export default {
   watch: {
     rvid: function () {
       this.load_snaps()
+    },
+    getDone: function () {
+      console.log('RELOAD snaps for', this.rvid)
+      this.loadSnaps(this.rvid)
     }
   },
   methods: {
@@ -93,18 +98,6 @@ export default {
         this.loading = false
       }
     }
-    // async reload () {
-    //   const names = await listSnaps(this.rvid)
-    //   for (const id of names) {
-    //     if (!this.snaps.find(e => e.id === id)) {
-    //       this.snaps.push({
-    //         date: moment.utc(id.substring(5), 'YYYY.MM.DD-HH.mm.ss').local(),
-    //         id
-    //       })
-    //     }
-    //   }
-    //   this.select(this.snaps.length - 1)
-    // }
   },
   mounted () {
     this.load_snaps()

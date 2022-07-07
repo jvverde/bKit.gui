@@ -15,11 +15,11 @@
           <q-icon name="description" color="white" class="q-ml-xs"/>
           <tooltip label="Files uploaded/updated"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="badger-1" v-show="files.size">
+        <q-badge class="q-ml-sm shadow-1" color="badger-2" v-show="files.size">
           {{formatBytes(files.size)}}
           <tooltip label="Size of files uploaded/updated"/>
         </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="badger-2" v-show="total.bytes">
+        <q-badge class="q-ml-sm shadow-1" color="badger-1" v-show="total.bytes">
           {{formatBytes(total.bytes)}}
           <tooltip label="Bytes transferred"/>
         </q-badge>
@@ -31,8 +31,9 @@
       <q-item-label caption v-if="isRunning">
         <span class="q-pl-lg">Phase {{phase}}: {{phasemsg}}</span>
       </q-item-label>
-      <q-item-label caption v-if="isRunning && currentline">
-        <span class="q-pl-lg">{{currentline}}</span>
+      <q-item-label caption v-if="isRunning">
+        <span class="q-pl-lg" v-if="currentline">{{currentline}}</span>
+        <span class="q-pl-lg" v-else-if="errorline" style="color: red">ERROR: {{errorline}}</span>
       </q-item-label>
     </q-item-section>
     <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
@@ -50,6 +51,7 @@ import { bKit } from 'src/helpers/bkit'
 import { killtree } from 'src/helpers/bash'
 import { formatBytes } from 'src/helpers/utils'
 import tooltip from 'src/components/tooltip'
+import { mapMutations } from 'vuex'
 
 class Counter {
   constructor () {
@@ -86,6 +88,7 @@ export default {
       finished: false,
       cnterrors: 0,
       currentline: '',
+      errorline: '',
       process: undefined,
       pid: null,
       dequeued: () => null,
@@ -129,13 +132,10 @@ export default {
     path: {
       type: String,
       required: true
-    },
-    done: {
-      type: Function,
-      default: () => console.log('NO CALL BACK')
     }
   },
   methods: {
+    ...mapMutations('backup', { backupDone: 'done' }),
     formatBytes,
     cancel () {
       if (this.pid) {
@@ -161,6 +161,7 @@ export default {
       this.$nextTick(() => {
         this.status = 'Running'
         this.currentline = line
+        this.errorline = ''
         console.log(line)
         if (X === 'f') {
           this.total.add(size, bytes)
@@ -221,14 +222,15 @@ export default {
         },
         stderr: (line) => {
           console.warn(line)
-          this.currentline = line
+          this.errorline = line
+          this.currentline = ''
           this.cnterrors++
         }
       }).then(code => {
         console.log('Backup Done with code', code)
-        this.done(this.path)
         this.ok = true
         this.status = 'Done'
+        this.backupDone(this.path)
       }).catch(e => {
         console.error('Backup catch error', e, this.path)
         this.error = e

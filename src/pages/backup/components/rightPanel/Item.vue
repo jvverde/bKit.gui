@@ -21,10 +21,10 @@
       <q-menu auto-close context-menu fit anchor="bottom start" self="top left" v-if="isdir">
         <q-list dense style="min-width: 100px">
           <q-item clickable v-close-popup @click="open">
-            <q-item-section>Open...</q-item-section>
+            <q-item-section>Open</q-item-section>
           </q-item>
-          <q-item clickable v-close-popup v-if="needUpdate">
-            <q-item-section>New</q-item-section>
+          <q-item clickable v-close-popup @click="backup">
+            <q-item-section>Backup</q-item-section>
           </q-item>
         </q-list>
       </q-menu>

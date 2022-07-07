@@ -151,24 +151,25 @@ export default {
     },
     async readRemoteDir () {
       this.backupEntries = {}
+      const backupEntries = {}
+      const { snap, rvid, fullpath, mountpoint } = this
+      if (!snap || !rvid) return
       try {
         this.remoteloading = 'Reading backup'
-        const { snap, rvid, fullpath, mountpoint } = this
-        if (!snap || !rvid) return
         const upath = bkitPath(mountpoint, fullpath)
         console.log('readRemoteDir', upath)
         const entries = await listRemoteDir(rvid, snap, upath)
-        if (fullpath !== this.fullpath) return // Forget if meanwhile this.fullpath changed
-        const backupEntries = {}
+        // if (fullpath !== this.fullpath) return // Forget if meanwhile this.fullpath changed
         entries.forEach(entry => {
           entry.onbackup = true
           backupEntries[entry.name] = entry
         })
-        this.backupEntries = backupEntries
       } catch (err) {
         warn(err, false)
       } finally {
         this.remoteloading = false
+        // Forget if meanwhile this.fullpath changed
+        if (fullpath === this.fullpath) this.backupEntries = backupEntries
       }
     },
     async installWatcher () {

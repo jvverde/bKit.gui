@@ -21,12 +21,11 @@
         </q-card-section>
 
         <q-card-section class="list q-pt-none q-ma-xs overflow-auto bg-grey-10 text-white">
-          <q-list dark>
+          <q-list dark separator>
             <backup
               v-for="(path, index) in paths2Backup"
-              :key="'P-' + index + path"
+              :key="path + index"
               :path="path"
-              @destroy="destroy_backup(index)"
             />
           </q-list>
         </q-card-section>

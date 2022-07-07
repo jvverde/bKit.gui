@@ -214,6 +214,21 @@ $updated : $green;
   background: $updated !important;
   background: var(--q-color-updated) !important;
 }
+/************************** bkit-older **************************/
+$older : $green-10;
+
+:root {
+  --q-color-older: #{$older};
+}
+
+.text-older {
+  color: $older !important;
+  color: var(--q-color-older) !important;
+}
+.bg-older {
+  background: $older !important;
+  background: var(--q-color-older) !important;
+}
 /************************** bkit-updatedir **************************/
 $updatedir : $secondary;
 
