@@ -17,13 +17,13 @@
         </q-bar>
 
         <q-card-section class="q-pt-xs q-pb-xs">
-          <div class="text-h6">Backups in progress</div>
+          <div class="text-h6">Restores in progress</div>
         </q-card-section>
 
         <q-card-section class="list q-pt-none q-ma-xs overflow-auto bg-grey-10 text-white">
           <q-list dark separator>
-            <backup
-              v-for="(path, index) in paths2Backup"
+            <restore
+              v-for="(path, index) in paths2Restore"
               :key="path + index"
               :path="path"
             />
@@ -36,11 +36,11 @@
 
 <script>
 
-import backup from './Backup'
+import restore from './Restore'
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'backupProgress',
+  name: 'restoreProgress',
   data () {
     return {
       show: false,
@@ -48,16 +48,16 @@ export default {
     }
   },
   components: {
-    backup
+    restore
   },
   computed: {
-    ...mapGetters('backups', { paths2Backup: 'getList' })
+    ...mapGetters('restore', { paths2Restore: 'getList' })
   },
   watch: {
-    paths2Backup: {
+    paths2Restore: {
       immediate: true,
       async handler (list, old) {
-        this.show = this.paths2Backup.length > 0
+        this.show = this.paths2Restore.length > 0
       }
     }
   },

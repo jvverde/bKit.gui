@@ -40,7 +40,7 @@
               :name="disk.id"
               v-for="disk in disks"
               :key="disk.id">
-                <explorer v-bind="disk" @restore="restore" @recover="recover"/>
+                <explorer v-bind="disk" @recover="recover"/>
             </q-tab-panel>
           </q-tab-panels>
         </div>
@@ -74,7 +74,7 @@
 <script>
 
 import explorer from './components/Explorer'
-import restore from './components/Restore'
+// import restore from './components/Restore'
 // import backup from './components/Backup'
 import tooltip from 'src/components/tooltip'
 import { listLocalDisks } from 'src/helpers/bkit'
@@ -91,7 +91,7 @@ export default {
       dst: '',
       disktab: '',
       disks: [],
-      restores: [],
+      // restores: [],
       // backups: [],
       currentdisk: {}
     }
@@ -100,7 +100,7 @@ export default {
     ...mapGetters('accounts', ['currentAccount']),
     splitter: {
       get: function () {
-        const length = 10 * (this.restores.length)
+        const length = 10
         if (this.mark === 0) return Math.max(30, 100 - length)
         else if (length > 2 * this.mark) {
           return Math.max(30, 100 - 0.6 * length)
@@ -139,7 +139,8 @@ export default {
       }
     },
     showConsole () {
-      return this.restores.length > 0
+      // return this.restores.length > 0
+      return 0
     }
   },
   watch: {
@@ -150,7 +151,7 @@ export default {
   },
   components: {
     explorer,
-    restore,
+    // restore,
     // backup,
     tooltip
   },
@@ -189,10 +190,10 @@ export default {
         }
       }
     },
-    restore (resource) {
-      // resource.options.push('--dry-run')
-      this.restores.push(resource)
-    },
+    // restore (resource) {
+    //   // resource.options.push('--dry-run')
+    //   this.restores.push(resource)
+    // },
     recover (resource) {
       // resource.options.push('--dry-run')
       this.restores.push(resource)

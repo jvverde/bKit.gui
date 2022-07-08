@@ -1,3 +1,5 @@
+import { relative, normalize } from 'path'
+
 const nameOf = {
   deleted: 'Was deleted',
   updated: 'Is update',
@@ -5,7 +7,14 @@ const nameOf = {
   modified: 'Was modified'
 }
 
+const bkitPath = (base, path, isdir = true) => {
+  let upath = base ? relative(base, path) : path
+  upath = isdir ? `/${upath}/` : `/${upath}`
+  return normalize(upath)
+}
+
 import { mapGetters, mapMutations } from 'vuex'
+import { Resource } from 'src/helpers/types'
 
 export default {
   props: {
@@ -53,16 +62,21 @@ export default {
     isBackupable () { return this.onlyLocal || this.needUpdate },
     onBackupQueue () { return this.isQueued(this.fullpath) },
     showBackup () { return this.isLastSnap && this.isBackupable && !this.onBackupQueue },
-    isRestorable () { return this.needUpdate || this.onlyBackup }
+    isRestorable () { return this.needUpdate || this.onlyBackup },
+    snap () { return this.entry.snap },
+    rvid () { return this.entry.rvid },
+    mountpoint () { return this.entry.mountpoint }
   },
   methods: {
     ...mapMutations('backups', ['add2backup']),
+    ...mapMutations('restore', ['add2restore']),
     backup () {
       this.add2backup(this.fullpath)
     },
     restore () {
-      console.log('RESTORE', this.path, this.isdir)
-      // this.add2backup(this.fullpath)
+      let { path, snap, rvid, mountpoint, isdir } = this
+      if (!mountpoint) path = bkitPath('', path, isdir)
+      this.add2restore(new Resource({ path, snap, rvid }))
     }
   }
 }
