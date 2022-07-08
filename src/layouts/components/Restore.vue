@@ -179,7 +179,10 @@ export default {
     restore () {
       this.totalfiles = this.totalsize = this.cntfiles = 0
       this.error = null
-      const { path, options, rsyncoptions, snap, rvid } = this.resource
+      console.log('resource', this.resource)
+      const { path, options: o, rsyncoptions: r, snap, rvid } = this.resource
+      const options = [...o] // Resource came from VUEX and shoudn't be modified outside a mutation
+      const rsyncoptions = [...r]
       options.push(
         `--snap=${snap}`,
         `--rvid=${rvid}`

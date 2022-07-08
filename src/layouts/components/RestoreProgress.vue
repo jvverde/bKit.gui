@@ -1,7 +1,7 @@
 <template>
   <div v-show="show" class="fixed-full fullscreen row justify-center items-center content-center capa">
-    <vue-draggable-resizable>
-      <q-card class="bg-secondary text-white">
+    <vue-draggable-resizable  :w="600" :h="'auto'">
+      <q-card class="bg-blue-grey-8 text-white fit column no-wrap">
         <q-bar>
           <q-space />
 
@@ -20,8 +20,8 @@
           <div class="text-h6">Restores in progress</div>
         </q-card-section>
 
-        <q-card-section class="list q-pt-none q-ma-xs overflow-auto bg-grey-10 text-white">
-          <q-list dark separator>
+        <q-card-section class="list q-pt-none q-ma-xs bg-grey-10 text-white scroll">
+          <q-list dark separato>
             <restore
               v-for="(res, index) in paths2Restore"
               :key="res.path + index"

@@ -1,6 +1,6 @@
 <template>
   <div v-show="show" class="fixed-full fullscreen row justify-center items-center content-center capa">
-    <vue-draggable-resizable>
+    <vue-draggable-resizable :w="400" :h="300">
       <q-card class="bg-secondary text-white">
         <q-bar>
           <q-space />
