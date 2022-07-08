@@ -23,9 +23,9 @@
         <q-card-section class="list q-pt-none q-ma-xs overflow-auto bg-grey-10 text-white">
           <q-list dark separator>
             <restore
-              v-for="(path, index) in paths2Restore"
-              :key="path + index"
-              :path="path"
+              v-for="(res, index) in paths2Restore"
+              :key="res.path + index"
+              :resource="res"
             />
           </q-list>
         </q-card-section>

@@ -48,6 +48,7 @@
       <span>{{msg}}</span>
     </q-inner-loading>
     <backupProgress/>
+    <restoreProgress/>
   </q-layout>
 </template>
 
@@ -62,6 +63,7 @@ import { catched } from 'src/helpers/notify'
 import { mapGetters, mapActions } from 'vuex'
 import bkitmenu from './components/Menu'
 import backupProgress from './components/BackupProgress'
+import restoreProgress from './components/RestoreProgress'
 
 // import { colors } from 'quasar'
 
@@ -121,7 +123,8 @@ export default {
   },
   components: {
     bkitmenu,
-    backupProgress
+    backupProgress,
+    restoreProgress
   },
   methods: {
     ...mapActions('accounts', ['setCurrentAccount']),

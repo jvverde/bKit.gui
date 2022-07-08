@@ -34,7 +34,7 @@
             </q-tabs>
             <q-btn icon="sync" size="xs" flat color="bkit" @click="load"/>
           </div>
-          <q-tab-panels v-model="disktab" animated keep-alive class="fit">
+          <q-tab-panels v-model="disktab" animated :keep-alive="false" class="fit">
             <q-tab-panel
               class="fit"
               :name="disk.id"

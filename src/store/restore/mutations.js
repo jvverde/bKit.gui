@@ -1,13 +1,13 @@
 import { Resource } from 'src/helpers/types'
 
-const same = (a, b) => e => a.path === b.path && a.rvid === b.rvid && a.snap === b.snap
+const same = (a, b) => a.path === b.path && a.rvid === b.rvid && a.snap === b.snap
 
 export function add2restore (state, resource) {
   if (!(resource instanceof Resource)) throw new Error(`${resource} is not a Resource`)
   if (state.list.find(e => same(e, resource))) {
-    console.warn(`${resource} is already in restore list`)
+    console.warn(resource, 'is already in restore list', state.list)
   } else {
-    console.info(`Add Resource ${resource} to restore list`)
+    console.info('Add Resource', resource, ' to restore list')
     state.list.push(resource)
   }
 }

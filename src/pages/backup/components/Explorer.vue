@@ -66,6 +66,9 @@ const barStyle = {
   width: '9px',
   opacity: 0.2
 }
+
+const lastPaths = {}
+
 export default {
   name: 'localexplorer',
   data () {
@@ -107,19 +110,26 @@ export default {
     },
     isReady2Show () {
       return this.snap !== undefined || !this.rvid
+    },
+    volume () {
+      return `${this.rvid || '_'}-${this.mountpoint || '_'}`
     }
   },
   watch: {
   },
   mounted () {
+    const path = lastPaths[this.volume] || this.mountpoint || sep
+    this.setView(path)
   },
   methods: {
     ...mapMutations('view', ['setView']),
     stepto (index) {
       const fullpath = join(this.mountpoint, this.steps.slice(0, index).join('/'))
-      console.log('Go to', fullpath)
       this.setView(fullpath)
     }
+  },
+  beforeDestroy () {
+    lastPaths[this.volume] = this.currentpath
   }
 }
 
