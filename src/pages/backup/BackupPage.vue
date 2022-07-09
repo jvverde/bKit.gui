@@ -1,73 +1,45 @@
 <template>
   <q-page padding class="fit">
-    <q-splitter
-      style="flex-grow: 1"
-      class="fit"
-      :limits="[10, 99]"
-      horizontal
-      v-model="splitter">
-      <template v-slot:before>
-        <div class="row no-wrap fit">
-          <div style="flex-shrink: 0" class="disks column no-wrap items-center">
-            <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px" @click="$router.push('/')"/>
-            <span class="text-center">Disks</span>
-            <q-tabs
-              v-model="disktab"
-              vertical
-              dense
-              no-caps
-              style="background-color: ghostwhite"
-              indicator-color="active"
-              active-bg-color="white">
-              <q-tab
-                v-for="disk in disks"
-                :key="disk.id"
-                :name="disk.id"
-                :disable="loading"
-                :ripple="{ early: true, color: 'indigo'}"
-                icon="far fa-hdd"
-                :class="'text-' + color(disk)"
-              >
-                <span class="disk">{{diskname(disk)}}</span>
-                <tooltip v-if="disklabel(disk)" :label="disklabel(disk)"/>
-              </q-tab>
-            </q-tabs>
-            <q-btn icon="sync" size="xs" flat color="bkit" @click="load"/>
-          </div>
-          <q-tab-panels v-model="disktab" animated :keep-alive="false" class="fit">
-            <q-tab-panel
-              class="fit"
-              :name="disk.id"
-              v-for="disk in disks"
-              :key="disk.id">
-                <explorer v-bind="disk" @recover="recover"/>
-            </q-tab-panel>
-          </q-tab-panels>
-        </div>
-        <q-inner-loading :showing="loading">
-          <q-spinner-ios size="100px" color="loader"/>
-        </q-inner-loading>
-      </template>
-      <template v-slot:after>
-        <div  class="console fit rounded-borders scroll" v-if="showConsole">
-          <q-list separator class="q-pa-xd" dark>
-            <restore
-              v-for="(resource, index) in restores"
-              :key="'R-' + index"
-              :resource="resource"
-              @destroy="destroy_restore(index)"
-            />
-<!--             <backup
-              v-for="(backup, index) in backups"
-              :key="'P-' + index"
-              :path="backup.path"
-              :done="backup.done"
-              @destroy="destroy_backup(index)"
-            /> -->
-          </q-list>
-        </div>
-      </template>
-    </q-splitter>
+    <div class="row no-wrap fit">
+      <div style="flex-shrink: 0" class="disks column no-wrap items-center">
+        <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px" @click="$router.push('/')"/>
+        <span class="text-center">Disks</span>
+        <q-tabs
+          v-model="disktab"
+          vertical
+          dense
+          no-caps
+          style="background-color: ghostwhite"
+          indicator-color="active"
+          active-bg-color="white">
+          <q-tab
+            v-for="disk in disks"
+            :key="disk.id"
+            :name="disk.id"
+            :disable="loading"
+            :ripple="{ early: true, color: 'indigo'}"
+            icon="far fa-hdd"
+            :class="'text-' + color(disk)"
+          >
+            <span class="disk">{{diskname(disk)}}</span>
+            <tooltip v-if="disklabel(disk)" :label="disklabel(disk)"/>
+          </q-tab>
+        </q-tabs>
+        <q-btn icon="sync" size="xs" flat color="bkit" @click="load"/>
+      </div>
+      <q-tab-panels v-model="disktab" animated :keep-alive="false" class="fit">
+        <q-tab-panel
+          class="fit"
+          :name="disk.id"
+          v-for="disk in disks"
+          :key="disk.id">
+            <explorer v-bind="disk" @recover="recover"/>
+        </q-tab-panel>
+      </q-tab-panels>
+    </div>
+    <q-inner-loading :showing="loading">
+      <q-spinner-ios size="100px" color="loader"/>
+    </q-inner-loading>
   </q-page>
 </template>
 
@@ -98,6 +70,7 @@ export default {
   },
   computed: {
     ...mapGetters('accounts', ['currentAccount']),
+    ...mapGetters('view', ['getview']),
     splitter: {
       get: function () {
         const length = 10
@@ -147,6 +120,9 @@ export default {
     currentAccount () {
       this.disks = []
       this.load()
+    },
+    getview (val, old) {
+      // console.log(this.disks)
     }
   },
   components: {

@@ -3,9 +3,9 @@
     <transition-group name="snaps" tag="div" class="accordion" v-show="!isEmpty">
       <section class="cell"
         v-for="(snap, index) in snaps"
-        :key="snap.id"
-        @click="select(index)"
-        :class="{selected: snap.id === currentSnap}">
+        :key="snap.id + index"
+        @click="select(snap)"
+        :class="{selected: snap.id === currentSnap.snap}">
         <header class="spine" :title="snap.date.format('DD-MM-YYYY HH:mm')">
           {{snap.date.fromNow(true)}}
         </header>
@@ -55,19 +55,20 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('snaps', ['getSnaps', 'getCurrentSnap']),
+    ...mapGetters('snaps', ['getSnaps', 'getCurrentSnap', 'currentSnapExists']),
     ...mapGetters('backups', ['getDone']),
     snaps () {
       return this.getSnaps.map(e => {
         return {
+          ...e,
           date: moment.utc(e.snap.substring(5), 'YYYY.MM.DD-HH.mm.ss').local(),
           id: e.snap
         }
       })
     },
     currentSnap: {
-      get () { return (this.getCurrentSnap || {}).snap },
-      set (index) { this.setCurrentSnap(index) }
+      get () { return this.getCurrentSnap || {} },
+      set (snap) { this.setCurrentSnap(snap) }
     },
     isEmpty () {
       return this.snaps.length === 0
@@ -85,17 +86,19 @@ export default {
   methods: {
     ...mapActions('snaps', ['loadSnaps']),
     ...mapMutations('snaps', ['useLastSnap', 'setCurrentSnap']),
-    select (index) {
-      this.setCurrentSnap(index)
+    select (snap) {
+      this.setCurrentSnap(snap)
     },
     async load_snaps () {
       this.loading = true
       // this.snaps.splice(0, this.snaps.length) // empty snaps
       try {
         await this.loadSnaps(this.rvid)
-        this.useLastSnap()
       } finally {
         this.loading = false
+        if (!this.currentSnapExists) {
+          this.useLastSnap()
+        }
       }
     }
   },

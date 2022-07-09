@@ -1,5 +1,5 @@
 <template>
-  <div v-show="show" class="fixed-full fullscreen row justify-center items-center content-center capa">
+  <div v-show="showProgress" class="fixed-full fullscreen row justify-center items-center content-center capa">
     <vue-draggable-resizable :w="400" :h="300">
       <q-card class="bg-secondary text-white">
         <q-bar>
@@ -11,7 +11,7 @@
           <q-btn dense flat icon="crop_square" @click="maximizedToggle = true" :disable="maximizedToggle">
             <q-tooltip v-if="!maximizedToggle" content-class="bg-white text-primary">Maximize</q-tooltip>
           </q-btn -->
-          <q-btn dense flat icon="close" @click="show = false">
+          <q-btn dense flat icon="close" @click="hide()">
             <q-tooltip content-class="bg-white text-primary">Close</q-tooltip>
           </q-btn>
         </q-bar>
@@ -37,13 +37,12 @@
 <script>
 
 import backup from './Backup'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapMutations } from 'vuex'
 
 export default {
   name: 'backupProgress',
   data () {
     return {
-      show: false,
       maximizedToggle: true
     }
   },
@@ -51,17 +50,21 @@ export default {
     backup
   },
   computed: {
-    ...mapGetters('backups', { paths2Backup: 'getList' })
+    ...mapGetters('backups', { paths2Backup: 'getList', showProgress: 'show', empty: 'empty' })
   },
   watch: {
     paths2Backup: {
       immediate: true,
       async handler (list, old) {
-        this.show = this.paths2Backup.length > 0
+        if (!this.empty) this.show()
       }
     }
   },
   methods: {
+    ...mapMutations('backups', ['show', 'hide'])
+  },
+  mounted () {
+    this.hide()
   }
 }
 </script>

@@ -68,6 +68,7 @@ const barStyle = {
 }
 
 const lastPaths = {}
+let lastSnap = {}
 
 export default {
   name: 'localexplorer',
@@ -120,9 +121,17 @@ export default {
   mounted () {
     const path = lastPaths[this.volume] || this.mountpoint || sep
     this.setView(path)
+    // ISTO pode ser feito no snaps.vue !!!???
+    console.log('MOUNTEDDDDDDDDDDDDDDDDDDDDDDDD', lastSnap)
+    const snap = lastSnap[this.rvid || '']
+    if (snap) this.setCurrentSnap(snap)
+  },
+  updated () {
+    console.log('UPDATEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD', lastSnap)
   },
   methods: {
     ...mapMutations('view', ['setView']),
+    ...mapMutations('snaps', ['setCurrentSnap']),
     stepto (index) {
       const fullpath = join(this.mountpoint, this.steps.slice(0, index).join('/'))
       this.setView(fullpath)
@@ -130,6 +139,7 @@ export default {
   },
   beforeDestroy () {
     lastPaths[this.volume] = this.currentpath
+    if (this.rvid) lastSnap[this.rvid] = this.getCurrentSnap
   }
 }
 

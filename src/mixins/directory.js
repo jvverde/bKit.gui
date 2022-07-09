@@ -131,12 +131,13 @@ export default {
   methods: {
     async readLocalDir () {
       this.localEntries = {}
-      const fullpath = this.fullpath
-      console.log('readLocalDir', fullpath)
       const localEntries = {}
+      const { fullpath, mountpoint } = this
+      if (!mountpoint) return
       try {
         this.localloading = 'Reading local disk'
         // await exists(fullpath)
+        console.log('readLocalDir', fullpath)
         const entries = await readdir(fullpath) // readdir is an async generator
         for await (const entry of entries) { // as it is a generator we need to use await
           entry.onlocal = true
@@ -178,6 +179,7 @@ export default {
       }
     },
     async installWatcher () {
+      if (!this.mountpoint) return
       if (this.watcher) {
         await this.watcher.close()
         console.log('Add watcher', this.fullpath)
@@ -195,8 +197,10 @@ export default {
   },
   async beforeDestroy () {
     try {
-      await this.watcher.close()
-      console.log(`Whatcher on ${this.fullpath} closed`)
+      if (this.watcher) {
+        await this.watcher.close()
+        console.log(`Whatcher on ${this.fullpath} closed`)
+      }
     } catch (err) {
       warn(err, false)
     }

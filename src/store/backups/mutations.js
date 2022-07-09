@@ -11,6 +11,16 @@ export function rmPath (state, path) {
   if (i >= 0) state.list.splice(i, 1)
 }
 
+export function show (state, path) {
+  state.show = true
+}
+export function hide (state, path) {
+  state.show = false
+}
+export function toggle (state, path) {
+  state.show = !state.show
+}
+
 export function done (state, path) {
   if (state.done.includes(path)) {
     console.warn(`${path} is already in done list`)

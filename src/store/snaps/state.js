@@ -1,6 +1,7 @@
 export default function () {
   return {
     snaps: [],
-    currentIndex: 0
+    currentIndex: -1,
+    currentSnap: ''
   }
 }
