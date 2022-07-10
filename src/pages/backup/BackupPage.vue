@@ -33,7 +33,7 @@
           :name="disk.id"
           v-for="disk in disks"
           :key="disk.id">
-            <explorer v-bind="disk" @recover="recover"/>
+            <explorer v-bind="disk"/>
         </q-tab-panel>
       </q-tab-panels>
     </div>
@@ -54,6 +54,7 @@ import { listDisksOnBackup } from 'src/helpers/api'
 // n
 import { mapGetters } from 'vuex'
 
+const makeKey = (a, b) => `${a || '_'}-${b || '_'}`
 export default {
   name: 'backup',
   data () {
@@ -62,10 +63,9 @@ export default {
       mark: 0,
       dst: '',
       disktab: '',
-      disks: [],
+      disks: []
       // restores: [],
       // backups: [],
-      currentdisk: {}
     }
   },
   computed: {
@@ -122,7 +122,12 @@ export default {
       this.load()
     },
     getview (val, old) {
-      // console.log(this.disks)
+      if (val && old && (val.mountpoint !== old.mountpoint || val.rvid !== old.rvid)) {
+        const id = makeKey(val.mountpoint, val.rvid)
+        console.log('ID:', id)
+        console.log('DISKTAB:', this.disktab)
+        this.disktab = id
+      }
     }
   },
   components: {
@@ -142,10 +147,12 @@ export default {
         const { letter, uuid, label } = match.groups
         const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label)
         if (index >= 0) {
-          const updatedisk = { ...this.disks[index], rvid, letter, present: true, id: rvid }
+          const id = makeKey(this.disks[index].mountpoint, rvid)
+          const updatedisk = { ...this.disks[index], rvid, letter, present: true, id }
           this.disks.splice(index, 1, updatedisk) // as requested by Vue reactiveness
         } else {
-          this.disks.push({ name: letter, rvid, uuid, label, letter, id: rvid, mountpoint: undefined, present: false })
+          const id = makeKey(undefined, rvid)
+          this.disks.push({ name: letter, rvid, uuid, label, letter, id, mountpoint: undefined, present: false })
         }
       }
     },
@@ -154,14 +161,16 @@ export default {
 
       for (const disk of disks) {
         console.log('Local disk:', disk)
-        const id = disk.replace(/\|(?=\|)/g, '|_') // replace all the sequences '||' by '|_|'
-        const [mountpoint, label, uuid, fs] = id.split(/\|/)
+        const pattern = disk.replace(/\|(?=\|)/g, '|_') // replace all the sequences '||' by '|_|'
+        const [mountpoint, label, uuid, fs] = pattern.split(/\|/)
         const name = mountpoint
         const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label)
         if (index >= 0) {
+          const id = makeKey(mountpoint, this.disks[index].rvid)
           const updatedisk = { ...this.disks[index], name, mountpoint, label, uuid, fs, id }
           this.disks.splice(index, 1, updatedisk) // as requested by Vue reactiveness
         } else {
+          const id = makeKey(mountpoint, undefined)
           this.disks.push({ name, mountpoint, label, uuid, fs, id })
         }
       }

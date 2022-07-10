@@ -97,9 +97,9 @@ export default {
   computed: {
     ...mapGetters('view', ['getview']),
     ...mapGetters('snaps', ['getCurrentSnap']),
-    snap () { return this.getCurrentSnap.snap },
+    snap () { return (this.getCurrentSnap || {}).snap },
     currentpath () {
-      return this.getview || this.mountpoint
+      return this.getview.path || this.mountpoint
     },
     drive () {
       return this.mountpoint.replace(/[\\/]+$/, '')
@@ -113,21 +113,33 @@ export default {
     }
   },
   watch: {
+    getview (view, old) {
+      if (view && old && view.rvid === old.rvid && view.mountpoint === old.mountpoint) {
+        const { rvid, mountpoint, path } = view
+        lastPaths[this.volume] = { rvid, mountpoint, path }
+        console.log('Set lastPaths to', lastPaths[this.volume])
+      }
+    }
   },
   mounted () {
-    const path = lastPaths[this.volume] || this.mountpoint || sep
-    console.log('Set path to', path)
-    this.setView(path)
+    const currentView = this.getview
+    const { mountpoint, rvid } = this
+    if (rvid !== currentView.rvid || mountpoint !== currentView.mountpoint) {
+      const path = (lastPaths[this.volume] || {}).path || this.mountpoint || sep
+      console.log('Set view to', { mountpoint, rvid, path })
+      this.setView({ mountpoint, rvid, path })
+    }
   },
   methods: {
     ...mapMutations('view', ['setView']),
     stepto (index) {
-      const fullpath = join(this.mountpoint, this.steps.slice(0, index).join('/'))
-      this.setView(fullpath)
+      const path = join(this.mountpoint, this.steps.slice(0, index).join('/'))
+      const { rvid, mountpoint } = this
+      this.setView({ path, rvid, mountpoint })
     }
   },
   beforeDestroy () {
-    lastPaths[this.volume] = this.currentpath
+    console.log('Leave lastPaths with', lastPaths[this.volume])
   }
 }
 

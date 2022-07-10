@@ -86,7 +86,7 @@ export default {
       this.open = true
     },
     select () {
-      this.setView(this.fullpath)
+      this.setView(this.node)
     }
   },
   mounted () {

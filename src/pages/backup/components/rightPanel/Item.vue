@@ -83,9 +83,7 @@ export default {
   methods: {
     ...mapMutations('view', ['setView']),
     open () {
-      console.log('open:', this.path)
-      this.setView(this.path)
-      // this.$emit('open', this.path)
+      this.setView(this.node)
     },
     onVersionClick (snap) {
       console.log('Version snap', snap)

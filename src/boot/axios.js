@@ -67,7 +67,7 @@ export default ({ router, store }) => {
     config.baseURL = config.baseURL || getCurrentServerURL()
     const authorization = config.headers['Authorization']
     if (!authorization && config.url.match(needAuthorization)) {
-      console.log('Try to set token for', config.url)
+      // console.log('Try to set token for', config.url)
       const current = store.getters['accounts/currentAccount']
       const session = `${current.user}@${config.baseURL}`
       const token = store.getters['auth/accessToken'](session) || (await autologin(current.user))

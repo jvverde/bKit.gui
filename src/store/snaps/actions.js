@@ -7,7 +7,6 @@ export function loadSnaps ({ commit }, rvid) {
         ...e,
         id: e.snap
       }))
-      console.log('snaps:', snaps)
       commit('setSnaps', snaps)
       resolve(snaps)
     } catch (err) {

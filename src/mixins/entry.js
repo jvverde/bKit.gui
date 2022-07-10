@@ -65,7 +65,11 @@ export default {
     isRestorable () { return this.needUpdate || this.onlyBackup },
     snap () { return this.entry.snap },
     rvid () { return this.entry.rvid },
-    mountpoint () { return this.entry.mountpoint }
+    mountpoint () { return this.entry.mountpoint },
+    node () {
+      const { path, snap, rvid, mountpoint } = this.entry
+      return { path, snap, rvid, mountpoint }
+    }
   },
   methods: {
     ...mapMutations('backups', ['add2backup']),
