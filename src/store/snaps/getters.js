@@ -13,13 +13,5 @@ export function getLastSnap (state) {
 }
 
 export function isLastSnap (state) {
-  return lastSnap(state) === state.lastSnap
-}
-
-export function currentSnapExists (state) {
-  return state.snaps.some(s => s.snap === state.currentSnap.snap)
-}
-
-export function snapExists (state, snap) {
-  return state.snaps.some(s => s.snap === snap.snap)
+  return lastSnap(state) === state.currentSnap
 }

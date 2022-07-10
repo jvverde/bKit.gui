@@ -2,10 +2,10 @@
 <template>
   <div class="bkit-showdir full-width row wrap justify-left">
     <div class="full-width row no-wrap justify-left">
-      <q-btn color="button" flat size="md" icon="navigate_before" @click="goBack" :disable="!canGoBack"/>
-      <q-btn color="button" flat size="md" icon="navigate_next" @click="goForward" :disable="!canGoForward"/>
-      <q-btn color="button" flat size="md" icon="arrow_upward" @click="goUp"/>
-      <q-btn v-show="!empty" round color="button" flat size="sm" icon="backup" @click="toggle"/>
+      <q-btn color="path" flat size="md" icon="navigate_before" @click="goBack" :disable="!canGoBack"/>
+      <q-btn color="path" flat size="md" icon="navigate_next" @click="goForward" :disable="!canGoForward"/>
+      <q-btn color="path" flat size="md" icon="arrow_upward" @click="goUp"/>
+      <q-btn v-show="!empty" round color="button" flat size="sm" icon="cloud_circle" @click="toggle"/>
     </div>
     <item v-for="children in childrens" :key="children.name" :entry="children"/>
     <div v-show="!done" class="loader">

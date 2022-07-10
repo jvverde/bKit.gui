@@ -41,6 +41,8 @@ moment.relativeTimeThreshold('M', 23)
 // import { listSnaps } from 'src/helpers/api'
 import { mapGetters, mapMutations, mapActions } from 'vuex'
 
+const lastSnap = {}
+
 export default {
   name: 'Snaps',
   data () {
@@ -55,7 +57,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('snaps', ['getSnaps', 'getCurrentSnap', 'currentSnapExists']),
+    ...mapGetters('snaps', ['getSnaps', 'getCurrentSnap', 'getLastSnap']),
     ...mapGetters('backups', ['getDone']),
     snaps () {
       return this.getSnaps.map(e => {
@@ -84,8 +86,8 @@ export default {
     }
   },
   methods: {
-    ...mapActions('snaps', ['loadSnaps']),
-    ...mapMutations('snaps', ['useLastSnap', 'setCurrentSnap']),
+    ...mapActions('snaps', ['loadSnaps', 'setCurrentSnap']),
+    ...mapMutations('snaps', ['setCurrentSnap']),
     select (snap) {
       this.setCurrentSnap(snap)
     },
@@ -94,16 +96,18 @@ export default {
       // this.snaps.splice(0, this.snaps.length) // empty snaps
       try {
         await this.loadSnaps(this.rvid)
+        const snap = lastSnap[this.rvid] || this.getLastSnap
+        this.setCurrentSnap(snap)
       } finally {
         this.loading = false
-        if (!this.currentSnapExists) {
-          this.useLastSnap()
-        }
       }
     }
   },
   mounted () {
     this.load_snaps()
+  },
+  beforeDestroy () {
+    lastSnap[this.rvid] = this.getCurrentSnap
   }
 }
 </script>

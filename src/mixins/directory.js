@@ -137,7 +137,7 @@ export default {
       try {
         this.localloading = 'Reading local disk'
         // await exists(fullpath)
-        console.log('readLocalDir', fullpath)
+        console.log('ReadLocalDir', fullpath)
         const entries = await readdir(fullpath) // readdir is an async generator
         for await (const entry of entries) { // as it is a generator we need to use await
           entry.onlocal = true
@@ -160,7 +160,7 @@ export default {
       try {
         this.remoteloading = 'Reading backup'
         const upath = bkitPath(mountpoint, fullpath)
-        console.log('ReadRemoteDir', upath)
+        console.log('ReadRemoteDir', upath, rvid, snap)
         const entries = await listRemoteDir(rvid, snap, upath)
         // if (fullpath !== this.fullpath) return // Forget if meanwhile this.fullpath changed
         entries.forEach(entry => {

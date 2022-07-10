@@ -1,11 +1,13 @@
 <template>
   <div class="bkit-explorer relative-position">
+
     <q-toolbar class="bkit-toolbar justify-center" v-if="rvid">
       <keep-alive>
         <snaps :rvid="rvid" ref="snaps"></snaps>
       </keep-alive>
     </q-toolbar>
-    <q-toolbar inset v-if="isReady2Show">
+
+    <q-toolbar inset>
       <q-breadcrumbs gutter="xs" active-color="path" separator-color="path-sep" :separator="sep">
         <q-breadcrumbs-el
           v-if="steps.length > 0"
@@ -20,11 +22,8 @@
           :label="step"/>
       </q-breadcrumbs>
     </q-toolbar>
-    <q-splitter
-      v-if="isReady2Show"
-      class="bkit-splitter"
-      :limits="[0, 80]"
-      v-model="verticalSplitter">
+
+    <q-splitter class="bkit-splitter" :limits="[10, 80]" v-model="verticalSplitter">
 
       <template v-slot:before>
         <q-scroll-area class="fit" :thumb-style="thumbStyle" :bar-style="barStyle">
@@ -39,6 +38,7 @@
           </div>
         </q-scroll-area>
       </template>
+
     </q-splitter>
   </div>
 </template>
@@ -68,7 +68,6 @@ const barStyle = {
 }
 
 const lastPaths = {}
-let lastSnap = {}
 
 export default {
   name: 'localexplorer',
@@ -98,7 +97,7 @@ export default {
   computed: {
     ...mapGetters('view', ['getview']),
     ...mapGetters('snaps', ['getCurrentSnap']),
-    snap () { return (this.getCurrentSnap || {}).snap },
+    snap () { return this.getCurrentSnap.snap },
     currentpath () {
       return this.getview || this.mountpoint
     },
@@ -109,9 +108,6 @@ export default {
       const rel = relative(this.mountpoint, this.currentpath)
       return this.currentpath !== '' ? `${rel}`.split(sep) : []
     },
-    isReady2Show () {
-      return this.snap !== undefined || !this.rvid
-    },
     volume () {
       return `${this.rvid || '_'}-${this.mountpoint || '_'}`
     }
@@ -120,18 +116,11 @@ export default {
   },
   mounted () {
     const path = lastPaths[this.volume] || this.mountpoint || sep
+    console.log('Set path to', path)
     this.setView(path)
-    // ISTO pode ser feito no snaps.vue !!!???
-    console.log('MOUNTEDDDDDDDDDDDDDDDDDDDDDDDD', lastSnap)
-    const snap = lastSnap[this.rvid || '']
-    if (snap) this.setCurrentSnap(snap)
-  },
-  updated () {
-    console.log('UPDATEDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD', lastSnap)
   },
   methods: {
     ...mapMutations('view', ['setView']),
-    ...mapMutations('snaps', ['setCurrentSnap']),
     stepto (index) {
       const fullpath = join(this.mountpoint, this.steps.slice(0, index).join('/'))
       this.setView(fullpath)
@@ -139,7 +128,6 @@ export default {
   },
   beforeDestroy () {
     lastPaths[this.volume] = this.currentpath
-    if (this.rvid) lastSnap[this.rvid] = this.getCurrentSnap
   }
 }
 
