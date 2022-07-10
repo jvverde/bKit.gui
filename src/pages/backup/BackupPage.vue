@@ -123,9 +123,8 @@ export default {
     },
     getview (val, old) {
       if (val && old && (val.mountpoint !== old.mountpoint || val.rvid !== old.rvid)) {
+        // Change tab if new view is in a different disk
         const id = makeKey(val.mountpoint, val.rvid)
-        console.log('ID:', id)
-        console.log('DISKTAB:', this.disktab)
         this.disktab = id
       }
     }

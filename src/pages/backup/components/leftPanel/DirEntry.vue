@@ -71,7 +71,7 @@ export default {
     getview: {
       immediate: true,
       handler (val, old) {
-        if (val && this.path && val.length > this.path.length && val.startsWith(this.path)) {
+        if (val && this.path && val.path.length >= this.path.length && val.path.startsWith(this.path)) {
           this.open = true
         }
       }

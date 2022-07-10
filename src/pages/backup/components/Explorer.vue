@@ -125,6 +125,7 @@ export default {
     const currentView = this.getview
     const { mountpoint, rvid } = this
     if (rvid !== currentView.rvid || mountpoint !== currentView.mountpoint) {
+      // Only set a new view if current view isn't already on this disk (same rvid and same mountpoint)
       const path = (lastPaths[this.volume] || {}).path || this.mountpoint || sep
       console.log('Set view to', { mountpoint, rvid, path })
       this.setView({ mountpoint, rvid, path })
