@@ -23,8 +23,14 @@
           <q-item clickable v-close-popup @click="open">
             <q-item-section>Open</q-item-section>
           </q-item>
-          <q-item clickable v-close-popup @click="backup" v-if="onlocal">
+          <q-item clickable v-close-popup @click="backup" :disable="!onlocal">
             <q-item-section>Backup</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup @click="restore" :disable="!onbackup">
+            <q-item-section>Restore</q-item-section>
+          </q-item>
+          <q-item clickable v-close-popup @click="recover" :disable="!isRecoverable">
+            <q-item-section>Recover</q-item-section>
           </q-item>
         </q-list>
       </q-menu>
@@ -50,6 +56,17 @@
         :class="{inactive: !isRestorable}">
         <span class="text-weight-light">Restore</span>
         <tooltip label="Restore to original location"/>
+      </q-btn>
+      <q-btn flat no-caps stack
+        color="recover"
+        icon="save_alt"
+        size="sm"
+        dense
+        ripple
+        @click="recover"
+        :class="{inactive: !isRecoverable}">
+        <span class="text-weight-light">Recover</span>
+        <tooltip label="Recover to a different location"/>
       </q-btn>
     </div>
   </div>
@@ -88,9 +105,6 @@ export default {
     onVersionClick (snap) {
       console.log('Version snap', snap)
       this.$emit('usesnap', snap)
-    },
-    recover () {
-      this.$emit('recover', this.path, this.isdir)
     },
     debug () {
       console.log(this)

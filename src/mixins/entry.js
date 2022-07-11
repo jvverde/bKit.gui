@@ -16,6 +16,9 @@ const bkitPath = (base, path, isdir = true) => {
 import { mapGetters, mapMutations } from 'vuex'
 import { Resource } from 'src/helpers/types'
 
+const { dialog, app } = require('electron').remote
+let download = app.getPath('downloads') || app.getPath('temp')
+
 export default {
   props: {
     entry: {
@@ -63,6 +66,7 @@ export default {
     onBackupQueue () { return this.isQueued(this.fullpath) },
     showBackup () { return this.isLastSnap && this.isBackupable && !this.onBackupQueue },
     isRestorable () { return this.needUpdate || this.onlyBackup },
+    isRecoverable () { return this.onbackup },
     snap () { return this.entry.snap },
     rvid () { return this.entry.rvid },
     mountpoint () { return this.entry.mountpoint },
@@ -80,7 +84,34 @@ export default {
     restore () {
       let { path, snap, rvid, mountpoint, isdir } = this
       if (!mountpoint) path = bkitPath('', path, isdir)
-      this.add2restore(new Resource({ path, snap, rvid }))
+      const rsyncoptions = ['--no-p', '--no-g', '--chmod=ugo=rwX']
+      this.add2restore(new Resource({ path, snap, rvid, rsyncoptions }))
+    },
+    recover () {
+      let { path, name, snap, rvid, mountpoint, isdir } = this
+      path = bkitPath(mountpoint, path, isdir)
+      dialog.showOpenDialog({
+        title: 'Where do you want to recover your data',
+        defaultPath: download,
+        buttonLabel: 'Recover to here',
+        properties: ['openDirectory', 'promptToCreate']
+      }).then((result) => {
+        if (result.filePaths instanceof Array) {
+          download = result.filePaths[0]
+          if (download !== null) {
+            const dir = isdir ? `/${name}/` : ''
+            // --no-p --no-g --chmod=ugo=rwX
+            const options = [`--dst=${download}${dir}`]
+            const rsyncoptions = ['--no-p', '--no-g', '--chmod=ugo=rwX']
+            this.add2restore(new Resource({ path, snap, rvid, options, rsyncoptions }))
+          }
+        }
+      }).catch((err) => {
+        download = null
+        console.error('Catch on showOpenDialog', err)
+      }).finally(() => {
+        // console.log('')
+      })
     }
   }
 }

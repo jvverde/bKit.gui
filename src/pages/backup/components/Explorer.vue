@@ -115,9 +115,9 @@ export default {
   watch: {
     getview (view, old) {
       if (view && old && view.rvid === old.rvid && view.mountpoint === old.mountpoint) {
+        // Save last path in order go directly next time we change back from another disk
         const { rvid, mountpoint, path } = view
         lastPaths[this.volume] = { rvid, mountpoint, path }
-        console.log('Set lastPaths to', lastPaths[this.volume])
       }
     }
   },
@@ -126,8 +126,8 @@ export default {
     const { mountpoint, rvid } = this
     if (rvid !== currentView.rvid || mountpoint !== currentView.mountpoint) {
       // Only set a new view if current view isn't already on this disk (same rvid and same mountpoint)
+      // This is usefull when we change back from another disk or the first time we enter in this disk
       const path = (lastPaths[this.volume] || {}).path || this.mountpoint || sep
-      console.log('Set view to', { mountpoint, rvid, path })
       this.setView({ mountpoint, rvid, path })
     }
   },
@@ -140,7 +140,7 @@ export default {
     }
   },
   beforeDestroy () {
-    console.log('Leave lastPaths with', lastPaths[this.volume])
+    // console.log('Leave lastPaths with', lastPaths[this.volume])
   }
 }
 
