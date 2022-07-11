@@ -84,8 +84,8 @@ export default {
     restore () {
       let { path, snap, rvid, mountpoint, isdir } = this
       if (!mountpoint) path = bkitPath('', path, isdir)
-      const rsyncoptions = ['--no-p', '--no-g', '--chmod=ugo=rwX']
-      this.add2restore(new Resource({ path, snap, rvid, rsyncoptions }))
+      // const rsyncoptions = ['--no-p', '--no-g', '--chmod=ugo=rwX']
+      this.add2restore(new Resource({ path, snap, rvid }))
     },
     recover () {
       let { path, name, snap, rvid, mountpoint, isdir } = this
@@ -102,8 +102,8 @@ export default {
             const dir = isdir ? `/${name}/` : ''
             // --no-p --no-g --chmod=ugo=rwX
             const options = [`--dst=${download}${dir}`]
-            const rsyncoptions = ['--no-p', '--no-g', '--chmod=ugo=rwX']
-            this.add2restore(new Resource({ path, snap, rvid, options, rsyncoptions }))
+            // const rsyncoptions = ['--no-p', '--no-g', '--chmod=ugo=rwX']
+            this.add2restore(new Resource({ path, snap, rvid, options }))
           }
         }
       }).catch((err) => {
