@@ -63,8 +63,7 @@ export default {
       return this.getSnaps.map(e => {
         return {
           ...e,
-          date: moment.utc(e.snap.substring(5), 'YYYY.MM.DD-HH.mm.ss').local(),
-          id: e.snap
+          date: moment.utc(e.snap.substring(5), 'YYYY.MM.DD-HH.mm.ss').local()
         }
       })
     },
