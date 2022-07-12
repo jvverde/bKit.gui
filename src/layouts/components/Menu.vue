@@ -3,7 +3,7 @@
     <q-item-label header>Menu</q-item-label>
     <q-item :clickable="current !== 'home'" @click="$router.push({ name: 'home' })">
       <q-item-section avatar>
-        <q-icon color="menu" name="home" />
+        <q-icon color="menu" name="las la-home" />
       </q-item-section>
       <q-item-section>
         <q-item-label>
@@ -13,16 +13,16 @@
     </q-item>
     <q-item :clickable="current !== 'backup'" @click="$router.push({ name: 'backup' })">
       <q-item-section avatar>
-        <q-icon color="menu" name="backup" />
+        <q-icon color="menu" name="las la-cloud" />
       </q-item-section>
       <q-item-section>
-        <q-item-label>Backup</q-item-label>
-        <q-item-label caption>Browse local files</q-item-label>
+        <q-item-label>Disks & Backups</q-item-label>
+        <q-item-label caption>Browse local and backups</q-item-label>
       </q-item-section>
     </q-item>
     <q-item :clickable="current !== 'servers'" @click="$router.push({ name: 'servers' })">
       <q-item-section avatar>
-        <q-icon color="menu" name="storage" />
+        <q-icon color="menu" name="las la-server"/>
       </q-item-section>
       <q-item-section>
         <q-item-label>Servers</q-item-label>
@@ -31,7 +31,7 @@
     </q-item>
     <q-item :clickable="current !== 'tasks'" @click="$router.push({ name: 'tasks' })">
       <q-item-section avatar>
-        <q-icon color="menu" name="assignment" />
+        <q-icon color="menu" name="las la-tasks" />
       </q-item-section>
       <q-item-section>
           <q-item-label>Tasks</q-item-label>
@@ -49,9 +49,18 @@
       </q-item-section>
     </q-item>
     -->
+    <q-item clickable @click="showBackupList">
+      <q-item-section avatar>
+        <q-icon color="menu" name="las la-list-alt"/>
+      </q-item-section>
+      <q-item-section>
+        <q-item-label>Backups in Progress</q-item-label>
+        <q-item-label caption>Show Backup List</q-item-label>
+      </q-item-section>
+    </q-item>
     <q-item clickable @click="terminal">
       <q-item-section avatar>
-        <q-icon color="menu" name="fas fa-terminal" />
+        <q-icon color="menu" name="las la-terminal" />
       </q-item-section>
       <q-item-section>
         <q-item-label>Console</q-item-label>
@@ -69,7 +78,7 @@
     </q-item-->
     <q-item clickable @click="debug">
       <q-item-section avatar>
-        <q-icon color="menu" name="build" />
+        <q-icon color="menu" name="las la-toolbox" />
       </q-item-section>
       <q-item-section>
         <q-item-label>DevTools</q-item-label>
@@ -83,6 +92,7 @@
 
 const { ipcRenderer } = require('electron')
 import { shell } from 'src/helpers/bash'
+import { mapMutations } from 'vuex'
 
 export default {
   name: 'Menu',
@@ -99,6 +109,7 @@ export default {
   watch: {
   },
   methods: {
+    ...mapMutations('backups', { showBackupList: 'show' }),
     terminal () {
       shell()
     },

@@ -4,6 +4,7 @@ export function add2backup (state, path) {
   } else {
     console.info(`Add Path ${path} to backup list`)
     state.list.push(path)
+    state.show = true
   }
 }
 export function rmPath (state, path) {
