@@ -2,8 +2,12 @@ export function getList (state) {
   return state.list
 }
 
-export function getDone (state) {
+export function getCompleted (state) {
   return state.done
+}
+
+export function getLastCompleted (state) {
+  return state.done[state.done.length - 1]
 }
 
 export function show (state) {

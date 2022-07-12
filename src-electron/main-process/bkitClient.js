@@ -18,7 +18,11 @@ import runasAdmin from './runas'
 import statics from './statics'
 
 const store = new Store({ name: 'config' })
+const pref = new Store({ name: 'preferences' })
 const get_config = () => store.get('config') || {}
+
+export const get_preferences = () => pref.get('preferences') || {}
+export const save_preferences = preferences => pref.set('preferences', preferences)
 
 let config = get_config()
 

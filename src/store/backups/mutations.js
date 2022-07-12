@@ -22,10 +22,9 @@ export function toggle (state, path) {
 }
 
 export function done (state, path) {
-  if (state.done.includes(path)) {
-    console.warn(`${path} is already in done list`)
-  } else {
-    console.info(`Add Path ${path} to done list`)
-    state.done.push(path)
-  }
+  const i = state.done.findIndex(e => e.path === path)
+  if (i >= 0) state.done.splice(i, 1) // Remove if already present
+  console.info(`Add Path ${path} to tail of done list`)
+  const date = new Date()
+  state.done.push({ path, date }) // Always add it to tail
 }

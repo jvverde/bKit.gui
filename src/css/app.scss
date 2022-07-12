@@ -199,6 +199,21 @@ $active : $blue;
   background: $active !important;
   background: var(--q-color-active) !important;
 }
+/************************** bkit-notactive **************************/
+$active : $blue-grey-6;
+
+:root {
+  --q-color-active: #{$active};
+}
+
+.text-active {
+  color: $active !important;
+  color: var(--q-color-active) !important;
+}
+.bg-active {
+  background: $active !important;
+  background: var(--q-color-active) !important;
+}
 /************************** bkit-updated **************************/
 $updated : $green;
 

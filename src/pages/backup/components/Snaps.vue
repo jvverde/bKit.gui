@@ -58,7 +58,6 @@ export default {
   },
   computed: {
     ...mapGetters('snaps', ['getSnaps', 'getCurrentSnap', 'getLastSnap']),
-    ...mapGetters('backups', ['getDone']),
     snaps () {
       return this.getSnaps.map(e => {
         return {
@@ -78,14 +77,10 @@ export default {
   watch: {
     rvid: function () {
       this.load_snaps()
-    },
-    getDone: function () {
-      console.log('RELOAD snaps for', this.rvid)
-      this.loadSnaps(this.rvid)
     }
   },
   methods: {
-    ...mapActions('snaps', ['loadSnaps', 'setCurrentSnap']),
+    ...mapActions('snaps', ['loadSnaps']),
     ...mapMutations('snaps', ['setCurrentSnap']),
     select (snap) {
       this.setCurrentSnap(snap)

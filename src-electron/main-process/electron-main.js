@@ -20,7 +20,9 @@ import {
   isbkitok,
   findbkit,
   save_config,
-  load_config
+  load_config,
+  get_preferences,
+  save_preferences
 } from './bkitClient'
 
 import { check4updates, getUpdates } from './auto-update'
@@ -171,8 +173,12 @@ ipcMain.on('debug', (event, arg) => {
 // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
 app.once('window-all-closed', app.quit)
 
+let prefs = get_preferences()
+
 app.once('before-quit', () => {
   save_config()
+  save_preferences(prefs) 
+
   // Workaround to close all processes / sub-processes after closing the app
   // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
   window.removeAllListeners('close')
@@ -221,6 +227,17 @@ ipcMain.on('deletePassword', async (event, account) => {
   say.log('deletePassword', account)
   const result = await keytar.deletePassword('bKit', account)
   event.returnValue = result
+})
+
+ipcMain.on('setPreferences', async (event, p) => {
+  say.log('setPreferences', p)
+  prefs = p
+  event.returnValue = true
+})
+
+ipcMain.on('getPreferences', async (event) => {
+  say.log('getPreferences', prefs)
+  event.returnValue = prefs
 })
 
 menu()

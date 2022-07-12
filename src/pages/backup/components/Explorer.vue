@@ -3,7 +3,7 @@
 
     <q-toolbar class="bkit-toolbar justify-center" v-if="rvid">
       <keep-alive>
-        <snaps :rvid="rvid" ref="snaps"></snaps>
+        <snaps :rvid="rvid"/>
       </keep-alive>
     </q-toolbar>
 
@@ -45,7 +45,7 @@
 <script>
 
 import { relative, join, sep } from 'path'
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 
 import snaps from './Snaps'
 import listdir from './leftPanel/Listdir'
@@ -97,6 +97,7 @@ export default {
   computed: {
     ...mapGetters('view', ['getview']),
     ...mapGetters('snaps', ['getCurrentSnap']),
+    ...mapGetters('backups', ['getLastCompleted']),
     snap () { return (this.getCurrentSnap || {}).snap },
     currentpath () {
       return this.getview.path || this.mountpoint
@@ -119,6 +120,11 @@ export default {
         const { rvid, mountpoint, path } = view
         lastPaths[this.volume] = { rvid, mountpoint, path }
       }
+    },
+    getLastCompleted (val) {
+      if (val && val.path && this.mountpoint && val.path.startsWith(this.mountpoint)) {
+        this.loadSnaps(this.rvid)
+      }
     }
   },
   mounted () {
@@ -132,6 +138,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions('snaps', ['loadSnaps']),
     ...mapMutations('view', ['setView']),
     stepto (index) {
       const path = join(this.mountpoint, this.steps.slice(0, index).join('/'))

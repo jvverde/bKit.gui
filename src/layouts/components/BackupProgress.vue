@@ -38,6 +38,7 @@
 
 import backup from './Backup'
 import { mapGetters, mapMutations } from 'vuex'
+import { getPreferences, setPreferences } from 'src/helpers/preferences'
 
 export default {
   name: 'backupProgress',
@@ -55,15 +56,25 @@ export default {
   watch: {
     paths2Backup: {
       immediate: true,
-      async handler (list, old) {
+      handler (list, old) {
         if (!this.empty) this.show()
+        this.savePrefs()
       }
     }
   },
   methods: {
-    ...mapMutations('backups', ['show', 'hide'])
+    ...mapMutations('backups', ['show', 'hide', 'add2backup']),
+    savePrefs () {
+      const prefs = getPreferences() || {}
+      const backupList = this.paths2Backup
+      setPreferences({ ...prefs, backupList })
+    }
   },
   mounted () {
+    const { backupList = [] } = getPreferences() || {}
+    backupList.forEach(path => {
+      this.add2backup(path)
+    })
     this.hide()
   }
 }

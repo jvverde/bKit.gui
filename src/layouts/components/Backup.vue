@@ -1,5 +1,5 @@
 <template>
-  <q-item dense v-if="!deleted">
+  <q-item dense>
     <q-item-section>
       <q-item-label>
         <q-spinner-ios color="loader" v-if="isRunning"/>
@@ -36,12 +36,23 @@
         <span class="q-pl-lg" v-else-if="errorline" style="color: red">ERROR: {{errorline}}</span>
       </q-item-label>
     </q-item-section>
-    <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
-    <q-item-section side v-if="isDismissible">
-      <q-btn flat round icon="close" color="dismiss" size="sm" @click.stop="deleted = true"/>
+    <q-item-section>
+      <q-item-label>
+        <q-btn v-if="!watcher" flat round icon="track_changes" color="active" size="sm" @click.stop="watch">
+          <tooltip label="Track changes"/>
+        </q-btn>
+        <q-btn v-else flat round icon="track_changes" color="notactive" size="sm" @click.stop="stopWatch">
+          <tooltip label="Stop Tracking changes"/>
+        </q-btn>
+      </q-item-label>
     </q-item-section>
-    <q-item-section side v-if="isCancelable">
-      <q-btn flat round icon="stop" color="cancel" size="sm" @click.stop="cancel"/>
+    <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
+    <q-item-section side>
+      <q-item-label>
+        <q-btn flat round icon="backup" color="backup" size="sm" @click.stop="backup" :disable="!isStopped"  :class="{inactive: !isStopped}"/>
+        <q-btn flat round icon="pause" color="cancel" size="sm" @click.stop="cancel" :disable="!isCancelable"  :class="{inactive: !isCancelable}"/>
+        <q-btn flat round icon="close" color="dismiss" size="sm" @click.stop="remove" :disable="!isDismissible" :class="{inactive: !isDismissible}"/>
+      </q-item-label>
     </q-item-section>
   </q-item>
 </template>
@@ -52,6 +63,11 @@ import { killtree } from 'src/helpers/bash'
 import { formatBytes } from 'src/helpers/utils'
 import tooltip from 'src/components/tooltip'
 import { mapMutations } from 'vuex'
+import { warn } from 'src/helpers/notify'
+import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
+
+const depth = 20
+const watchOptions = { ...chokidarOptions, depth }
 
 class Counter {
   constructor () {
@@ -93,7 +109,9 @@ export default {
       pid: null,
       dequeued: () => null,
       deleted: false,
-      dryrun: false
+      dryrun: false,
+      needBackup: 0,
+      watcher: undefined
     }
   },
   computed: {
@@ -121,8 +139,11 @@ export default {
     isDryRun () {
       return this.status && this.dryrun
     },
+    isStopped () {
+      return this.isDone || this.isCanceled
+    },
     isDismissible () {
-      return this.status && (this.isDone || this.isCanceled)
+      return this.status && this.isStopped
     }
   },
   components: {
@@ -134,8 +155,47 @@ export default {
       required: true
     }
   },
+  watch: {
+    needBackup (val) {
+      if (val === 1 && !this.isRunning) {
+        this.backup()
+      }
+    }
+  },
   methods: {
     ...mapMutations('backups', { backupDone: 'done' }),
+    ...mapMutations('backups', ['rmPath']),
+    remove () {
+      this.rmPath(this.path)
+    },
+    async watch () {
+      console.log('Watch')
+      if (this.watcher) {
+        await this.watcher.close()
+        console.log('Add watcher', this.path)
+        this.watcher.add(this.path)
+      } else {
+        console.log('Start Watcher', this.path)
+        this.watcher = chokidar.watch(this.path, watchOptions)
+      }
+      this.watcher.on('all', (event, path) => {
+        this.diskEvent = [event, path].join('|')
+        console.log('Event', this.diskEvent)
+        this.needBackup++
+      }).on('error', error => warn(`Watcher error: ${error} on path ${this.path}`, false))
+    },
+    async stopWatch () {
+      try {
+        if (this.watcher) {
+          await this.watcher.close()
+          console.log(`Whatcher on ${this.fullpath} closed`)
+        }
+      } catch (err) {
+        warn(err, false)
+      } finally {
+        this.watcher = undefined
+      }
+    },
     formatBytes,
     cancel () {
       if (this.pid) {
@@ -191,6 +251,7 @@ export default {
     },
     async backup () {
       this.error = null
+      this.finished = false
       // this.dryrun = true
       return bKit(this.path, {
         // rsyncoptions: ['--dry-run'],
@@ -237,18 +298,25 @@ export default {
         this.status = 'Error'
       }).finally(() => {
         this.finished = true
+        this.needBackup = 0
       })
     }
   },
   mounted () {
-    console.log('backup', this.path)
     this.backup()
   },
   beforeUpdate () {
     // console.log('beforeUpdate', this.path)
   },
   beforeDestroy () {
-    // console.log('Before go to destroy', this.process, this.path)
+    this.stopWatch()
   }
 }
 </script>
+
+<style scoped lang="scss">
+  .inactive {
+    color: transparent !important;
+    pointer-events: none;
+  }
+</style>
