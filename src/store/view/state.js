@@ -1,6 +1,6 @@
 export default function () {
   return {
-    view: '',
+    view: {},
     index: 0,
     history: []
   }

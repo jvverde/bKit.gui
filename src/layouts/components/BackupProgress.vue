@@ -51,24 +51,17 @@ export default {
     backup
   },
   computed: {
-    ...mapGetters('backups', { paths2Backup: 'getList', showProgress: 'show', empty: 'empty' })
+    ...mapGetters('backups', { paths2Backup: 'getList', showProgress: 'show' })
   },
   watch: {
-    paths2Backup (list, old) {
-      console.log('OLDDDDDDDDDDDDDDDDDDDDDDDDDDD', old)
-      if (old) this.savePrefs()
+    paths2Backup (backupList, old) {
+      setPreferences({ backupList })
     }
   },
   methods: {
-    ...mapMutations('backups', ['show', 'hide', 'add2backup']),
-    async savePrefs () {
-      const prefs = (await getPreferences()) || {}
-      const backupList = this.paths2Backup
-      setPreferences({ ...prefs, backupList })
-    }
+    ...mapMutations('backups', ['show', 'hide', 'add2backup'])
   },
   async mounted () {
-    console.log('getPreferences', await getPreferences())
     const { backupList = [] } = (await getPreferences()) || {}
     console.log('backupList', backupList)
     backupList.forEach(path => {

@@ -115,7 +115,8 @@ export default {
   },
   watch: {
     getview (view, old) {
-      if (view && old && view.rvid === old.rvid && view.mountpoint === old.mountpoint) {
+      console.log('getview', view, old)
+      if (view && old && view.mountpoint === old.mountpoint) {
         // Save last path in order go directly next time we change back from another disk
         const { rvid, mountpoint, path } = view
         lastPaths[this.volume] = { rvid, mountpoint, path }
@@ -128,13 +129,14 @@ export default {
     }
   },
   mounted () {
+    console.log('Mount Exlorer')
     const currentView = this.getview
-    const { mountpoint, rvid } = this
+    const { mountpoint, rvid, snap } = this
     if (rvid !== currentView.rvid || mountpoint !== currentView.mountpoint) {
       // Only set a new view if current view isn't already on this disk (same rvid and same mountpoint)
       // This is usefull when we change back from another disk or the first time we enter in this disk
       const path = (lastPaths[this.volume] || {}).path || this.mountpoint || sep
-      this.setView({ mountpoint, rvid, path })
+      this.setView({ mountpoint, rvid, path, snap })
     }
   },
   methods: {
@@ -142,12 +144,12 @@ export default {
     ...mapMutations('view', ['setView']),
     stepto (index) {
       const path = join(this.mountpoint, this.steps.slice(0, index).join('/'))
-      const { rvid, mountpoint } = this
-      this.setView({ path, rvid, mountpoint })
+      const { rvid, mountpoint, snap } = this
+      this.setView({ path, rvid, mountpoint, snap })
     }
   },
   beforeDestroy () {
-    // console.log('Leave lastPaths with', lastPaths[this.volume])
+    // console.log('Destroy explorer')
   }
 }
 

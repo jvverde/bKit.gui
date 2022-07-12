@@ -31,7 +31,11 @@ export default {
     files () {
       return this.childrens.filter(e => !e.isdir)
     }
+  },
+  beforeDestroy () {
+    // console.log('Destroy ListDir')
   }
+
 }
 </script>
 

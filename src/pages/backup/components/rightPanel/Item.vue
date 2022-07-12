@@ -100,6 +100,7 @@ export default {
   methods: {
     ...mapMutations('view', ['setView']),
     open () {
+      console.log('node', this.node)
       this.setView(this.node)
     },
     onVersionClick (snap) {

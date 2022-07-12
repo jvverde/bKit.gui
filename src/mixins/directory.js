@@ -114,7 +114,7 @@ export default {
     fullpath: {
       immediate: true,
       async handler (dir, oldir) {
-        // console.log('New fullpath', dir)
+        console.log('New fullpath', dir)
         try {
           // await exists(dir)
           await this.readLocalDir()

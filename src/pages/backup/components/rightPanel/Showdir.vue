@@ -38,6 +38,9 @@ export default {
   methods: {
     ...mapMutations('backups', ['show', 'hide', 'toggle']),
     ...mapMutations('view', ['goUp', 'goBack', 'goForward'])
+  },
+  beforeDestroy () {
+    // console.log('Destroy ShowDir')
   }
 }
 </script>

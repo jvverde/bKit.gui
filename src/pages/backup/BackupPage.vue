@@ -122,7 +122,16 @@ export default {
       this.load()
     },
     getview (val, old) {
-      if (val && old && (val.mountpoint !== old.mountpoint || val.rvid !== old.rvid)) {
+      // A complex test to see if we need to change from one tab to another
+      if (val && old && // just to avoid errors
+        (
+          // For at least a local disk
+          val.mountpoint !== old.mountpoint || // Change from one tab to a another when mountpoints are different
+          // For both remote disks
+          (!val.mountpoint && val.rvid !== old.rvid) // Or when there is no mountpoint and RVID are different
+          // We can't only rely on rvid, because a NOT backup node don't have a rvid
+        )
+      ) {
         // Change tab if new view is in a different disk
         const id = makeKey(val.mountpoint, val.rvid)
         this.disktab = id
@@ -131,8 +140,6 @@ export default {
   },
   components: {
     explorer,
-    // restore,
-    // backup,
     tooltip
   },
   methods: {
