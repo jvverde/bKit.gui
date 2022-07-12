@@ -82,6 +82,8 @@ class Counter {
   }
 }
 
+const _DELTA = 300000 // 5min
+
 export default {
   name: 'Backup',
   data () {
@@ -111,12 +113,17 @@ export default {
       deleted: false,
       dryrun: false,
       needBackup: 0,
-      watcher: undefined
+      watcher: undefined,
+      lastRun: Date.now(),
+      waiting: undefined
     }
   },
   computed: {
     isFinished () {
       return this.finished === true
+    },
+    isIdle () {
+      return this.isFinished || this.status === undefined
     },
     isStarting () {
       return this.status === 'Starting'
@@ -157,8 +164,19 @@ export default {
   },
   watch: {
     needBackup (val) {
-      if (val === 1 && !this.isRunning) {
-        this.backup()
+      if (this.waiting) return
+      if (val > 0 && this.isIdle) {
+        const now = Date.now()
+        const delta = now - this.lastRun
+        if (delta > _DELTA) { // 5minutos
+          this.backup()
+        } else {
+          const self = this
+          this.waiting = setTimeout(() => {
+            console.log('After a timeout)')
+            self.backup()
+          }, _DELTA - delta)
+        }
       }
     }
   },
@@ -179,8 +197,6 @@ export default {
         this.watcher = chokidar.watch(this.path, watchOptions)
       }
       this.watcher.on('all', (event, path) => {
-        this.diskEvent = [event, path].join('|')
-        console.log('Event', this.diskEvent)
         this.needBackup++
       }).on('error', error => warn(`Watcher error: ${error} on path ${this.path}`, false))
     },
@@ -299,6 +315,8 @@ export default {
       }).finally(() => {
         this.finished = true
         this.needBackup = 0
+        this.lastRun = Date.now()
+        this.waiting = undefined
       })
     }
   },
