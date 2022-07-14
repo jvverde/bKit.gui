@@ -1,7 +1,12 @@
 <template>
   <div class="q-pa-xs bkit-item row">
     <div class="column no-wrap items-left">
-      <q-icon v-if="isdir"
+      <q-icon v-if="isForbidden"
+        class="bkit-icon self-start"
+        name="block"
+        color="error">
+      </q-icon>
+      <q-icon v-else-if="isdir"
         class="bkit-icon self-start"
         style="cursor:pointer"
         name="folder"

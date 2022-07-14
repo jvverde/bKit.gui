@@ -14,8 +14,8 @@ export async function* readdir (dir) {
     if (stat.isDirectory()) {
       const files = await fs.promises.readdir(fullpath)
       for await (const file of files) {
+        const filename = path.join(fullpath, file)
         try { // catch error individualy. This way it doesn't ends the loop
-          const filename = path.join(fullpath, file)
           const stat = await fs.promises.lstat(filename)
           // const isdir = stat.isDirectory()
           const type = getType(stat)
@@ -26,6 +26,12 @@ export async function* readdir (dir) {
             stat
           }
         } catch (err) {
+          yield {
+            path: filename,
+            name: file,
+            type: undefined,
+            err
+          }
           warn(err, false)
         }
       }

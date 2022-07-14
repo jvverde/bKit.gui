@@ -16,7 +16,6 @@ export function goUp (state) {
 export function goBack (state) {
   if (state.index > 0) {
     state.view = state.history[--state.index]
-    console.log(state.index, state.history.map(e => e.path))
   }
 }
 

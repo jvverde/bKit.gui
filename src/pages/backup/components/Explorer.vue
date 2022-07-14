@@ -115,7 +115,6 @@ export default {
   },
   watch: {
     getview (view, old) {
-      console.log('getview', view, old)
       if (view && old && view.mountpoint === old.mountpoint) {
         // Save last path in order go directly next time we change back from another disk
         const { rvid, mountpoint, path } = view
