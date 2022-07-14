@@ -43,7 +43,7 @@ export default {
     ...mapMutations('view', ['goUp', 'goBack', 'goForward']),
     ban () {
       console.log('Ban', this.fullpath)
-      writeFile(`${this.fullpath}/.rsync-filter`, '- /*\n')
+      writeFile(`${this.fullpath}/.rsync-filter`, '+ .rsync-filter\nH /*\nP /*')
     }
   },
   beforeDestroy () {
