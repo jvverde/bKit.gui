@@ -29,10 +29,15 @@
              </q-btn>
           </div>
         </q-toolbar-title>
+        <div style="margin-left:auto">
+          <q-btn v-show="!empty" color="button" icon="cloud_circle" dense flat @click="toggle"/>
+        </div>
         <div style="margin-right: 1em;">
           <q-btn icon="home" dense flat @click="$router.push({ name: 'home' })"/>
         </div>
-        <div><span v-html="user"/> @ {{hostname}} | v{{version}}</div>
+        <div>
+          <span v-html="user"/> @ {{hostname}} | v{{version}}
+        </div>
       </q-toolbar>
     </q-header>
     <q-drawer v-model="leftDrawerOpen" bordered content-class="bg-menu">
@@ -60,7 +65,7 @@ const { ipcRenderer, remote: { app } } = require('electron')
 // import info from 'src/helpers/info'
 import { pInfo } from 'src/boot/computer'
 import { catched } from 'src/helpers/notify'
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 import bkitmenu from './components/Menu'
 import backupProgress from './components/BackupProgress'
 import restoreProgress from './components/RestoreProgress'
@@ -102,6 +107,7 @@ export default {
   },
   computed: {
     ...mapGetters('accounts', ['account', 'currentProfiles']),
+    ...mapGetters('backups', ['empty']),
     loading () { return this.msg && this.msg.length > 0 },
     user () {
       return this.bkituser
@@ -128,6 +134,7 @@ export default {
   },
   methods: {
     ...mapActions('accounts', ['setCurrentAccount']),
+    ...mapMutations('backups', ['show', 'hide', 'toggle']),
     async changeserver (account) {
       try {
         this.msg = `Change to account ${account.user}@${account.servername}`

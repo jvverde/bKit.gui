@@ -105,8 +105,12 @@ export default {
     drive () {
       return this.mountpoint.replace(/[\\/]+$/, '')
     },
+    base () {
+      return this.mountpoint || sep
+    },
     steps () {
-      const rel = relative(this.mountpoint, this.currentpath)
+      const rel = relative(this.base, this.currentpath)
+      console.log(`Steps ${this.mountpoint}, ${this.currentpath}, ${rel}`)
       return this.currentpath !== '' ? `${rel}`.split(sep) : []
     },
     volume () {
@@ -142,7 +146,7 @@ export default {
     ...mapActions('snaps', ['loadSnaps']),
     ...mapMutations('view', ['setView']),
     stepto (index) {
-      const path = join(this.mountpoint, this.steps.slice(0, index).join('/'))
+      const path = join(this.base, this.steps.slice(0, index).join('/'))
       const { rvid, mountpoint, snap } = this
       this.setView({ path, rvid, mountpoint, snap })
     }

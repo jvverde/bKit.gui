@@ -173,9 +173,10 @@ export default {
         } else {
           const self = this
           this.waiting = setTimeout(() => {
-            console.log('After a timeout)')
+            console.log('After a timeout...')
             self.backup()
           }, _DELTA - delta)
+          console.log('Set timeout for', _DELTA - delta)
         }
       }
     }
@@ -193,11 +194,12 @@ export default {
         console.log('Add watcher', this.path)
         this.watcher.add(this.path)
       } else {
-        console.log('Start Watcher', this.path)
         this.watcher = chokidar.watch(this.path, watchOptions)
+        console.log('Start Watching', this.path)
       }
       this.watcher.on('all', (event, path) => {
         this.needBackup++
+        console.log(`Event ${event} on ${path}`)
       }).on('error', error => warn(`Watcher error: ${error} on path ${this.path}`, false))
     },
     async stopWatch () {

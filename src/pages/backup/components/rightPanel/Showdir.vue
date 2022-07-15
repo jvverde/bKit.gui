@@ -10,7 +10,6 @@
       <q-btn color="path" flat size="md" icon="navigate_next" @click="goForward" :disable="!canGoForward"/>
       <q-btn color="path" flat size="md" icon="arrow_upward" @click="goUp"/>
       <div style="margin-left:auto"/>
-      <q-btn v-show="!empty" round color="button" flat size="sm" icon="cloud_circle" @click="toggle"/>
       <q-btn round color="warning" flat size="sm" icon="do_not_disturb_on" @click="ban"/>
     </div>
     <div v-show="!done" class="loader">
