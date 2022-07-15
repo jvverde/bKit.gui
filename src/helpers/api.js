@@ -4,9 +4,9 @@ import { pInfo } from 'src/boot/computer'
 
 export async function listDisksOnBackup (machine) {
   try {
-    const { computer, bkituser } = await pInfo
+    const { computer, localUser } = await pInfo
     const { uuid, name, domain } = machine || computer
-    const { data: response } = await axios.get(`v1/user/volumes/${uuid}/${name}/${domain}/${bkituser}`)
+    const { data: response } = await axios.get(`v1/user/volumes/${uuid}/${name}/${domain}/${localUser}`)
     return response.map(d => d.volume)
   } catch (err) {
     console.error(err)
@@ -16,15 +16,15 @@ export async function listDisksOnBackup (machine) {
 
 export async function listSnaps (rvid, raw = false) {
   if (!rvid) throw new Error(`The parameter rvid on listSnaps can't be '${rvid}'`)
-  const { computer, bkituser } = await pInfo
+  const { computer, localUser } = await pInfo
   const { uuid, name, domain } = computer
-  const { data: response } = await axios.get(`/v1/user/snaps/${uuid}/${name}/${domain}/${rvid}/${bkituser}`)
+  const { data: response } = await axios.get(`/v1/user/snaps/${uuid}/${name}/${domain}/${rvid}/${localUser}`)
   return raw ? response : response.map(e => e.snap)
 }
 
 export async function listPath (rvid, snap, path) {
   if (!snap || !rvid) throw new Error(`The parametera (rvid, snap) on listPath can't be ('${rvid}', '${snap}')`)
-  const { computer, bkituser: profile } = await pInfo
+  const { computer, localUser: profile } = await pInfo
   const { uuid, name, domain } = computer
   // format: /list/:uuid/:name/:domain/:profile/:volume/:snap
   const { data: response } = await axios.get(`/v1/user/list/${uuid}/${name}/${domain}/${profile}/${rvid}/${snap}`, {

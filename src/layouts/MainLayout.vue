@@ -100,7 +100,7 @@ export default {
     return {
       msg: undefined,
       leftDrawerOpen: false,
-      bkituser: undefined,
+      localUser: undefined,
       version: app.getVersion(),
       hostname: os.hostname()
     }
@@ -110,10 +110,10 @@ export default {
     ...mapGetters('backups', ['empty']),
     loading () { return this.msg && this.msg.length > 0 },
     user () {
-      return this.bkituser
-        ? this.bkituser === username
+      return this.localUser
+        ? this.localUser === username
           ? username
-          : `${username}<i> as </i>${this.bkituser}`
+          : `${username}<i> as </i>${this.localUser}`
         : `<i>${username}</i>`
     },
     accounts () {
@@ -149,8 +149,8 @@ export default {
   async mounted () {
     try {
       this.msg = 'Get local user'
-      const { bkituser } = await pInfo
-      this.bkituser = bkituser
+      const { localUser } = await pInfo
+      this.localUser = localUser
     } catch (err) {
       catched(err)
     } finally {

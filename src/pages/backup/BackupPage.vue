@@ -230,9 +230,9 @@ export default {
   },
   async mounted () {
     this.load()
-    const { computer, bkituser } = await pInfo
+    const { computer, localUser } = await pInfo
     console.log('COMPUTER', computer)
-    console.log('bkituser', bkituser)
+    console.log('localUser', localUser)
   },
   beforeRouteEnter (to, from, next) {
     // console.log('beforeRouteEnter', to)

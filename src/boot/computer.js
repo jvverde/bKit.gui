@@ -15,11 +15,11 @@ export const pInfo = new Promise((resolve, reject) => {
 
 export default async () => {
   try {
-    const bkituser = await getUser()
+    const localUser = await getUser()
     const computer = await getComputerInfo()
     const [domain, name, uuid] = computer.split('|')
     const info = {
-      bkituser,
+      localUser,
       username,
       computer: { domain, name, uuid }
     }
