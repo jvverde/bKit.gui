@@ -68,7 +68,7 @@ export default {
     isBackupable () { return this.onlyLocal || this.needUpdate },
     onBackupQueue () { return this.isQueued(this.fullpath) },
     showBackup () { return this.isLastSnap && this.isBackupable && !this.onBackupQueue },
-    isRestorable () { return this.needUpdate || this.onlyBackup },
+    isRestorable () { return (this.needUpdate || this.onlyBackup) && this.mountpoint },
     isRecoverable () { return this.onbackup },
     snap () { return this.entry.snap },
     rvid () { return this.entry.rvid },
