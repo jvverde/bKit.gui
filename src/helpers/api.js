@@ -2,10 +2,10 @@
 import axios from 'axios'
 import { pInfo } from 'src/boot/computer'
 
-export async function listDisksOnBackup () {
+export async function listDisksOnBackup (machine) {
   try {
     const { computer, bkituser } = await pInfo
-    const { uuid, name, domain } = computer
+    const { uuid, name, domain } = machine || computer
     const { data: response } = await axios.get(`v1/user/volumes/${uuid}/${name}/${domain}/${bkituser}`)
     return response.map(d => d.volume)
   } catch (err) {

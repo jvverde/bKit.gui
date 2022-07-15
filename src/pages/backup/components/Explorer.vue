@@ -110,7 +110,6 @@ export default {
     },
     steps () {
       const rel = relative(this.base, this.currentpath)
-      console.log(`Steps ${this.mountpoint}, ${this.currentpath}, ${rel}`)
       return this.currentpath !== '' ? `${rel}`.split(sep) : []
     },
     volume () {

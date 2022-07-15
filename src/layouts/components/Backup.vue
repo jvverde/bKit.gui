@@ -115,7 +115,8 @@ export default {
       needBackup: 0,
       watcher: undefined,
       lastRun: Date.now(),
-      waiting: undefined
+      waiting: undefined,
+      endpoint: {}
     }
   },
   computed: {
@@ -287,6 +288,9 @@ export default {
           this.phase = this.process = undefined
           this.currentline = ''
         },
+        saved: endpoint => {
+          console.log('Your data is saved on', endpoint)
+        },
         start: ({ pid }) => {
           this.status = 'Starting'
           this.pid = pid
@@ -309,7 +313,8 @@ export default {
         console.log('Backup Done with code', code)
         this.ok = true
         this.status = 'Done'
-        this.backupDone(this.path)
+        const { path, endpoint } = this
+        this.backupDone({ path, endpoint })
       }).catch(e => {
         console.error('Backup catch error', e, this.path)
         this.error = e

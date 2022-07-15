@@ -213,6 +213,7 @@ function matchLine4bKit (events = {}) {
     sent = nill,
     newphase = nill,
     done = nill,
+    saved = nill,
     ...extra
   } = events
 
@@ -238,6 +239,9 @@ function matchLine4bKit (events = {}) {
       // Phase 1 - Backup new/modified files
       re: /^Phase\b\s*(?<phase>\b[^\s]*?\b)\s*-\s*(?<msg>.*$)/,
       handler: match => newphase(match.groups, match)
+    }, {
+      re: /^\t+(?<account>.+?)@(?<server>.+?)::(?<area>[^/]+)[/](?<rvid>[^/]+)[/]/,
+      handler: match => saved(match.groups, match)
     }, {
       re: /^bKit\s*\[\d+:\d*\]\s*:\s*Done/,
       handler: done

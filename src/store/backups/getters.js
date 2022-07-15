@@ -22,5 +22,5 @@ export function isQueued (state) {
 }
 
 export function isDone (state) {
-  return path => state.done.includes(path)
+  return path => state.done.find(e => path === e.path)
 }

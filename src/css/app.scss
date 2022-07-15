@@ -170,7 +170,7 @@ $done : $light-blue;
   background: var(--q-color-done) !important;
 }
 /************************** bkit-missing **************************/
-$missing : $red;
+$missing : $orange-10;
 
 :root {
   --q-color-missing: #{$missing};
@@ -305,7 +305,7 @@ $nobackup : $grey-13;
   background: var(--q-color-nobackup) !important;
 }
 /************************** bkit-deleted **************************/
-$deleted : $red;
+$deleted : $orange-2;
 
 :root {
   --q-color-deleted: #{$deleted};

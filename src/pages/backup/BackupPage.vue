@@ -53,6 +53,7 @@ import { listLocalDisks } from 'src/helpers/bkit'
 import { listDisksOnBackup } from 'src/helpers/api'
 // n
 import { mapGetters } from 'vuex'
+import { pInfo } from 'src/boot/computer'
 
 const makeKey = (a, b) => `${a || '_'}-${b || '_'}`
 export default {
@@ -71,6 +72,17 @@ export default {
   computed: {
     ...mapGetters('accounts', ['currentAccount']),
     ...mapGetters('view', ['getview']),
+    ...mapGetters('backups', { lastBackupDone: 'getLastCompleted' }),
+    onlyLocalDisks () {
+      return this.disks.filter(d => !d.rvid)
+    },
+    onlyRemoteDisks () {
+      return this.disks.filter(d => !d.mountpoint)
+    },
+    // newDiskOnBackup () {
+    //   console.log('newDiskOnBackup', this.onlyLocalDisks)
+    //   return this.onlyLocalDisks.some(d => this.wasUpdated(d.mountpoint))
+    // },
     splitter: {
       get: function () {
         const length = 10
@@ -104,9 +116,9 @@ export default {
     },
     color () {
       return disk => {
-        if (disk.present === true) {
+        if (disk.rvid && disk.mountpoint) {
           return 'ok'
-        } else if (disk.present === false) {
+        } else if (disk.rvid) {
           return 'missing'
         } else return 'initial'
       }
@@ -121,6 +133,16 @@ export default {
       this.disks = []
       this.load()
     },
+    lastBackupDone ({ path }) {
+      // Test if some local disk is the mounting point of backup
+      if (this.onlyLocalDisks.some(d => path.startsWith(d.mountpoint))) {
+        this.getDisksOnBackup()
+      }
+    },
+    // newDiskOnBackup (val) { // Refresh list of remote disks
+    //   console.log('Check new disks on backup')
+    //   this.getDisksOnBackup()
+    // },
     getview (val, old) {
       // A complex test to see if we need to change from one tab to another
       if (val && old && // just to avoid errors
@@ -154,11 +176,11 @@ export default {
         const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label)
         if (index >= 0) {
           const id = makeKey(this.disks[index].mountpoint, rvid)
-          const updatedisk = { ...this.disks[index], rvid, letter, present: true, id }
+          const updatedisk = { ...this.disks[index], rvid, letter, id }
           this.disks.splice(index, 1, updatedisk) // as requested by Vue reactiveness
         } else {
           const id = makeKey(undefined, rvid)
-          this.disks.push({ name: letter, rvid, uuid, label, letter, id, mountpoint: undefined, present: false })
+          this.disks.push({ name: letter, rvid, uuid, label, letter, id })
         }
       }
     },
@@ -206,8 +228,11 @@ export default {
       this.loading = false
     }
   },
-  mounted () {
+  async mounted () {
     this.load()
+    const { computer, bkituser } = await pInfo
+    console.log('COMPUTER', computer)
+    console.log('bkituser', bkituser)
   },
   beforeRouteEnter (to, from, next) {
     // console.log('beforeRouteEnter', to)
