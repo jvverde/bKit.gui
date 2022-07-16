@@ -73,7 +73,8 @@ export default {
         name: undefined,
         domain: undefined
       },
-      all: false
+      all: false,
+      user: undefined
       // restores: [],
       // backups: [],
     }
@@ -83,11 +84,13 @@ export default {
     ...mapGetters('view', ['getview']),
     ...mapGetters('backups', { lastBackupDone: 'getLastCompleted' }),
     ...mapGetters('client', ['getClient']),
+    onThisClient () {
+      return ({ uuid, name, domain }) => uuid === this.client.uuid && domain === this.client.domain && name === this.client.name
+    },
     onlyThisComputer: {
       get () {
-        const client = this.client
         const { uuid, name, domain } = this.getClient || {}
-        return uuid === client.uuid && domain === client.domain && name === client.name
+        return this.onThisClient({ uuid, name, domain })
       },
       set (val) {
         if (val) {
@@ -126,19 +129,27 @@ export default {
     diskname () {
       return disk => {
         const name = disk.name.replace(/\\$/, '') // remove ending backslash
-        if (name && name !== '_') {
-          return `${name}`
-        } else return ''
+        return name
+        // if (name && name !== '_') {
+        //   return `${name}`
+        // } else return ''
+      }
+    },
+    appendDomain () {
+      return disk => {
+        const { computerUUID: uuid, computerName: name, domain, mountpoint } = disk
+        if (mountpoint) return ''
+        return this.onThisClient({ uuid, name, domain }) ? '' : `@${name}.${domain}`
       }
     },
     disklabel () {
       return disk => {
         // console.log(disk.label, disk.name)
         if (disk.label && disk.label !== '_') {
-          return `${disk.label}`
+          return `${disk.label}` + this.appendDomain(disk)
         } else if (!disk.name || disk.name === '_') {
-          return `[${disk.uuid}]`
-        } else return ''
+          return `[${disk.uuid}]` + this.appendDomain(disk)
+        } else return '' + this.appendDomain(disk)
       }
     },
     color () {
@@ -149,10 +160,6 @@ export default {
           return 'missing'
         } else return 'initial'
       }
-    },
-    showConsole () {
-      // return this.restores.length > 0
-      return 0
     }
   },
   watch: {
@@ -185,6 +192,9 @@ export default {
         const id = makeKey(val.mountpoint, val.rvid)
         this.disktab = id
       }
+    },
+    all () {
+      this.getDisksOnBackup()
     }
   },
   components: {
@@ -260,6 +270,7 @@ export default {
   },
   async mounted () {
     this.client = (await pInfo).computer
+    this.user = (await pInfo).localUser
     this.setClient(this.client)
     this.load()
   },

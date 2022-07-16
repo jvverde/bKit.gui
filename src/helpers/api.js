@@ -22,7 +22,7 @@ export async function listAllDisksOnBackup () {
   try {
     const { localUser } = await pInfo
     // Use getClient but fallback to (local)computer
-    const { data: response } = await axios.get(`v1/user/volumes/${localUser}/`)
+    const { data: response } = await axios.get(`v1/user/volumes/${localUser}`)
     return response // .map(d => d.volume)
   } catch (err) {
     console.error(err)
