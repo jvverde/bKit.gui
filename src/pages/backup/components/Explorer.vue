@@ -134,10 +134,13 @@ export default {
     console.log('Mount Exlorer')
     const currentView = this.getview
     const { mountpoint, rvid, snap } = this
+    console.log('currentView', currentView)
+    console.log('mountpoint, rvid, snap', mountpoint, rvid, snap)
     if (rvid !== currentView.rvid || mountpoint !== currentView.mountpoint) {
       // Only set a new view if current view isn't already on this disk (same rvid and same mountpoint)
       // This is usefull when we change back from another disk or the first time we enter in this disk
       const path = (lastPaths[this.volume] || {}).path || this.mountpoint || sep
+      console.log('SetView t', mountpoint, rvid, path, snap)
       this.setView({ mountpoint, rvid, path, snap })
     }
   },
