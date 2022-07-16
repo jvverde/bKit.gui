@@ -63,7 +63,6 @@ export default {
   },
   async mounted () {
     const { backupList = [] } = (await getPreferences()) || {}
-    console.log('backupList', backupList)
     backupList.forEach(path => {
       this.add2backup(path)
     })

@@ -43,7 +43,7 @@
     <q-drawer v-model="leftDrawerOpen" bordered content-class="bg-menu">
       <bkitmenu/>
     </q-drawer>
-    <q-page-container class="bkit-container">
+    <q-page-container class="---bkit-container">
       <keep-alive include="backup">
         <router-view/>
       </keep-alive>
@@ -164,7 +164,7 @@ export default {
   .bkit-container {
     display: flex;
     flex-direction: column;
-    height:100vh;
-    width: 100vw;
+    height:100%;
+    width: 100%;
   }
 </style>

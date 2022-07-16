@@ -184,6 +184,21 @@ $missing : $orange-10;
   background: $missing !important;
   background: var(--q-color-missing) !important;
 }
+/************************** bkit-foreign **************************/
+$foreign : $brown-6;
+
+:root {
+  --q-color-foreign: #{$foreign};
+}
+
+.text-foreign {
+  color: $foreign !important;
+  color: var(--q-color-foreign) !important;
+}
+.bg-foreign {
+  background: $foreign !important;
+  background: var(--q-color-foreign) !important;
+}
 /************************** bkit-active **************************/
 $active : $blue;
 
