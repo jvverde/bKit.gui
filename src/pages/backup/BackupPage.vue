@@ -4,7 +4,10 @@
       <div style="flex-shrink: 0" class="disks column no-wrap items-center">
         <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px" @click="$router.push('/')"/>
         <span class="text-center">Disks</span>
-        <q-tabs
+        <div class="q-gutter-sm">
+          <q-checkbox dense v-model="all" label="All" color="button" />
+        </div>
+        <q-tabs class="q-mt-lg"
           v-model="disktab"
           vertical
           dense
@@ -52,7 +55,7 @@ import tooltip from 'src/components/tooltip'
 import { listLocalDisks } from 'src/helpers/bkit'
 import { listDisksOnBackup } from 'src/helpers/api'
 // n
-import { mapGetters } from 'vuex'
+import { mapGetters, mapMutations } from 'vuex'
 import { pInfo } from 'src/boot/computer'
 
 const makeKey = (a, b) => `${a || '_'}-${b || '_'}`
@@ -64,7 +67,12 @@ export default {
       mark: 0,
       dst: '',
       disktab: '',
-      disks: []
+      disks: [],
+      client: {
+        uuid: undefined,
+        name: undefined,
+        domain: undefined
+      }
       // restores: [],
       // backups: [],
     }
@@ -73,6 +81,25 @@ export default {
     ...mapGetters('accounts', ['currentAccount']),
     ...mapGetters('view', ['getview']),
     ...mapGetters('backups', { lastBackupDone: 'getLastCompleted' }),
+    ...mapGetters('client', ['getClient']),
+    onlyThisComputer: {
+      get () {
+        const client = this.client
+        const { uuid, name, domain } = this.getClient || {}
+        return uuid === client.uuid && domain === client.domain && name === client.name
+      },
+      set (val) {
+        if (val) {
+          this.setClient(this.client)
+        } else {
+          this.setClient({ uuid: '*', name: '*', domain: '*' })
+        }
+      }
+    },
+    all: {
+      get () { return !this.onlyThisComputer },
+      set (v) { this.onlyThisComputer = !v }
+    },
     onlyLocalDisks () {
       return this.disks.filter(d => !d.rvid)
     },
@@ -165,6 +192,7 @@ export default {
     tooltip
   },
   methods: {
+    ...mapMutations('client', ['setClient']),
     async getDisksOnBackup () {
       const disks = await listDisksOnBackup() || []
       for (const rvid of disks) {
@@ -229,10 +257,9 @@ export default {
     }
   },
   async mounted () {
+    this.client = (await pInfo).computer
+    this.setClient(this.client)
     this.load()
-    const { computer, localUser } = await pInfo
-    console.log('COMPUTER', computer)
-    console.log('localUser', localUser)
   },
   beforeRouteEnter (to, from, next) {
     // console.log('beforeRouteEnter', to)

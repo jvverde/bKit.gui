@@ -1,11 +1,15 @@
 'use strict'
 import axios from 'axios'
 import { pInfo } from 'src/boot/computer'
+import { Store } from 'src/store'
 
-export async function listDisksOnBackup (machine) {
+const getClient = () => Store.getters['client/getClient']
+
+export async function listDisksOnBackup () {
   try {
     const { computer, localUser } = await pInfo
-    const { uuid, name, domain } = machine || computer
+    // Use getClient but fallback to (local)computer
+    const { uuid, name, domain } = { ...computer, ...getClient() }
     const { data: response } = await axios.get(`v1/user/volumes/${uuid}/${name}/${domain}/${localUser}`)
     return response.map(d => d.volume)
   } catch (err) {
@@ -17,7 +21,7 @@ export async function listDisksOnBackup (machine) {
 export async function listSnaps (rvid, raw = false) {
   if (!rvid) throw new Error(`The parameter rvid on listSnaps can't be '${rvid}'`)
   const { computer, localUser } = await pInfo
-  const { uuid, name, domain } = computer
+  const { uuid, name, domain } = { ...computer, ...getClient() }
   const { data: response } = await axios.get(`/v1/user/snaps/${uuid}/${name}/${domain}/${rvid}/${localUser}`)
   return raw ? response : response.map(e => e.snap)
 }
@@ -25,7 +29,7 @@ export async function listSnaps (rvid, raw = false) {
 export async function listPath (rvid, snap, path) {
   if (!snap || !rvid) throw new Error(`The parametera (rvid, snap) on listPath can't be ('${rvid}', '${snap}')`)
   const { computer, localUser: profile } = await pInfo
-  const { uuid, name, domain } = computer
+  const { uuid, name, domain } = { ...computer, ...getClient() }
   // format: /list/:uuid/:name/:domain/:profile/:volume/:snap
   const { data: response } = await axios.get(`/v1/user/list/${uuid}/${name}/${domain}/${profile}/${rvid}/${snap}`, {
     params: { path }
