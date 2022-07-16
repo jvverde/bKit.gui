@@ -10,8 +10,20 @@ export async function listDisksOnBackup () {
     const { computer, localUser } = await pInfo
     // Use getClient but fallback to (local)computer
     const { uuid, name, domain } = { ...computer, ...getClient() }
-    const { data: response } = await axios.get(`v1/user/volumes/${uuid}/${name}/${domain}/${localUser}`)
-    return response.map(d => d.volume)
+    const { data: response } = await axios.get(`v1/user/volumes/${localUser}/${uuid}/${name}/${domain}`)
+    return response // .map(d => d.volume)
+  } catch (err) {
+    console.error(err)
+  }
+  // return []
+}
+
+export async function listAllDisksOnBackup () {
+  try {
+    const { localUser } = await pInfo
+    // Use getClient but fallback to (local)computer
+    const { data: response } = await axios.get(`v1/user/volumes/${localUser}/`)
+    return response // .map(d => d.volume)
   } catch (err) {
     console.error(err)
   }

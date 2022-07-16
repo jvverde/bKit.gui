@@ -53,7 +53,7 @@ import explorer from './components/Explorer'
 // import backup from './components/Backup'
 import tooltip from 'src/components/tooltip'
 import { listLocalDisks } from 'src/helpers/bkit'
-import { listDisksOnBackup } from 'src/helpers/api'
+import { listDisksOnBackup, listAllDisksOnBackup } from 'src/helpers/api'
 // n
 import { mapGetters, mapMutations } from 'vuex'
 import { pInfo } from 'src/boot/computer'
@@ -72,7 +72,8 @@ export default {
         uuid: undefined,
         name: undefined,
         domain: undefined
-      }
+      },
+      all: false
       // restores: [],
       // backups: [],
     }
@@ -96,9 +97,8 @@ export default {
         }
       }
     },
-    all: {
-      get () { return !this.onlyThisComputer },
-      set (v) { this.onlyThisComputer = !v }
+    getRemoteDisks () {
+      return this.all ? listAllDisksOnBackup : listDisksOnBackup
     },
     onlyLocalDisks () {
       return this.disks.filter(d => !d.rvid)
@@ -161,7 +161,7 @@ export default {
       this.load()
     },
     lastBackupDone ({ path }) {
-      // Test if some local disk is the mounting point of backup
+      // Test if some local disk is the mounting point of last backup
       if (this.onlyLocalDisks.some(d => path.startsWith(d.mountpoint))) {
         this.getDisksOnBackup()
       }
@@ -194,9 +194,11 @@ export default {
   methods: {
     ...mapMutations('client', ['setClient']),
     async getDisksOnBackup () {
-      const disks = await listDisksOnBackup() || []
-      for (const rvid of disks) {
-        console.log('RVID:', rvid)
+      const disks = await this.getRemoteDisks() || []
+      for (const disk of disks) {
+        const { volume: rvid, domain, name: computerName, uuid: computerUUID, profile: user } = disk
+        const remote = { rvid, computerName, computerUUID, domain, user }
+        console.log('RVID:', rvid, disk)
         // const [letter, uuid, label] = rvid.split('.')
         const match = rvid.match(/^(?<letter>.)\.(?<uuid>[^.]+)\.(?<label>.+)\.(.+)\.(.+)$/)
         if (!match) continue
@@ -204,11 +206,11 @@ export default {
         const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label)
         if (index >= 0) {
           const id = makeKey(this.disks[index].mountpoint, rvid)
-          const updatedisk = { ...this.disks[index], rvid, letter, id }
+          const updatedisk = { ...this.disks[index], ...remote, rvid, letter, id }
           this.disks.splice(index, 1, updatedisk) // as requested by Vue reactiveness
         } else {
           const id = makeKey(undefined, rvid)
-          this.disks.push({ name: letter, rvid, uuid, label, letter, id })
+          this.disks.push({ ...remote, name: letter, rvid, uuid, label, letter, id })
         }
       }
     },
