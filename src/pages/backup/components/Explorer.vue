@@ -1,5 +1,5 @@
 <template>
-  <div class="bkit-explorer relative-position">
+  <div class="bkit-explorer fit column">
 
     <q-toolbar class="bkit-toolbar justify-center" v-if="rvid">
       <keep-alive>
@@ -23,7 +23,7 @@
       </q-breadcrumbs>
     </q-toolbar>
 
-    <q-splitter class="bkit-splitter" :limits="[10, 80]" v-model="verticalSplitter">
+    <q-splitter class="bkit-splitter overflow-hidden" :limits="[10, 80]" v-model="verticalSplitter">
 
       <template v-slot:before>
         <q-scroll-area class="fit" :thumb-style="thumbStyle" :bar-style="barStyle">
@@ -32,11 +32,7 @@
       </template>
 
       <template v-slot:after>
-        <q-scroll-area class="fit" :thumb-style="thumbStyle" :bar-style="barStyle">
-          <div class="q-pa-xs row justify-evenly q-gutter-sm relative-position">
-            <showdir :fullpath="currentpath" :snap="snap" :rvid="rvid" :mountpoint="mountpoint" style="padding-right: 8px"/>
-          </div>
-        </q-scroll-area>
+        <showdir :fullpath="currentpath" :snap="snap" :rvid="rvid" :mountpoint="mountpoint" style="padding-right: 8px"/>
       </template>
 
     </q-splitter>
@@ -50,22 +46,7 @@ import { mapGetters, mapMutations, mapActions } from 'vuex'
 import snaps from './Snaps'
 import listdir from './leftPanel/Listdir'
 import showdir from './rightPanel/Showdir'
-
-const thumbStyle = {
-  right: '4px',
-  borderRadius: '5px',
-  backgroundColor: '#67A9FB',
-  width: '5px',
-  opacity: 0.75
-}
-
-const barStyle = {
-  right: '2px',
-  borderRadius: '9px',
-  backgroundColor: '#67A9FB',
-  width: '9px',
-  opacity: 0.2
-}
+import sstyle from 'src/mixins/scrollStyle'
 
 const lastPaths = {}
 
@@ -74,11 +55,10 @@ export default {
   data () {
     return {
       verticalSplitter: 25,
-      thumbStyle,
-      barStyle,
       sep
     }
   },
+  mixins: [sstyle],
   props: {
     mountpoint: {
       type: String,
@@ -140,7 +120,7 @@ export default {
       // Only set a new view if current view isn't already on this disk (same rvid and same mountpoint)
       // This is usefull when we change back from another disk or the first time we enter in this disk
       const path = (lastPaths[this.volume] || {}).path || this.mountpoint || sep
-      console.log('SetView t', mountpoint, rvid, path, snap)
+      console.log('SetView to', mountpoint, rvid, path, snap)
       this.setView({ mountpoint, rvid, path, snap })
     }
   },
@@ -163,10 +143,6 @@ export default {
 <style scoped lang="scss">
   $bkitsize: 6em;
   .bkit-explorer {
-    height:100%;
-    display: flex;
-    flex-direction: column;
-    overflow-y:hidden;
     .bkit-toolbar {
       flex-shrink:0 ;
     }

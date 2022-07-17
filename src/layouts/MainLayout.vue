@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hHh Lpr fFf">
+  <q-layout view="hHh Lpr fFf" style="height: 100vh; width: 100vw">
     <q-header elevated class="bg-toolbar">
       <q-toolbar>
         <q-btn
@@ -43,7 +43,7 @@
     <q-drawer v-model="leftDrawerOpen" bordered content-class="bg-menu">
       <bkitmenu/>
     </q-drawer>
-    <q-page-container class="---bkit-container">
+    <q-page-container class="bkit-container">
       <keep-alive include="backup">
         <router-view/>
       </keep-alive>

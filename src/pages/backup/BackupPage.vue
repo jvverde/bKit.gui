@@ -1,7 +1,7 @@
 <template>
   <q-page padding class="fit">
-    <div class="row no-wrap fit scroll">
-      <div style="flex-shrink: 0" class="disks column no-wrap items-center">
+    <div class="row no-wrap fit">
+      <div style="flex-shrink: 0;" class="disks column no-wrap items-center">
         <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px" @click="$router.push('/')"/>
         <span class="text-center">Disks</span>
         <div class="q-gutter-sm">
@@ -30,15 +30,17 @@
         </q-tabs>
         <q-btn icon="sync" size="xs" flat color="bkit" @click="load"/>
       </div>
-      <q-tab-panels v-model="disktab" animated :keep-alive="false" class="fit">
-        <q-tab-panel
-          class="fit"
-          :name="disk.id"
-          v-for="disk in disks"
-          :key="disk.id">
-            <explorer v-bind="disk"/>
-        </q-tab-panel>
-      </q-tab-panels>
+      <div class="fit">
+        <q-tab-panels v-model="disktab" animated :keep-alive="false" class="fit">
+          <q-tab-panel
+            class="fit"
+            :name="disk.id"
+            v-for="disk in sortDisks"
+            :key="disk.id">
+              <explorer v-bind="disk"/>
+          </q-tab-panel>
+        </q-tab-panels>
+      </div>
     </div>
     <q-inner-loading :showing="loading">
       <q-spinner-ios size="100px" color="loader"/>
@@ -92,7 +94,7 @@ const compareDisks = (a, b) => {
   return 0
 }
 
-const makeKey = (...val) => val.join('>>')
+const makeKey = (...val) => val.join('')
 export default {
   name: 'backup',
   data () {
@@ -212,6 +214,10 @@ export default {
     }
   },
   watch: {
+    disktab (val, o) {
+      console.log('disktab', val, 'from', o)
+      console.log(this.sortDisks)
+    },
     currentAccount () {
       this.disks = []
       this.load()
@@ -240,7 +246,8 @@ export default {
         // Change tab if new view is in a different disk
         // const id = makeKey(val.mountpoint, val.rvid)
         const id = makeKey(val.mountpoint, val.uuid, val.rvid, val.computerUUID, val.computerName, val.domain, val.user)
-        this.disktab = id
+        console.log('FORCE distab to', id, val, old)
+        // this.disktab = id
       }
     },
     all () {
