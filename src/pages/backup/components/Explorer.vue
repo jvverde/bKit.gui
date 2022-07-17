@@ -47,6 +47,7 @@ import snaps from './Snaps'
 import listdir from './leftPanel/Listdir'
 import showdir from './rightPanel/Showdir'
 import sstyle from 'src/mixins/scrollStyle'
+import { isSameDisk } from 'src/helpers/disks'
 
 const lastPaths = {}
 
@@ -60,13 +61,9 @@ export default {
   },
   mixins: [sstyle],
   props: {
-    mountpoint: {
-      type: String,
-      default: ''
-    },
-    rvid: {
-      type: String,
-      default: undefined
+    disk: {
+      type: Object,
+      required: true
     }
   },
   components: {
@@ -78,6 +75,8 @@ export default {
     ...mapGetters('view', ['getview']),
     ...mapGetters('snaps', ['getCurrentSnap']),
     ...mapGetters('backups', ['getLastCompleted']),
+    mountpoint () { return this.disk.mountpoint || '' },
+    rvid () { return this.disk.rvid || '' },
     snap () { return (this.getCurrentSnap || {}).snap },
     currentpath () {
       return this.getview.path || this.mountpoint
@@ -92,16 +91,21 @@ export default {
       const rel = relative(this.base, this.currentpath)
       return this.currentpath !== '' ? `${rel}`.split(sep) : []
     },
-    volume () {
-      return `${this.rvid || '_'}-${this.mountpoint || '_'}`
-    }
+    diskId () { return this.disk.id }
   },
   watch: {
+    disk: {
+      immediate: true,
+      handler (d) {
+        console.log('SET DISK:', d)
+        this.setDisk(d)
+      }
+    },
     getview (view, old) {
-      if (view && old && view.mountpoint === old.mountpoint) {
+      console.log('getview event', view, old)
+      if (isSameDisk(view, old)) {
         // Save last path in order go directly next time we change back from another disk
-        const { rvid, mountpoint, path } = view
-        lastPaths[this.volume] = { rvid, mountpoint, path }
+        lastPaths[this.diskId] = view
       }
     },
     getLastCompleted (val) {
@@ -112,25 +116,20 @@ export default {
   },
   mounted () {
     console.log('Mount Exlorer')
-    const currentView = this.getview
-    const { mountpoint, rvid, snap } = this
-    console.log('currentView', currentView)
-    console.log('mountpoint, rvid, snap', mountpoint, rvid, snap)
-    if (rvid !== currentView.rvid || mountpoint !== currentView.mountpoint) {
-      // Only set a new view if current view isn't already on this disk (same rvid and same mountpoint)
-      // This is usefull when we change back from another disk or the first time we enter in this disk
-      const path = (lastPaths[this.volume] || {}).path || this.mountpoint || sep
-      console.log('SetView to', mountpoint, rvid, path, snap)
-      this.setView({ mountpoint, rvid, path, snap })
-    }
+    const path = this.mountpoint || sep
+    const view = lastPaths[this.diskId] || { ...this.disk, path }
+    console.log('SetView on mount to', view)
+    this.setView(view)
   },
   methods: {
     ...mapActions('snaps', ['loadSnaps']),
     ...mapMutations('view', ['setView']),
+    ...mapMutations('disks', ['setDisk']),
     stepto (index) {
       const path = join(this.base, this.steps.slice(0, index).join('/'))
-      const { rvid, mountpoint, snap } = this
-      this.setView({ path, rvid, mountpoint, snap })
+      const view = { ...this.getview, path }
+      console.log('SetView on stepto to', view)
+      this.setView(view)
     }
   },
   beforeDestroy () {

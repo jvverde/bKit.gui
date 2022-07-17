@@ -58,14 +58,14 @@ export default {
     entries: () => import('./Listdir') /* Listdir.vue also dynamically import this moddule */
   },
   computed: {
+    ...mapGetters('view', ['getview']),
     nodeProps () {
       const { fullpath, snap, rvid, mountpoint } = this.entry
       return { fullpath, snap, rvid, mountpoint }
     },
     isSelected () {
-      return this.getview === this.fullpath
-    },
-    ...mapGetters('view', ['getview'])
+      return this.getview.path === this.fullpath
+    }
   },
   watch: {
     getview: {
@@ -86,7 +86,9 @@ export default {
       this.open = true
     },
     select () {
-      this.setView(this.node)
+      const view = { ...this.getview, path: this.path }
+      console.log('Set view on select to ', view)
+      this.setView(view)
     }
   },
   mounted () {

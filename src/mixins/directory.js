@@ -6,6 +6,9 @@ import path from 'path'
 import Entry from 'src/helpers/entry'
 import { warn } from 'src/helpers/notify'
 
+import { mapGetters } from 'vuex'
+import { pInfo } from 'src/boot/computer'
+
 // const exists = async (pathname) => fs.promises.access(pathname, fs.constants.F_OK)
 // const rescape = s => s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 
@@ -38,7 +41,13 @@ export default {
       backupEntries: {},
       watcher: undefined,
       remoteloading: false,
-      localloading: false
+      localloading: false,
+      computer: {
+        name: undefined,
+        domain: undefined,
+        uuid: undefined,
+        user: undefined
+      }
     }
   },
   props: {
@@ -60,6 +69,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('client', ['getClient']),
     done () {
       return !this.remoteloading && !this.localloading
     },
@@ -88,13 +98,6 @@ export default {
         return e
       })
     }
-    /*
-    entries () { // All of them
-      const r = [...this.localBackuped, ...this.onlyLocal, ...this.onlyBackup]
-      // console.log('Entries', r)
-      return r
-    }
-    */
   },
   watch: {
     endpoint: {
@@ -126,7 +129,9 @@ export default {
       }
     }
   },
-  mounted () {
+  async mounted () {
+    const { computer, localUser: user } = await pInfo
+    this.computer = { ...computer, user }
   },
   methods: {
     async readLocalDir () {
@@ -142,6 +147,7 @@ export default {
         for await (const entry of entries) { // as it is a generator we need to use await
           entry.onlocal = true
           entry.mountpoint = this.mountpoint
+          entry.computer = this.computer
           localEntries[entry.name] = entry
         }
       } catch (err) {
@@ -157,6 +163,7 @@ export default {
       const backupEntries = {}
       const { snap, rvid, fullpath, mountpoint } = this
       if (!snap || !rvid) return
+      const computer = this.getClient
       try {
         this.remoteloading = 'Reading backup'
         const upath = bkitPath(mountpoint, fullpath)
@@ -168,6 +175,7 @@ export default {
           // This 2 lines are required for cases where a local entry was deleted
           entry.path = entry.path || path.join(fullpath, entry.name)
           entry.mountpoint = entry.mountpoint || mountpoint
+          entry.computer = computer
           backupEntries[entry.name] = entry
         })
       } catch (err) {

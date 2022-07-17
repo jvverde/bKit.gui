@@ -35,3 +35,4 @@ export const compareDisks = (a, b) => {
 // export const makeKey = (...val) => val.join('')
 
 export const getId = d => [d.mountpoint, d.uuid, d.rvid, d.computer.uuid, d.computer.name, d.computer.domain, d.computer.user].join('>')
+export const isSameDisk = (a, b) => a && b && a.id === b.id

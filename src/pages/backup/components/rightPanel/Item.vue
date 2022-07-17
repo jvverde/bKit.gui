@@ -81,7 +81,7 @@
 // import { getVersions } from 'src/helpers/bkit'
 import tooltip from 'src/components/tooltip'
 import entry from 'src/mixins/entry'
-import { mapMutations } from 'vuex'
+import { mapMutations, mapGetters } from 'vuex'
 
 // const path = require('path')
 
@@ -101,12 +101,14 @@ export default {
     tooltip
   },
   computed: {
+    ...mapGetters('view', ['getview'])
   },
   methods: {
     ...mapMutations('view', ['setView']),
     open () {
-      console.log('node', this.node)
-      this.setView(this.node)
+      const view = { ...this.getview, path: this.path }
+      console.log('Set view on open to ', view)
+      this.setView(view)
     },
     onVersionClick (snap) {
       console.log('Version snap', snap)
