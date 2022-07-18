@@ -37,7 +37,7 @@
         </div>
         <div>
           <!-- span v-html="user"/> @ {{hostname}} | v{{version}} -->
-          <span>{{currentClient.user}}@{{currentClient.name}}.{{currentClient.domain}}</span>
+          <span :class="{foreign: !isLocalComputer}">{{currentClient.user}}@{{currentClient.name}}.{{currentClient.domain}}</span>
         </div>
       </q-toolbar>
     </q-header>
@@ -94,6 +94,8 @@ const compareByAddr = (a, b) => {
 }
 const compare = compareByAddr
 
+const sameComputer = (a, b) => a.name === b.name && a.domain === b.domain && a.uuid === b.uuid && a.user === b.user
+
 export default {
   name: 'MainLayout',
 
@@ -103,13 +105,22 @@ export default {
       leftDrawerOpen: false,
       localUser: undefined,
       version: app.getVersion(),
-      hostname: os.hostname()
+      hostname: os.hostname(),
+      computer: {
+        name: undefined,
+        domain: undefined,
+        uuid: undefined,
+        user: undefined
+      }
     }
   },
   computed: {
     ...mapGetters('accounts', ['account', 'currentProfiles']),
     ...mapGetters('backups', ['empty']),
     ...mapGetters('client', { currentClient: 'getClient' }),
+    isLocalComputer () {
+      return sameComputer(this.computer, this.currentClient)
+    },
     loading () { return this.msg && this.msg.length > 0 },
     user () {
       return this.localUser
@@ -150,9 +161,10 @@ export default {
   },
   async mounted () {
     try {
-      this.msg = 'Get local user'
-      const { localUser } = await pInfo
-      this.localUser = localUser
+      this.msg = 'Get local computer'
+      const { computer, localUser: user } = await pInfo
+      this.localUser = user
+      this.computer = { ...computer, user }
     } catch (err) {
       catched(err)
     } finally {
@@ -168,5 +180,8 @@ export default {
     flex-direction: column;
     height:100%;
     width: 100%;
+  }
+  .foreign {
+    color: $red-9
   }
 </style>
