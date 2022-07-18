@@ -68,7 +68,7 @@ const getComputer = disk => {
   return { domain, name, uuid, user }
 }
 
-const sameComputer = (a, b) => a.name === b.name && a.domain === b.domain && a.uuid === b.uuid && a.user === b.user
+const sameComputerUUID = (a, b) => a.uuid === b.uuid
 
 export default {
   name: 'backup',
@@ -101,9 +101,11 @@ export default {
     disksNotInBackup () { // Local disks without backup
       return this.disks.filter(d => !d.rvid)
     },
-    ownDisks () { // Disks and backups belonging to this computer (with ou without backups)
-      const uuid = this.computer.uuid
-      return this.disks.filter(d => d.mountpoint || d.computer.uuid === uuid)
+    localDisks () { // Local disks without backup
+      return this.disks.filter(d => d.mountpoint)
+    },
+    ownDisks () { // Disks and backups belonging to this computer
+      return this.disks.filter(d => sameComputerUUID(this.computer, d.computer))
     },
     foreignBackups () { // Backups of another computers
       const uuid = this.computer.uuid
@@ -112,6 +114,7 @@ export default {
     sortDisks () {
       const owndisks = [...this.ownDisks].sort(compareDisks)
       const fdisks = [...this.foreignBackups].sort(compareByDomain)
+      console.log('owndisks', owndisks)
       return [...owndisks, ...fdisks]
     },
     getDiskById () {
@@ -220,13 +223,13 @@ export default {
         const match = rvid.match(/^(?<letter>.)\.(?<uuid>[^.]+)\.(?<label>.+)\.(.+)\.(?<fs>.+)$/)
         if (!match) continue
         const { letter, uuid, label, fs } = match.groups
-        const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label && sameComputer(e.computer, computer))
+        const index = this.disks.findIndex(e => e.uuid === uuid && sameComputerUUID(e.computer, computer))
         if (index >= 0) {
-          const d = { ...this.disks[index], computer, rvid, letter, fs }
+          const d = { ...this.disks[index], computer, rvid, letter, uuid, label, fs }
           const id = getId(d)
           this.disks.splice(index, 1, { ...d, id }) // as requested by Vue reactiveness
         } else {
-          const d = { computer, name: letter, rvid, uuid, label, letter, fs }
+          const d = { computer, name: letter, rvid, letter, uuid, label, fs }
           const id = getId(d)
           this.disks.push({ ...d, id })
         }
@@ -234,7 +237,7 @@ export default {
       // console.log('Disks:', this.disks)
     },
     refreshRemoteDisks () {
-      this.disks = this.disksNotInBackup
+      this.disks = this.localDisks
       this.getDisksOnBackup()
     },
     async getLocalDisks () {
@@ -246,13 +249,14 @@ export default {
         const pattern = disk.replace(/\|(?=\|)/g, '|_') // replace all the sequences '||' by '|_|'
         const [mountpoint, label, uuid, fs] = pattern.split(/\|/)
         const name = mountpoint
-        const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label && sameComputer(e.computer, computer))
+        const letter = mountpoint.substring(0, 1)
+        const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label && sameComputerUUID(e.computer, computer))
         if (index >= 0) {
-          const d = { ...this.disks[index], name, mountpoint, label, uuid, fs, computer }
+          const d = { ...this.disks[index], name, letter, mountpoint, label, uuid, fs, computer }
           const id = getId(d)
           this.disks.splice(index, 1, { ...d, id }) // as requested by Vue reactiveness
         } else {
-          const d = { name, mountpoint, label, uuid, fs, computer }
+          const d = { name, mountpoint, letter, label, uuid, fs, computer }
           const id = getId(d)
           this.disks.push({ ...d, id })
         }

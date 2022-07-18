@@ -24,9 +24,9 @@ export const compareByRVID = (a, b) => {
   return compareByDomain(a, b)
 }
 export const compareDisks = (a, b) => {
-  if (!a.mountpoint && !b.mountpoint) return compareByRVID(a, b)
   if (a.mountpoint && !b.mountpoint) return -1
   if (b.mountpoint && !a.mountpoint) return 1
+  if (!a.mountpoint && !b.mountpoint) return compareByRVID(a, b)
   if (a.mountpoint < b.mountpoint) return -1
   if (a.mountpoint > b.mountpoint) return 1
   return 0
