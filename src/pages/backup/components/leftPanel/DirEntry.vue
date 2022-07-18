@@ -37,7 +37,7 @@
 
     </q-item>
     <q-item dense v-if="open" class="directory">
-      <entries v-bind="nodeProps"/>
+      <children v-bind="node"/>
     </q-item>
   </q-list>
 </template>
@@ -55,11 +55,11 @@ export default {
   },
   mixins: [entry],
   components: {
-    entries: () => import('./Listdir') /* Listdir.vue also dynamically import this moddule */
+    children: () => import('./Listdir') /* Listdir.vue also dynamically import this moddule */
   },
   computed: {
     ...mapGetters('view', ['getview']),
-    nodeProps () {
+    node () {
       const { fullpath, snap, rvid, mountpoint } = this.entry
       return { fullpath, snap, rvid, mountpoint }
     },

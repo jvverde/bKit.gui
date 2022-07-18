@@ -22,6 +22,7 @@ import snaps from './snaps'
 import backups from './backups'
 import restore from './restore'
 import disks from './disks'
+import options from './options'
 
 // From https://forum.quasar-framework.org/topic/4276/how-to-use-vuex-store-without-access-to-vue-instance/2
 // Don't if this is a SSR
@@ -35,7 +36,8 @@ export const Store = new Vuex.Store({
     view,
     snaps,
     backups,
-    restore
+    restore,
+    options
   },
 
   // enable strict mode (adds overhead!)

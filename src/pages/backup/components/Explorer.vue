@@ -102,9 +102,7 @@ export default {
       }
     },
     getview (view, old) {
-      console.log('getview event', view, old)
       if (isSameDisk(view, old)) {
-        // Save last path in order go directly next time we change back from another disk
         lastPaths[this.diskId] = view
       }
     },

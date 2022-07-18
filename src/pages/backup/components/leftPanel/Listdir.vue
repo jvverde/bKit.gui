@@ -4,7 +4,7 @@
     <div class="full-width">
       <dir v-for="folder in folders" :key="folder.path" :entry="folder"/>
     </div>
-    <div class="full-width">
+    <div class="full-width" v-if="showFiles">
       <file v-for="file in files" :key="file.path" :entry="file"/>
     </div>
   </div>
@@ -13,6 +13,7 @@
 
 import compare from 'src/helpers/compare'
 import directory from 'src/mixins/directory'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'Entries',
@@ -22,6 +23,8 @@ export default {
     file: () => import('./FileEntry')
   },
   computed: {
+    ...mapGetters('options', ['getOption']),
+    showFiles () { return this.getOption('showFilesOnLeftPanel') },
     childrens () {
       return [...this.entries].sort(compare)
     },
