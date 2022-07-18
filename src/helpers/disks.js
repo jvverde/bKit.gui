@@ -1,21 +1,31 @@
-export const compareByUser = (a, b) => {
-  if (a.user < b.user) return -1
-  if (a.user > b.user) return 1
+export const compareByUUID = (a, b) => {
+  if (a.computer.uuid < b.computer.uuid) return -1
+  if (a.computer.uuid > b.computer.uuid) return 1
   return 0
 }
-export const compareByUUID = (a, b) => {
-  if (a.uuid < b.uuid) return -1
-  if (a.uuid > b.uuid) return 1
-  return compareByUser(a, b)
-}
-export const compareByName = (a, b) => {
-  if (a.name < b.name) return -1
-  if (a.name > b.name) return 1
+export const compareByLabel = (a, b) => {
+  if (a.label < b.label) return -1
+  if (a.label > b.label) return 1
   return compareByUUID(a, b)
 }
+export const compareByLetter = (a, b) => {
+  if (a.letter < b.letter) return -1
+  if (a.letter > b.letter) return 1
+  return compareByLabel(a, b)
+}
+export const compareByUser = (a, b) => {
+  if (a.computer.user < b.computer.user) return -1
+  if (a.computer.user > b.computer.user) return 1
+  return compareByLetter(a, b)
+}
+export const compareByName = (a, b) => {
+  if (a.computer.name < b.computer.name) return -1
+  if (a.computer.name > b.computer.name) return 1
+  return compareByUser(a, b)
+}
 export const compareByDomain = (a, b) => {
-  if (a.domain < b.doman) return -1
-  if (a.domain > b.domain) return 1
+  if (a.computer.domain < b.computer.domain) return -1
+  if (a.computer.domain > b.computer.domain) return 1
   return compareByName(a, b)
 }
 export const compareByRVID = (a, b) => {
@@ -24,9 +34,9 @@ export const compareByRVID = (a, b) => {
   return compareByDomain(a, b)
 }
 export const compareDisks = (a, b) => {
+  if (!a.mountpoint && !b.mountpoint) return compareByRVID(a, b)
   if (a.mountpoint && !b.mountpoint) return -1
   if (b.mountpoint && !a.mountpoint) return 1
-  if (!a.mountpoint && !b.mountpoint) return compareByRVID(a, b)
   if (a.mountpoint < b.mountpoint) return -1
   if (a.mountpoint > b.mountpoint) return 1
   return 0
