@@ -36,7 +36,8 @@
           <q-btn icon="home" dense flat @click="$router.push({ name: 'home' })"/>
         </div>
         <div>
-          <span v-html="user"/> @ {{hostname}} | v{{version}}
+          <!-- span v-html="user"/> @ {{hostname}} | v{{version}} -->
+          <span>{{currentClient.user}}@{{currentClient.name}}.{{currentClient.domain}}</span>
         </div>
       </q-toolbar>
     </q-header>
@@ -108,6 +109,7 @@ export default {
   computed: {
     ...mapGetters('accounts', ['account', 'currentProfiles']),
     ...mapGetters('backups', ['empty']),
+    ...mapGetters('client', { currentClient: 'getClient' }),
     loading () { return this.msg && this.msg.length > 0 },
     user () {
       return this.localUser

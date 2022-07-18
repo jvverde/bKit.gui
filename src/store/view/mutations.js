@@ -1,6 +1,7 @@
 import { normalize, join, sep } from 'path'
 const LIMIT = 100
 export function setView (state, view) {
+  // we should implemt this as an action where we can get LIMIt from a another moddle getter
   const path = normalize(view.path)
   state.view = { ...view, path }
   state.history.push(state.view)

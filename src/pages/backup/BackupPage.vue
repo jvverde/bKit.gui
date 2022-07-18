@@ -174,10 +174,9 @@ export default {
   },
   watch: {
     disktab (val, o) {
-      console.log('disktab', val, 'from', o)
-      // const disk = this.getDiskById(val)
-      // this.setDisk(disk)
-      console.log(this.sortDisks)
+      const disk = this.getDiskById(val)
+      console.log('Switch to disk ', disk)
+      this.setClient(disk.computer)
     },
     currentAccount () {
       this.disks = []
@@ -194,7 +193,7 @@ export default {
     //   this.getDisksOnBackup()
     // },
     getview (view, old) {
-      // A complex test to see if we need to change from one tab to another
+      // We need to change from one tab to another when view change from one disk to another
       if (old && !isSameDisk(view, old)) {
         console.log('Change to tab', view.id, view)
         this.disktab = view.id
