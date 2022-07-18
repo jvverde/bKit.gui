@@ -1,9 +1,20 @@
 import { normalize, join, sep } from 'path'
 const LIMIT = 100
+
+const equal = (x, y) => {
+  const keys = Object.keys({ ...x, ...y })
+  return keys.every(k => x[k] === y[k])
+}
+
 export function setView (state, view) {
-  // we should implemt this as an action where we can get LIMIt from a another moddle getter
+  // we should implement this as an action where we can get LIMIT from a another moddle getter
   const path = normalize(view.path)
-  state.view = { ...view, path }
+  const nview = { ...view, path }
+  if (equal(nview, state.view)) {
+    console.log('IS THE SAME FUCKING VIEW', nview, state.view)
+    return
+  }
+  state.view = nview
   state.history.push(state.view)
   if (state.history.length > LIMIT) state.history.shift()
   state.index = state.history.length - 1

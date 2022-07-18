@@ -185,16 +185,15 @@ export default {
   },
   watch: {
     disktab (val, o) {
-      const disk = this.getDiskById(val)
-      console.log('Switch to disk ', disk)
-      this.setClient(disk.computer)
+      // When disktab change we need to switch to correspondent client/computer
+      // const disk = this.getDiskById(val)
     },
-    currentAccount () {
+    currentAccount () { // Reset disk list when current account change
       this.disks = []
       this.load()
     },
     lastBackupDone ({ path }) {
-      // Test if some local disk is the mounting point of last backup
+      // Test if some of "not yet in backup disk" is the mounting point of last backup
       if (this.disksNotInBackup.some(d => path.startsWith(d.mountpoint))) {
         this.getDisksOnBackup()
       }
@@ -219,8 +218,7 @@ export default {
     tooltip
   },
   methods: {
-    ...mapMutations('client', ['setClient']),
-    ...mapMutations('disks', ['setDisk']),
+    ...mapMutations('client', ['setCurrentClient']),
     async getDisksOnBackup () {
       const disks = await this.getRemoteDisks() || []
       for (const disk of disks) {
@@ -298,7 +296,7 @@ export default {
   async mounted () {
     const { computer, localUser: user } = await pInfo
     this.computer = { ...computer, user }
-    this.setClient(this.computer)
+    this.setCurrentClient(this.computer)
     this.load()
   },
   beforeRouteEnter (to, from, next) {

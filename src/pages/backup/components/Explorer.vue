@@ -99,6 +99,8 @@ export default {
       handler (d) {
         console.log('SET DISK:', d)
         this.setDisk(d)
+        console.log('Switch to computer ', d.computer)
+        this.setCurrentClient(d.computer)
       }
     },
     getview (view, old) {
@@ -112,17 +114,19 @@ export default {
       }
     }
   },
-  mounted () {
-    console.log('Mount Exlorer')
+  created () {
+    console.log('Created Exlorer for diskl', this.disk)
     const path = this.mountpoint || sep
     const view = lastPaths[this.diskId] || { ...this.disk, path }
-    console.log('SetView on mount to', view)
+    console.log('SetView on create to', view)
     this.setView(view)
   },
   methods: {
     ...mapActions('snaps', ['loadSnaps']),
     ...mapMutations('view', ['setView']),
     ...mapMutations('disks', ['setDisk']),
+    ...mapMutations('client', ['setCurrentClient']),
+
     stepto (index) {
       const path = join(this.base, this.steps.slice(0, index).join('/'))
       const view = { ...this.getview, path }

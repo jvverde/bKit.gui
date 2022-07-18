@@ -3,13 +3,13 @@ import axios from 'axios'
 import { pInfo } from 'src/boot/computer'
 import { Store } from 'src/store'
 
-const getClient = () => Store.getters['client/getClient']
+const getCurrentClient = () => Store.getters['client/getCurrentClient']
 
 export async function listDisksOnBackup () {
   try {
     const { computer, localUser } = await pInfo
-    // Use getClient but fallback to (local)computer
-    const { uuid, name, domain } = { ...computer, ...getClient() }
+    // Use getCurrentClient but fallback to (local)computer
+    const { uuid, name, domain } = { ...computer, ...getCurrentClient() }
     const { data: response } = await axios.get(`v1/user/volumes/${localUser}/${uuid}/${name}/${domain}`)
     return response // .map(d => d.volume)
   } catch (err) {
@@ -21,7 +21,7 @@ export async function listDisksOnBackup () {
 export async function listAllDisksOnBackup () {
   try {
     const { localUser } = await pInfo
-    // Use getClient but fallback to (local)computer
+    // Use getCurrentClient but fallback to (local)computer
     const { data: response } = await axios.get(`v1/user/volumes/${localUser}`)
     return response // .map(d => d.volume)
   } catch (err) {
@@ -33,7 +33,7 @@ export async function listAllDisksOnBackup () {
 export async function listSnaps (rvid, raw = false) {
   if (!rvid) throw new Error(`The parameter rvid on listSnaps can't be '${rvid}'`)
   const { computer, localUser } = await pInfo
-  const { uuid, name, domain } = { ...computer, ...getClient() }
+  const { uuid, name, domain } = { ...computer, ...getCurrentClient() }
   const { data: response } = await axios.get(`/v1/user/snaps/${uuid}/${name}/${domain}/${rvid}/${localUser}`)
   return raw ? response : response.map(e => e.snap)
 }
@@ -41,7 +41,7 @@ export async function listSnaps (rvid, raw = false) {
 export async function listPath (rvid, snap, path) {
   if (!snap || !rvid) throw new Error(`The parametera (rvid, snap) on listPath can't be ('${rvid}', '${snap}')`)
   const { computer, localUser: profile } = await pInfo
-  const { uuid, name, domain } = { ...computer, ...getClient() }
+  const { uuid, name, domain } = { ...computer, ...getCurrentClient() }
   // format: /list/:uuid/:name/:domain/:profile/:volume/:snap
   const { data: response } = await axios.get(`/v1/user/list/${uuid}/${name}/${domain}/${profile}/${rvid}/${snap}`, {
     params: { path }

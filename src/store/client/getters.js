@@ -1,4 +1,4 @@
-export function getClient (state) {
+export function getCurrentClient (state) {
   return state.client
 }
 

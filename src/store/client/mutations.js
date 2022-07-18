@@ -1,4 +1,4 @@
-export function setClient (state, client) {
-  console.log('SetClient', client)
+export function setCurrentClient (state, client) {
+  console.log('SetCurrentClient', client)
   state.client = client
 }

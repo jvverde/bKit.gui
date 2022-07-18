@@ -69,7 +69,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('client', ['getClient']),
+    ...mapGetters('client', ['getCurrentClient']),
     done () {
       return !this.remoteloading && !this.localloading
     },
@@ -163,7 +163,7 @@ export default {
       const backupEntries = {}
       const { snap, rvid, fullpath, mountpoint } = this
       if (!snap || !rvid) return
-      const computer = this.getClient
+      const computer = this.getCurrentClient
       try {
         this.remoteloading = 'Reading backup'
         const upath = bkitPath(mountpoint, fullpath)

@@ -117,7 +117,7 @@ export default {
   computed: {
     ...mapGetters('accounts', ['account', 'currentProfiles']),
     ...mapGetters('backups', ['empty']),
-    ...mapGetters('client', { currentClient: 'getClient' }),
+    ...mapGetters('client', { currentClient: 'getCurrentClient' }),
     isLocalComputer () {
       return sameComputer(this.computer, this.currentClient)
     },
