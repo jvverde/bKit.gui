@@ -14,7 +14,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('clients', { currentClient: 'getCurrentClient', clientsList: 'getClients' })
+    ...mapGetters('clients', { currentClient: 'getCurrentClient', clientsList: 'getClients' }),
+    ...mapGetters('options', ['getOption']),
+    showForeignDisks () { return this.getOption('showForeignDisks') }
   },
   watch: {
     selectedClient (client) {
