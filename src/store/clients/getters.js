@@ -1,10 +1,12 @@
 export function getCurrentClient (state) {
   return state.current
 }
+export function getSelectedClient (state) {
+  return state.selected
+}
 export function getClients (state) {
   return state.list
 }
-
 export function isCurrentClient (state) {
   const current = state.current || {}
   return ({ uuid, name, domain }) => uuid === current.uuid && domain === current.domain && name === current.name

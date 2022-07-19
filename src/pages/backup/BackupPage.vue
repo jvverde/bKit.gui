@@ -94,7 +94,7 @@ export default {
     ...mapGetters('accounts', ['currentAccount']),
     ...mapGetters('view', ['getview']),
     ...mapGetters('backups', { lastBackupDone: 'getLastCompleted' }),
-    ...mapGetters('clients', ['isCurrentClient']),
+    ...mapGetters('clients', ['isCurrentClient', 'getSelectedClient']),
     getRemoteDisks () {
       return this.all ? listAllDisksOnBackup : listDisksOnBackup
     },
@@ -111,9 +111,14 @@ export default {
       const uuid = this.computer.uuid
       return this.disks.filter(d => d.computer.uuid && d.computer.uuid !== uuid)
     },
+    selectedForeignBackups () {
+      const selected = this.getSelectedClient
+      if (!selected.uuid) return this.foreignBackups
+      return this.foreignBackups.filter(d => d.computer.uuid === selected.uuid)
+    },
     sortDisks () {
       const owndisks = [...this.ownDisks].sort(compareDisks)
-      const fdisks = [...this.foreignBackups].sort(compareByDomain)
+      const fdisks = [...this.selectedForeignBackups].sort(compareByDomain)
       console.log('owndisks', owndisks)
       return [...owndisks, ...fdisks]
     },
@@ -177,7 +182,14 @@ export default {
   },
   watch: {
     disks (val) {
-      this.setClients([...val])
+      const dup = val.map(d => d.computer).map(c => {
+        const fullUserName = `${c.user}@${c.name}.${c.domain}`
+        const id = `${fullUserName}(${c.uuid})`
+        return { ...c, id, fullUserName }
+      })
+      const unique = [...new Map(dup.map(c => [c.id, c])).values()]
+      console.log('UNIQUE', unique)
+      this.setClients(unique)
     },
     disktab (val, o) {
       // When disktab change we need to switch to correspondent client/computer

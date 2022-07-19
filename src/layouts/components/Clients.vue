@@ -1,6 +1,6 @@
 <template>
-  <div v-show="uniqueNames.length > 1">
-    <q-select filled v-model="selectedClient" :options="uniqueNames" label="Client" stack-label/>
+  <div v-show="clientsList.length > 1">
+    <q-select filled v-model="selectedClient" :options="clientsList" option-label="fullUserName" option-value="id" label="Selected Client" stack-label/>
   </div>
 </template>
 
@@ -14,32 +14,18 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('clients', { currentClient: 'getCurrentClient', clientsList: 'getClients' }),
-    clients () {
-      return this.clientsList.map(d => {
-        const localUserName = `${d.computer.user}@${d.computer.name}.${d.computer.domain}`
-        const extendedName = `${localUserName} (${d.computer.uuid})`
-        return { ...d, localUserName, extendedName }
-      })
-      // return [...new Set(names)].sort()
-      // return names.sort()
-    },
-    clientsNames () {
-      return this.clients.map(c => c.extendedName)
-    },
-    uniqueNames () {
-      return [...new Set(this.clientsNames)].sort()
-    }
+    ...mapGetters('clients', { currentClient: 'getCurrentClient', clientsList: 'getClients' })
   },
   watch: {
-    selectedClient (val) {
-      console.log('Selected', this.clients.filter(c => c.localUserName === val))
+    selectedClient (client) {
+      console.log('selectedClient', client)
+      this.selectClient(client)
     }
   },
   components: {
   },
   methods: {
-    ...mapMutations('clients', ['setCurrentClient'])
+    ...mapMutations('clients', ['selectClient'])
   },
   async mounted () {
   }
