@@ -4,9 +4,6 @@
       <div style="flex-shrink: 0;" class="disks column no-wrap items-center">
         <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px" @click="$router.push('/')"/>
         <span class="text-center">Disks</span>
-        <div class="q-gutter-sm">
-          <q-checkbox dense v-model="all" label="All" color="button" />
-        </div>
         <q-tabs class="q-mt-lg"
           v-model="disktab"
           vertical
@@ -84,10 +81,7 @@ export default {
         name: undefined,
         domain: undefined,
         user: undefined
-      },
-      all: false
-      // restores: [],
-      // backups: [],
+      }
     }
   },
   computed: {
@@ -95,6 +89,8 @@ export default {
     ...mapGetters('view', ['getview']),
     ...mapGetters('backups', { lastBackupDone: 'getLastCompleted' }),
     ...mapGetters('clients', ['isCurrentClient', 'getSelectedClient']),
+    ...mapGetters('options', ['getOption']),
+    all () { return this.getOption('showForeignDisks') },
     getRemoteDisks () {
       return this.all ? listAllDisksOnBackup : listDisksOnBackup
     },
@@ -113,13 +109,12 @@ export default {
     },
     selectedForeignBackups () {
       const selected = this.getSelectedClient
-      if (!selected.uuid) return this.foreignBackups
-      return this.foreignBackups.filter(d => d.computer.uuid === selected.uuid)
+      const foreign = this.foreignBackups
+      return selected ? foreign.filter(d => d.computer.uuid === selected.uuid) : foreign
     },
     sortDisks () {
       const owndisks = [...this.ownDisks].sort(compareDisks)
       const fdisks = [...this.selectedForeignBackups].sort(compareByDomain)
-      console.log('owndisks', owndisks)
       return [...owndisks, ...fdisks]
     },
     getDiskById () {
@@ -144,11 +139,7 @@ export default {
     },
     diskname () {
       return disk => {
-        const name = disk.name.replace(/\\$/, '') // remove ending backslash
-        return name
-        // if (name && name !== '_') {
-        //   return `${name}`
-        // } else return ''
+        return disk.name.replace(/\\$/, '') // remove ending backslash
       }
     },
     appendDomain () {
@@ -162,10 +153,10 @@ export default {
       return disk => {
         // console.log(disk.label, disk.name)
         if (disk.label && disk.label !== '_') {
-          return `${disk.label}` + this.appendDomain(disk)
-        } else if (!disk.name || disk.name === '_') {
-          return `[${disk.uuid}]` + this.appendDomain(disk)
-        } else return '' + this.appendDomain(disk)
+          return disk.label + this.appendDomain(disk)
+        } else if (disk.name && disk.name !== '_') {
+          return disk.name + this.appendDomain(disk)
+        } else return disk.uuid + this.appendDomain(disk)
       }
     },
     color () {
@@ -188,7 +179,6 @@ export default {
         return { ...c, id, fullUserName }
       })
       const unique = [...new Map(dup.map(c => [c.id, c])).values()]
-      console.log('UNIQUE', unique)
       this.setClients(unique)
     },
     disktab (val, o) {

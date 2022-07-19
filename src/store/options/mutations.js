@@ -1,4 +1,3 @@
-export function setOptions (state, option) {
-  const options = state.options
-  state.options = { ...options, option }
+export function setOptions (state, options) {
+  state.options = { ...state.options, ...options }
 }

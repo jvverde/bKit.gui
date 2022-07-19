@@ -32,13 +32,13 @@
         <div style="margin-left:auto">
           <q-btn v-show="!empty" color="button" icon="cloud_circle" dense flat @click="toggle"/>
         </div>
-        <clients/>
-        <div style="margin-right: 1em;">
-          <q-btn icon="home" dense flat @click="$router.push({ name: 'home' })"/>
-        </div>
+        <clients class="q-mr-md q-my-xs"/>
         <div>
           <span v-html="user"/> @ {{hostname}} | v{{version}}
           <!--span>{{currentClient.user}}@{{currentClient.name}}</span-->
+        </div>
+        <div style="margin-right: 1em;">
+          <q-btn icon="home" dense flat @click="$router.push({ name: 'home' })"/>
         </div>
       </q-toolbar>
     </q-header>

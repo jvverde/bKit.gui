@@ -1,7 +1,8 @@
 export default function () {
   return {
     options: {
-      showFilesOnLeftPanel: false
+      showFilesOnLeftPanel: false,
+      showForeignDisks: false
     }
   }
 }
