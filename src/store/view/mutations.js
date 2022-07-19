@@ -7,7 +7,8 @@ const equal = (x, y) => {
 }
 
 export function setView (state, view) {
-  // we should implement this as an action where we can get LIMIT from a another moddle getter
+  // We want to have the go back in the history posssibility
+  // NOTE: we should implement this as an action where we can get LIMIT from a another moddle getter
   const path = normalize(view.path)
   const nview = { ...view, path }
   if (equal(nview, state.view)) {
@@ -16,7 +17,7 @@ export function setView (state, view) {
   }
   state.view = nview
   state.history.push(state.view)
-  if (state.history.length > LIMIT) state.history.shift()
+  if (state.history.length > LIMIT) state.history.shift() // Limit history size
   state.index = state.history.length - 1
 }
 

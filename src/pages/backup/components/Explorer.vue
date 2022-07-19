@@ -125,7 +125,7 @@ export default {
     ...mapActions('snaps', ['loadSnaps']),
     ...mapMutations('view', ['setView']),
     ...mapMutations('disks', ['setDisk']),
-    ...mapMutations('client', ['setCurrentClient']),
+    ...mapMutations('clients', ['setCurrentClient']),
 
     stepto (index) {
       const path = join(this.base, this.steps.slice(0, index).join('/'))

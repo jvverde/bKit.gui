@@ -3,15 +3,15 @@ import axios from 'axios'
 import { pInfo } from 'src/boot/computer'
 import { Store } from 'src/store'
 
-const getCurrentClient = () => Store.getters['client/getCurrentClient']
+const getCurrentClient = () => Store.getters['clients/getCurrentClient']
 
 export async function listDisksOnBackup () {
   try {
     const { computer, localUser } = await pInfo
     // Use getCurrentClient but fallback to (local)computer
     const { uuid, name, domain } = { ...computer, ...getCurrentClient() }
-    const { data: response } = await axios.get(`v1/user/volumes/${localUser}/${uuid}/${name}/${domain}`)
-    return response // .map(d => d.volume)
+    const { data } = await axios.get(`v1/user/volumes/${localUser}/${uuid}/${name}/${domain}`)
+    return data // .map(d => d.volume)
   } catch (err) {
     console.error(err)
   }
@@ -20,10 +20,11 @@ export async function listDisksOnBackup () {
 
 export async function listAllDisksOnBackup () {
   try {
-    const { localUser } = await pInfo
+    // const { localUser } = await pInfo
     // Use getCurrentClient but fallback to (local)computer
-    const { data: response } = await axios.get(`v1/user/volumes/${localUser}`)
-    return response // .map(d => d.volume)
+    const { data } = await axios.get('v1/user/volumes')
+    // console.warn('DATA SIZE', data.length)
+    return data // .map(d => d.volume)
   } catch (err) {
     console.error(err)
   }

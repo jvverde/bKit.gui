@@ -32,12 +32,13 @@
         <div style="margin-left:auto">
           <q-btn v-show="!empty" color="button" icon="cloud_circle" dense flat @click="toggle"/>
         </div>
+        <clients/>
         <div style="margin-right: 1em;">
           <q-btn icon="home" dense flat @click="$router.push({ name: 'home' })"/>
         </div>
         <div>
-          <!-- span v-html="user"/> @ {{hostname}} | v{{version}} -->
-          <span :class="{foreign: !isLocalComputer}">{{currentClient.user}}@{{currentClient.name}}.{{currentClient.domain}}</span>
+          <span v-html="user"/> @ {{hostname}} | v{{version}}
+          <!--span>{{currentClient.user}}@{{currentClient.name}}</span-->
         </div>
       </q-toolbar>
     </q-header>
@@ -70,6 +71,7 @@ import { mapGetters, mapMutations, mapActions } from 'vuex'
 import bkitmenu from './components/Menu'
 import backupProgress from './components/BackupProgress'
 import restoreProgress from './components/RestoreProgress'
+import clients from './components/Clients'
 
 // import { colors } from 'quasar'
 
@@ -94,8 +96,6 @@ const compareByAddr = (a, b) => {
 }
 const compare = compareByAddr
 
-const sameComputer = (a, b) => a.name === b.name && a.domain === b.domain && a.uuid === b.uuid && a.user === b.user
-
 export default {
   name: 'MainLayout',
 
@@ -111,16 +111,13 @@ export default {
         domain: undefined,
         uuid: undefined,
         user: undefined
-      }
+      },
+      selectedClient: null
     }
   },
   computed: {
     ...mapGetters('accounts', ['account', 'currentProfiles']),
     ...mapGetters('backups', ['empty']),
-    ...mapGetters('client', { currentClient: 'getCurrentClient' }),
-    isLocalComputer () {
-      return sameComputer(this.computer, this.currentClient)
-    },
     loading () { return this.msg && this.msg.length > 0 },
     user () {
       return this.localUser
@@ -143,7 +140,8 @@ export default {
   components: {
     bkitmenu,
     backupProgress,
-    restoreProgress
+    restoreProgress,
+    clients
   },
   methods: {
     ...mapActions('accounts', ['setCurrentAccount']),

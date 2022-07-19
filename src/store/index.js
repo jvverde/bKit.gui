@@ -15,7 +15,7 @@ Vue.use(Vuex)
  */
 import accounts from './accounts'
 import servers from './servers'
-import client from './client'
+import clients from './clients'
 import auth from './auth'
 import view from './view'
 import snaps from './snaps'
@@ -30,7 +30,7 @@ export const Store = new Vuex.Store({
   modules: {
     accounts,
     servers,
-    client,
+    clients,
     disks,
     auth,
     view,

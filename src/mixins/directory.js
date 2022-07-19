@@ -69,7 +69,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('client', ['getCurrentClient']),
+    ...mapGetters('clients', ['getCurrentClient']),
     done () {
       return !this.remoteloading && !this.localloading
     },

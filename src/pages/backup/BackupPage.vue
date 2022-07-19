@@ -7,9 +7,6 @@
         <div class="q-gutter-sm">
           <q-checkbox dense v-model="all" label="All" color="button" />
         </div>
-        <div class="q-gutter-md">
-          <q-select filled v-model="selectedClient" :options="clients" label="Computers" stack-label/>
-        </div>
         <q-tabs class="q-mt-lg"
           v-model="disktab"
           vertical
@@ -82,7 +79,6 @@ export default {
       dst: '',
       disktab: '',
       disks: [],
-      selectedClient: null,
       computer: {
         uuid: undefined,
         name: undefined,
@@ -98,11 +94,7 @@ export default {
     ...mapGetters('accounts', ['currentAccount']),
     ...mapGetters('view', ['getview']),
     ...mapGetters('backups', { lastBackupDone: 'getLastCompleted' }),
-    ...mapGetters('client', ['isCurrentClient']),
-    clients () {
-      const names = this.foreignBackups.map(d => `${d.computer.user}@${d.computer.name}.${d.computer.domain}`)
-      return [...new Set(names)].sort()
-    },
+    ...mapGetters('clients', ['isCurrentClient']),
     getRemoteDisks () {
       return this.all ? listAllDisksOnBackup : listDisksOnBackup
     },
@@ -184,6 +176,9 @@ export default {
     }
   },
   watch: {
+    disks (val) {
+      this.setClients([...val])
+    },
     disktab (val, o) {
       // When disktab change we need to switch to correspondent client/computer
       // const disk = this.getDiskById(val)
@@ -218,7 +213,7 @@ export default {
     tooltip
   },
   methods: {
-    ...mapMutations('client', ['setCurrentClient']),
+    ...mapMutations('clients', ['setCurrentClient', 'setClients']),
     async getDisksOnBackup () {
       const disks = await this.getRemoteDisks() || []
       for (const disk of disks) {
