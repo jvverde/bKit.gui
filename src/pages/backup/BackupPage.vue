@@ -1,19 +1,21 @@
 <template>
   <q-page padding class="fit">
     <div class="row no-wrap fit">
-      <div style="flex-shrink: 0;" class="disks column no-wrap items-center">
-        <img alt="bKit logo" src="~assets/logotipo.svg" style="height:5vmin;min-height:45px" @click="$router.push('/')"/>
-        <span class="text-center">Disks</span>
+      <div style="flex-shrink: 0;" class="disks column no-wrap items-center full-height">
+        <img alt="bKit logo" src="~assets/logotipo.svg" style="height:3%;" @click="$router.push('/')"/>
+        <svg viewBox="0 0 60 15" xmlns="http://www.w3.org/2000/svg" height="1%">
+          <text x="15" y="15">Disks</text>
+        </svg>
         <q-tabs class="q-mt-lg"
           v-model="disktab"
           vertical
           dense
           no-caps
-          :outside-arrows="false"
-          :mobile-arrows="false"
-          style="background-color: ghostwhite"
+          outside-arrows
+          mobile-arrows
+          style="background-color: ghostwhite; max-height: 86%"
           indicator-color="active"
-          active-bg-color="white">
+          active-bg-color="grey-3">
           <q-tab
             v-for="disk in sortDisks"
             :key="disk.id"
