@@ -4,7 +4,7 @@
       <div style="flex-shrink: 0;" class="disks column no-wrap items-center full-height">
         <img alt="bKit logo" src="~assets/logotipo.svg" style="height:3%;" @click="$router.push('/')"/>
         <svg viewBox="0 0 60 15" xmlns="http://www.w3.org/2000/svg" height="1%">
-          <text x="15" y="15">Disks</text>
+          <text x="10" y="15">Disks</text>
         </svg>
         <q-tabs class="q-mt-lg"
           v-model="disktab"

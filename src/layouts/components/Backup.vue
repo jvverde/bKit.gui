@@ -108,7 +108,7 @@ export default {
       currentline: '',
       errorline: '',
       process: undefined,
-      pid: null,
+      pid: undefined,
       dequeued: () => null,
       deleted: false,
       dryrun: false,
@@ -148,7 +148,7 @@ export default {
       return this.status && this.dryrun
     },
     isStopped () {
-      return this.isDone || this.isCanceled
+      return this.isCanceled || this.isFinished
     },
     isDismissible () {
       return this.status && this.isStopped
@@ -216,19 +216,21 @@ export default {
       }
     },
     formatBytes,
-    cancel () {
-      if (this.pid) {
-        killtree(this.pid)
-          .then(() => { this.pid = undefined })
-          .catch(err => console.error(err))
+    async cancel () {
+      try {
+        if (this.pid) {
+          await killtree(this.pid)
+          this.pid = undefined
+        }
+        if (this.onQueue && this.dequeued instanceof Function) {
+          console.log('Dequeued')
+          this.dequeued()
+        }
+      } catch (err) {
+        console.error(`Cancel catch an error for [${this.pid}] ${this.path}`, err)
+      } finally {
+        this.status = 'Canceled'
       }
-
-      if (this.onQueue && this.dequeued instanceof Function) {
-        console.log('Dequeued')
-        this.dequeued()
-      }
-
-      this.status = 'Canceled'
     },
     sent ({
       // YXcstpoguax
@@ -300,7 +302,8 @@ export default {
           this.status = 'Enqueued'
           this.dequeued = item.dismiss
         },
-        oncespawn: () => {
+        oncespawn: (fd) => {
+          console.log('Launching', fd)
           this.status = 'Launching'
         },
         stderr: (line) => {
@@ -322,12 +325,19 @@ export default {
       }).finally(() => {
         this.finished = true
         this.needBackup = 0
+        this.pid = undefined
         this.lastRun = Date.now()
         this.waiting = undefined
+        // if (this.pid) killtree(this.pid)
       })
+    },
+    async beforeWindowUnload () {
+      console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+      if (this.pid) await killtree(this.pid)
     }
   },
   mounted () {
+    window.addEventListener('beforeunload', this.beforeWindowUnload)
     this.backup()
   },
   beforeUpdate () {
@@ -335,6 +345,7 @@ export default {
   },
   beforeDestroy () {
     this.stopWatch()
+    window.removeEventListener('beforeunload', this.beforeWindowUnload)
   }
 }
 </script>

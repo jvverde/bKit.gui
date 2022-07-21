@@ -111,7 +111,20 @@ function createWindow () {
   }
 
   mainWindow.on('closed', () => {
+    say.log('mainWindow closed')
     mainWindow = null
+  })
+  mainWindow.on('beforeunload ', () => {
+    say.log('beforeunload')
+  })
+  mainWindow.onbeforeunload = e => {
+    say.log('onbeforeunload')    
+  }
+  mainWindow.on('close', () => {
+    say.log('mainWindow is going to close')
+  })
+  mainWindow.webContents.on('destroyed', () => {
+    say.log('webContents Was destroyed')
   })
 
   mainWindowState.manage(mainWindow)
@@ -234,13 +247,13 @@ ipcMain.on('deletePassword', async (event, account) => {
 say.log('GET PREFERENCES', get_preferences())
 
 ipcMain.on('setPreferences', async (event, prefs) => {
-  say.log('set_preferences', prefs)
+  // say.log('set_preferences', prefs)
   set_preferences(prefs)
   event.returnValue = true
 })
 
 ipcMain.on('getPreferences', async (event) => {
-  say.log('preferences', get_preferences())
+  // say.log('preferences', get_preferences())
   event.returnValue = get_preferences()
 })
 

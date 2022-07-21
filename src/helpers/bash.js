@@ -31,15 +31,23 @@ export function shell () {
 // Spawn a bash script
 function _bash (name, args = [], events = {}, done = nill) {
   const scriptname = typeof name === 'object' ? name.script : name
-  const warn = (err) => console.warn(`Received on stderr from bash script ${scriptname}: ${err}`)
+  const warn = (err) => console.warn(`Received on stderr from script ${scriptname}: ${err}`)
 
   const { onreadline = nill, onerror = nill, stderr = warn, oncespawn = nill } = events
-  let doneOnce = (code) => {
-    doneOnce = nill
-    stoptimeout()
-    console.log('Done', scriptname, ...args)
-    done(code)
-    fd.kill()
+  let doneOnce = code => {
+    try {
+      doneOnce = nill
+      stoptimeout()
+      if (fd.stdin) fd.stdin.pause()
+      console.log('Kill process Family of', fd)
+      if (fd.pid) process.kill(-(fd.pid | 0))
+      fd.kill()
+    } catch (err) {
+      console.warn(`When try to kill family of ${fd.pid}`, err, fd)
+    } finally {
+      console.log('Done', scriptname, ...args)
+      done(code)
+    }
   }
   const bKitPath = getbkitlocation()
   console.log(`Try spawn ${scriptname} on ${bKitPath} `)
@@ -72,7 +80,7 @@ function _bash (name, args = [], events = {}, done = nill) {
 
   fd.on('close', (code) => {
     console.log('Done spawn', scriptname, ...args)
-    if (code) console.log(`Return code ${code} is NOT ok`)
+    if (code) console.warn(`Return code ${code} is NOT ok`)
     doneOnce(code)
   })
 
@@ -137,6 +145,7 @@ export function asyncBash (name, args = [], events = {}) {
 }
 
 export function killtree (pid) {
+  console.log('Kill tree of process', pid)
   return new Promise((resolve, reject) => {
     _bash('./killtree.sh', [pid], { onerror: reject }, resolve)
   })
