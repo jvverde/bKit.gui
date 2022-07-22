@@ -51,7 +51,7 @@
       <q-item-label>
         <q-btn flat round icon="backup" color="backup" size="sm" @click.stop="backup" :disable="!isStopped"  :class="{inactive: !isStopped}"/>
         <q-btn flat round icon="pause" color="cancel" size="sm" @click.stop="cancel" :disable="!isCancelable"  :class="{inactive: !isCancelable}"/>
-        <q-btn flat round icon="close" color="dismiss" size="sm" @click.stop="remove" :disable="!isDismissible" :class="{inactive: !isDismissible}"/>
+        <q-btn flat round icon="close" color="dismiss" size="sm" @click.stop="remove" :disable="!isRemovable" :class="{inactive: !isRemovable}"/>
       </q-item-label>
     </q-item-section>
   </q-item>
@@ -65,6 +65,7 @@ import tooltip from 'src/components/tooltip'
 import { mapMutations } from 'vuex'
 import { warn } from 'src/helpers/notify'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
+import { dismissed } from 'src/helpers/queue'
 
 const depth = 20
 const watchOptions = { ...chokidarOptions, depth }
@@ -137,7 +138,7 @@ export default {
       return this.status === 'Done' && this.isFinished
     },
     isCanceled () {
-      return this.status === 'Canceled'
+      return this.status === 'Canceled' || this.status === 'Dequeued'
     },
     onQueue () {
       return this.status === 'Enqueued'
@@ -151,7 +152,7 @@ export default {
     isStopped () {
       return this.isCanceled || this.isFinished
     },
-    isDismissible () {
+    isRemovable () {
       return this.status && this.isStopped
     }
   },
@@ -321,9 +322,13 @@ export default {
         const { path, endpoint } = this
         this.backupDone({ path, endpoint })
       }).catch(e => {
-        console.error('Backup catch error', e, this.path)
-        this.error = e
-        this.status = 'Error'
+        if (e === dismissed) {
+          this.status = 'Dequeued'
+        } else {
+          console.error('Backup catch error', e, this.path)
+          this.error = e
+          this.status = 'Error'
+        }
       }).finally(() => {
         this.finished = true
         this.needBackup = 0

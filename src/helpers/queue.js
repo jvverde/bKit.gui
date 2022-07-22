@@ -1,3 +1,5 @@
+export const dismissed = 'Dismissed from queue'
+
 // Idea from https://medium.com/@karenmarkosyan/how-to-manage-promises-into-dynamic-queue-with-vanilla-javascript-9d0d1f8d4df5
 export default class Queue {
   constructor (limit = 1) {
@@ -39,7 +41,7 @@ export default class Queue {
   }
 
   dismiss (key) {
-    this.removeItems(key).forEach(e => e.reject('Dismiss from queue'))
+    this.removeItems(key).forEach(e => e.reject(dismissed))
   }
 
   _resolve (item, value) {
