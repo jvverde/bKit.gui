@@ -51,7 +51,7 @@ export default class Queue {
   }
 
   _run () {
-    if (this.workingOnPromise > 3) {
+    if (this.workingOnPromise >= this.limit) {
       return false
     }
     const item = this.queue.shift()

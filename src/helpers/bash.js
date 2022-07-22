@@ -39,11 +39,11 @@ function _bash (name, args = [], events = {}, done = nill) {
       doneOnce = nill
       stoptimeout()
       if (fd.stdin) fd.stdin.pause()
-      console.log('Kill process Family of', fd)
-      if (fd.pid) process.kill(-(fd.pid | 0))
+      // console.log('Kill process Family of', pid, fd)
+      // if (fd.pid) process.kill(`-${pid}`)
       fd.kill()
     } catch (err) {
-      console.warn(`When try to kill family of ${fd.pid}`, err, fd)
+      console.warn(`When try to kill family of ${name} [${pid}] ${args}`, err, fd)
     } finally {
       console.log('Done', scriptname, ...args)
       done(code)
@@ -56,8 +56,10 @@ function _bash (name, args = [], events = {}, done = nill) {
   const fd = spawn(
     BASH,
     ['./run.sh', scriptname, ...args],
+    // [scriptname, ...args],
     options
   )
+  const pid = fd.pid
   console.log('Spawned', scriptname, ...args)
 
   const mytimeout = () => {

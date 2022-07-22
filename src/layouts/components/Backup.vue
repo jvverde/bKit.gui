@@ -109,6 +109,7 @@ export default {
       errorline: '',
       process: undefined,
       pid: undefined,
+      pgid: undefined,
       dequeued: () => null,
       deleted: false,
       dryrun: false,
@@ -293,10 +294,11 @@ export default {
         saved: endpoint => {
           console.log('Your data is saved on', endpoint)
         },
-        start: ({ pid }) => {
+        start: ({ pid, pgid }) => {
           this.status = 'Starting'
           this.pid = pid
-          console.log('Starting with pid', pid)
+          this.pgid = pgid
+          console.log(`Starting with pid ${pid} and pgid ${pgid}`)
         },
         enqueued: (item) => {
           this.status = 'Enqueued'
@@ -328,12 +330,12 @@ export default {
         this.pid = undefined
         this.lastRun = Date.now()
         this.waiting = undefined
-        // if (this.pid) killtree(this.pid)
+        if (this.pgid) killtree(this.pgid)
+        this.pgid = undefined
       })
     },
     async beforeWindowUnload () {
-      console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-      if (this.pid) await killtree(this.pid)
+      if (this.pgid) await killtree(this.pgid)
     }
   },
   mounted () {

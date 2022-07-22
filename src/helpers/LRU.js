@@ -9,7 +9,7 @@ class Node {
 }
 
 export default class LRU {
-  // set default limit of 30 if limit is not passed.
+  // set default limit of 30
   constructor (limit = 30) {
     this.size = 0
     this.limit = limit
