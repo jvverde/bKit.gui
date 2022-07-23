@@ -4,7 +4,7 @@
       <div style="flex-shrink: 0;" class="disks column no-wrap items-center full-height">
         <img alt="bKit logo" src="~assets/logotipo.svg" style="height:3%;" @click="$router.push('/')"/>
         <svg viewBox="0 0 60 15" xmlns="http://www.w3.org/2000/svg" height="1%">
-          <text x="10" y="15">Disks</text>
+          <text x="50%" y="50%">Disks</text>
         </svg>
         <q-tabs class="q-mt-lg"
           v-model="disktab"
@@ -23,9 +23,13 @@
             :disable="loading"
             :ripple="{ early: true, color: 'indigo'}"
             icon="far fa-hdd"
+            :style="diskHasLetter(disk) ? '' : 'padding-left: 2px; padding-right: 2px'"
             :class="'text-' + color(disk)"
           >
-            <span class="disk">{{diskname(disk)}}</span>
+            <div v-if="diskHasLetter(disk)" class="disk">{{diskname(disk)}}</div>
+            <svg v-else viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg" width="3vw">
+              <text  x="50%" y="50%">{{diskname(disk)}}</text>
+            </svg>
             <tooltip v-if="disklabel(disk)" :label="disklabel(disk)"/>
           </q-tab>
         </q-tabs>
@@ -90,9 +94,15 @@ export default {
     ...mapGetters('accounts', ['currentAccount']),
     ...mapGetters('view', ['getview']),
     ...mapGetters('backups', { lastBackupDone: 'getLastCompleted' }),
-    ...mapGetters('clients', ['isCurrentClient', 'getSelectedClient']),
+    ...mapGetters('clients', ['isCurrentClient', 'isSelectedClient', 'getSelectedClient']),
     ...mapGetters('options', ['getOption']),
     all () { return this.getOption('showForeignDisks') },
+    diskHasLetter () {
+      return d => d.name !== '_'
+    },
+    amIselectedClient () {
+      return this.getSelectedClient === undefined || this.isSelectedClient(this.computer)
+    },
     getRemoteDisks () {
       return this.all ? listAllDisksOnBackup : listDisksOnBackup
     },
@@ -112,10 +122,11 @@ export default {
     selectedForeignBackups () {
       const selected = this.getSelectedClient
       const foreign = this.foreignBackups
-      return selected ? foreign.filter(d => d.computer.uuid === selected.uuid) : foreign
+      return selected ? foreign.filter(d => d.computer.uuid === selected.uuid && d.computer.user === selected.user && d.computer.name === selected.name && d.computer.domain === selected.domain) : foreign
     },
     sortDisks () {
-      const owndisks = [...this.ownDisks].sort(compareDisks)
+      console.log('amIselectedClient?', this.amIselectedClient)
+      const owndisks = this.amIselectedClient ? [...this.ownDisks].sort(compareDisks) : []
       const fdisks = [...this.selectedForeignBackups].sort(compareByDomain)
       return [...owndisks, ...fdisks]
     },
@@ -141,14 +152,14 @@ export default {
     },
     diskname () {
       return disk => {
-        return disk.name.replace(/\\$/, '') // remove ending backslash
+        return disk.name.replace(/\\$/, '').replace(/^_$/, disk.label) // remove ending backslash
       }
     },
     appendDomain () {
       return disk => {
         const { computer, mountpoint } = disk
         if (mountpoint) return ''
-        return this.isCurrentClient(computer) ? '' : `@${computer.name}.${computer.domain}`
+        return this.isCurrentClient(computer) ? '' : ` [${computer.user}@${computer.name}.${computer.domain}]`
       }
     },
     disklabel () {
@@ -165,7 +176,7 @@ export default {
       return disk => {
         if (disk.rvid && disk.mountpoint) {
           return 'ok'
-        } else if (disk.rvid && this.isCurrentClient(disk.computer)) {
+        } else if (disk.rvid && this.amIcurrentClient) {
           return 'missing'
         } else if (disk.rvid) {
           return 'foreign'
@@ -331,5 +342,9 @@ export default {
  .disks:hover .disk{
     max-width: initial;
     overflow-x: initial;
+  }
+  svg text{
+    text-anchor: middle;
+    dominant-baseline: middle;
   }
 </style>
