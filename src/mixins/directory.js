@@ -74,7 +74,8 @@ export default {
       return !this.remoteloading && !this.localloading
     },
     endpoint () {
-      return [this.snap, this.rvid, this.mountpoint, this.fullpath]
+      const { snap, rvid, mountpoint, fullpath } = this
+      return { snap, rvid, mountpoint, fullpath }
     },
     localBackuped () { /* Local Files/Dirs on backup */
       const { localEntries, backupEntries } = this
@@ -103,15 +104,12 @@ export default {
     endpoint: {
       immediate: true,
       deep: true,
-      async handler (endpoint, old) {
-        // console.log('New endpoint', endpoint)
-        try {
-          await this.readRemoteDir()
-        } catch (err) {
-          warn(err, false)
-        } finally {
-          // console.log(this.entries)
-        }
+      handler (endpoint, old) {
+        console.log('New endpoint', endpoint, old)
+        this.$nextTick(() => { // Not so fast. Wait to see if any other parameter change too.
+          console.log('In nextTick, use ', this.endpoint)
+          this.readRemoteDir()
+        })
       }
     },
     fullpath: {

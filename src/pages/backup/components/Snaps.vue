@@ -76,12 +76,13 @@ export default {
   },
   watch: {
     rvid: function () {
+      console.log('RVID change to', this.rvid)
       this.load_snaps()
     }
   },
   methods: {
     ...mapActions('snaps', ['loadSnaps']),
-    ...mapMutations('snaps', ['setCurrentSnap']),
+    ...mapMutations('snaps', ['setCurrentSnap', 'clearSnaps']),
     select (snap) {
       this.setCurrentSnap(snap)
     },
@@ -98,10 +99,13 @@ export default {
     }
   },
   mounted () {
+    console.log('Mount snaps for', this.rvid)
     this.load_snaps()
   },
   beforeDestroy () {
+    console.log('Before destroy snap of', this.rvid)
     lastSnap[this.rvid] = this.getCurrentSnap
+    this.clearSnaps()
   }
 }
 </script>

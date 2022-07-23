@@ -23,11 +23,11 @@
             :disable="loading"
             :ripple="{ early: true, color: 'indigo'}"
             icon="far fa-hdd"
-            :style="diskHasLetter(disk) ? '' : 'padding-left: 2px; padding-right: 2px'"
+            :style="diskHasLetter(disk) ? '' : 'padding-left: 0px; padding-right: 0px'"
             :class="'text-' + color(disk)"
           >
             <div v-if="diskHasLetter(disk)" class="disk">{{diskname(disk)}}</div>
-            <svg v-else viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg" width="3vw">
+            <svg v-else viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg" width="5vw">
               <text  x="50%" y="50%">{{diskname(disk)}}</text>
             </svg>
             <tooltip v-if="disklabel(disk)" :label="disklabel(disk)"/>
@@ -71,7 +71,9 @@ const getComputer = disk => {
   return { domain, name, uuid, user }
 }
 
-const sameComputerUUID = (a, b) => a.uuid === b.uuid
+const sameComputer = (a, b) => {
+  return a.uuid === b.uuid && a.user === b.user && a.name === b.name && a.domain === b.domain
+}
 
 export default {
   name: 'backup',
@@ -113,7 +115,7 @@ export default {
       return this.disks.filter(d => d.mountpoint)
     },
     ownDisks () { // Disks and backups belonging to this computer
-      return this.disks.filter(d => sameComputerUUID(this.computer, d.computer))
+      return this.disks.filter(d => sameComputer(this.computer, d.computer))
     },
     foreignBackups () { // Backups of another computers
       const uuid = this.computer.uuid
@@ -122,10 +124,9 @@ export default {
     selectedForeignBackups () {
       const selected = this.getSelectedClient
       const foreign = this.foreignBackups
-      return selected ? foreign.filter(d => d.computer.uuid === selected.uuid && d.computer.user === selected.user && d.computer.name === selected.name && d.computer.domain === selected.domain) : foreign
+      return selected ? foreign.filter(d => sameComputer(d, selected)) : foreign
     },
     sortDisks () {
-      console.log('amIselectedClient?', this.amIselectedClient)
       const owndisks = this.amIselectedClient ? [...this.ownDisks].sort(compareDisks) : []
       const fdisks = [...this.selectedForeignBackups].sort(compareByDomain)
       return [...owndisks, ...fdisks]
@@ -133,10 +134,6 @@ export default {
     getDiskById () {
       return id => this.disks.find(d => d.id === id)
     },
-    // newDiskOnBackup () {
-    //   console.log('newDiskOnBackup', this.disksNotInBackup)
-    //   return this.disksNotInBackup.some(d => this.wasUpdated(d.mountpoint))
-    // },
     splitter: {
       get: function () {
         const length = 10
@@ -239,7 +236,7 @@ export default {
         const match = rvid.match(/^(?<letter>.)\.(?<uuid>[^.]+)\.(?<label>.+)\.(.+)\.(?<fs>.+)$/)
         if (!match) continue
         const { letter, uuid, label, fs } = match.groups
-        const index = this.disks.findIndex(e => e.uuid === uuid && sameComputerUUID(e.computer, computer))
+        const index = this.disks.findIndex(e => e.uuid === uuid && sameComputer(e.computer, computer))
         if (index >= 0) {
           const d = { ...this.disks[index], computer, rvid, letter, uuid, label, fs }
           const id = getId(d)
@@ -266,7 +263,7 @@ export default {
         const [mountpoint, label, uuid, fs] = pattern.split(/\|/)
         const name = mountpoint
         const letter = mountpoint.substring(0, 1)
-        const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label && sameComputerUUID(e.computer, computer))
+        const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label && sameComputer(e.computer, computer))
         if (index >= 0) {
           const d = { ...this.disks[index], name, letter, mountpoint, label, uuid, fs, computer }
           const id = getId(d)

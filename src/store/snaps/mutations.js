@@ -8,3 +8,8 @@ export function useLastSnap (state) {
 export function setCurrentSnap (state, snap) {
   state.currentSnap = snap
 }
+
+export function clearSnaps (state, snap) {
+  state.currentSnap = undefined
+  state.snaps = []
+}
