@@ -199,7 +199,8 @@ export default {
       }
     },
     showAll () {
-      this.refreshRemoteDisks()
+      this.disks = this.localDisks // Only leave local disks
+      this.getDisksOnBackup()
     }
   },
   components: {
@@ -225,10 +226,6 @@ export default {
           this.disks.push(new Disk(d))
         }
       }
-    },
-    refreshRemoteDisks () {
-      this.disks = this.localDisks // Only leave local disks
-      this.getDisksOnBackup()
     },
     async getLocalDisks () {
       const disks = await listLocalDisks() || []

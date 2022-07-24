@@ -99,7 +99,6 @@ export default {
     }
   },
   mounted () {
-    console.log('Mount snaps for', this.rvid)
     this.load_snaps()
   },
   beforeDestroy () {

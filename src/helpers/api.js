@@ -61,3 +61,27 @@ const _listPath = async (rvid, snap, path) => {
 
 // We use an exclusive proxy only pfor listPath
 export const listPath = exclusiveProxy(_listPath, { size: 200, name: 'LISTPATH' })
+
+const missingParents = [] // Avoid recurring requests to non-existing dirs
+export const listRemoteDir = async (rvid, snap, path) => {
+  const fullpath = `${rvid}/${snap}/${path}`
+
+  const found = missingParents.some(p => fullpath.startsWith(p))
+  if (found) { // is a HIT
+    console.log('Found a parent with no results')
+    return []
+  } else { // Is a MISS
+    console.log('Go ahead for', fullpath)
+    try {
+      const result = await listPath(rvid, snap, path)
+      if (!result || result.length === 0) {
+        console.log(`Put "${fullpath}" on missingParents list`)
+        missingParents.push(fullpath)
+      }
+      return result
+    } catch (err) {
+      console.warn('Ignore error and return an empty array', err)
+      return []
+    }
+  }
+}
