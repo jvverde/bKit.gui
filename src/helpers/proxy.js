@@ -1,26 +1,10 @@
 'use strict'
 import { Store } from 'src/store'
+import { deepFreeze } from './utils'
 
 const servername = () => Store.getters['accounts/accountServerURL']
 
 const deepclone = require('lodash.clonedeep')
-
-function deepFreeze (object) {
-  // Retrieve the property names defined on object
-  var propNames = Object.getOwnPropertyNames(object)
-
-  // Freeze properties before freezing self
-
-  for (let name of propNames) {
-    let value = object[name]
-
-    if (value && typeof value === 'object') {
-      deepFreeze(value)
-    }
-  }
-
-  return Object.freeze(object)
-}
 
 // From : https://medium.com/@niwaa/using-es6-proxy-to-meta-program-in-javascript-implement-caching-logging-etc-577e253b3e05
 import LRUcache from './LRU'
@@ -62,10 +46,10 @@ export default function proxyIt (fn, { cache = _global, name = 'default' }) {
 
       const hit = cache.read(key)
       if (hit) { // is a HIT
-        console.log(`Cache:${name} for target ${target.name} HIT`, key)
+        console.log(`Cache ${name} for ${target.name} HIT`, key)
         return deepclone(hit)
       } else { // Is a MISS
-        console.log(`Cache:${name} for target ${target.name} MISS`, key)
+        console.log(`Cache ${name} for ${target.name} MISS`, key)
         try {
           const result = await target.apply(thisArg, args)
           deepFreeze(result)

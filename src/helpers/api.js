@@ -2,6 +2,7 @@
 import axios from 'axios'
 import { pInfo } from 'src/boot/computer'
 import { Store } from 'src/store'
+import { exclusiveProxy } from './proxy' // Get an exclusive proxy as well a invalidate cache object
 
 const getCurrentClient = () => Store.getters['clients/getCurrentClient']
 
@@ -39,7 +40,8 @@ export async function listSnaps (rvid, raw = false) {
   return raw ? response : response.map(e => e.snap)
 }
 
-export async function listPath (rvid, snap, path) {
+// listParh can be cached through a prozy, as given a path, a volume and a snap, the files are always the same (readonly snapshots, remember)
+const _listPath = async (rvid, snap, path) => {
   if (!snap || !rvid) throw new Error(`The parametera (rvid, snap) on listPath can't be ('${rvid}', '${snap}')`)
   const { computer, localUser } = await pInfo
   const { uuid, name, domain, user } = { ...computer, user: localUser, ...getCurrentClient() }
@@ -56,3 +58,6 @@ export async function listPath (rvid, snap, path) {
     return { ...e, remote }
   })
 }
+
+// We use an exclusive proxy only pfor listPath
+export const listPath = exclusiveProxy(_listPath, { size: 200, name: 'LISTPATH' })
