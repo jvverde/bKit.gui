@@ -47,7 +47,7 @@ import snaps from './Snaps'
 import listdir from './leftPanel/Listdir'
 import showdir from './rightPanel/Showdir'
 import sstyle from 'src/mixins/scrollStyle'
-import { isSameDisk } from 'src/helpers/disks'
+import { Disk, isSameDisk } from 'src/helpers/disks'
 
 const lastPaths = {}
 
@@ -62,7 +62,7 @@ export default {
   mixins: [sstyle],
   props: {
     disk: {
-      type: Object,
+      type: Disk,
       required: true
     }
   },
