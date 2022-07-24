@@ -105,9 +105,8 @@ export default {
       immediate: true,
       deep: true,
       handler (endpoint, old) {
-        console.log('New endpoint', endpoint, old)
+        // console.log('New endpoint', endpoint, old)
         this.$nextTick(() => { // Not so fast. Give a chance to other parameters to change too. Avoid useless requests
-          console.log('In nextTick, use ', this.endpoint)
           this.readRemoteDir()
         })
       }
@@ -115,7 +114,7 @@ export default {
     fullpath: {
       immediate: true,
       async handler (dir, oldir) {
-        console.log('New fullpath', dir)
+        // console.log('New fullpath', dir)
         try {
           await this.readLocalDir()
           await this.installWatcher()

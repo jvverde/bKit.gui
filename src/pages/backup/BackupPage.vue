@@ -191,10 +191,6 @@ export default {
       const unique = [...new Map(dup.map(c => [c.id, c])).values()]
       this.setClients(unique)
     },
-    disktab (val, o) {
-      // When disktab change we need to switch to correspondent client/computer
-      // const disk = this.getDiskById(val)
-    },
     currentAccount () { // Reset disk list when current account change
       this.disks = []
       this.load()
@@ -205,10 +201,6 @@ export default {
         this.getDisksOnBackup()
       }
     },
-    // newDiskOnBackup (val) { // Refresh list of remote disks
-    //   console.log('Check new disks on backup')
-    //   this.getDisksOnBackup()
-    // },
     getview (view, old) {
       // We need to change from one tab to another when view change from one disk to another
       if (old && !isSameDisk(view, old)) {

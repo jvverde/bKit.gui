@@ -12,6 +12,7 @@ export const formatBytes = (bytes, decimal = 2) => {
 }
 
 export function deepFreeze (object) {
+  // From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
   // Retrieve the property names defined on object
   var propNames = Object.getOwnPropertyNames(object)
 
