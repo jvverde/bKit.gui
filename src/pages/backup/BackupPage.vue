@@ -23,12 +23,12 @@
             :disable="loading"
             :ripple="{ early: true, color: 'indigo'}"
             icon="far fa-hdd"
-            :style="diskHasLetter(disk) ? '' : 'padding-left: 0px; padding-right: 0px'"
+            :style="disk.hasLetter ? '' : 'padding-left: 0px; padding-right: 0px'"
             :class="'text-' + color(disk)"
           >
-            <div v-if="diskHasLetter(disk)" class="disk">{{diskname(disk)}}</div>
+            <div v-if="disk.hasLetter" class="disk">{{disk.diskname}}</div>
             <svg v-else viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg" width="5vw">
-              <text  x="50%" y="50%">{{diskname(disk)}}</text>
+              <text  x="50%" y="50%">{{disk.diskname}}</text>
             </svg>
             <tooltip v-if="disklabel(disk)" :label="disklabel(disk)"/>
           </q-tab>
@@ -64,16 +64,16 @@ import { listDisksOnBackup, listAllDisksOnBackup } from 'src/helpers/api'
 // n
 import { mapGetters, mapMutations } from 'vuex'
 import { pInfo } from 'src/boot/computer'
-import { compareDisks, compareByDomain, getId, isSameDisk } from 'src/helpers/disks'
+import { Disk, compareDisks, compareByDomain, isSameDisk } from 'src/helpers/disks'
 
 const getComputer = disk => {
   const { domain, name, uuid, profile: user } = disk
   return { domain, name, uuid, user }
 }
 
-const sameComputer = (a, b) => {
-  return a.uuid === b.uuid && a.user === b.user && a.name === b.name && a.domain === b.domain
-}
+// const sameComputer = (a, b) => {
+// return a.uuid === b.uuid && a.user === b.user && a.name === b.name && a.domain === b.domain
+// }
 
 export default {
   name: 'backup',
@@ -98,15 +98,12 @@ export default {
     ...mapGetters('backups', { lastBackupDone: 'getLastCompleted' }),
     ...mapGetters('clients', ['isCurrentClient', 'isSelectedClient', 'getSelectedClient']),
     ...mapGetters('options', ['getOption']),
-    all () { return this.getOption('showForeignDisks') },
-    diskHasLetter () {
-      return d => d.name !== '_'
-    },
+    showAll () { return this.getOption('showForeignDisks') },
     amIselectedClient () {
       return this.getSelectedClient === undefined || this.isSelectedClient(this.computer)
     },
     getRemoteDisks () {
-      return this.all ? listAllDisksOnBackup : listDisksOnBackup
+      return this.showAll ? listAllDisksOnBackup : listDisksOnBackup
     },
     disksNotInBackup () { // Local disks without backup
       return this.disks.filter(d => !d.rvid)
@@ -115,7 +112,7 @@ export default {
       return this.disks.filter(d => d.mountpoint)
     },
     ownDisks () { // Disks and backups belonging to this computer
-      return this.disks.filter(d => sameComputer(this.computer, d.computer))
+      return this.disks.filter(d => d.isOnComputer(this.computer))
     },
     foreignBackups () { // Backups of another computers
       const uuid = this.computer.uuid
@@ -124,15 +121,12 @@ export default {
     selectedForeignBackups () {
       const selected = this.getSelectedClient
       const foreign = this.foreignBackups
-      return selected ? foreign.filter(d => sameComputer(d, selected)) : foreign
+      return selected ? foreign.filter(d => d.isOnComputer(selected)) : foreign
     },
     sortDisks () {
       const owndisks = this.amIselectedClient ? [...this.ownDisks].sort(compareDisks) : []
       const fdisks = [...this.selectedForeignBackups].sort(compareByDomain)
       return [...owndisks, ...fdisks]
-    },
-    getDiskById () {
-      return id => this.disks.find(d => d.id === id)
     },
     splitter: {
       get: function () {
@@ -145,11 +139,6 @@ export default {
       },
       set: function (val) {
         this.mark = 100 - val
-      }
-    },
-    diskname () {
-      return disk => {
-        return disk.name.replace(/\\$/, '').replace(/^_$/, disk.label) // remove ending backslash
       }
     },
     appendDomain () {
@@ -183,6 +172,7 @@ export default {
   },
   watch: {
     disks (val) {
+      // compute a new list of clients based on (extracted from) list of disks
       const dup = val.map(d => d.computer).map(c => {
         const fullUserName = `${c.user}@${c.name}.${c.domain}`
         const id = `${fullUserName}(${c.uuid})`
@@ -196,7 +186,7 @@ export default {
       this.load()
     },
     lastBackupDone ({ path }) {
-      // Test if some of "not yet in backup disk" is the mounting point of last backup
+      // Test if some of "not yet in backup " disk is the mounting point of last backup
       if (this.disksNotInBackup.some(d => path.startsWith(d.mountpoint))) {
         this.getDisksOnBackup()
       }
@@ -208,7 +198,7 @@ export default {
         this.disktab = view.id
       }
     },
-    all () {
+    showAll () {
       this.refreshRemoteDisks()
     }
   },
@@ -223,26 +213,21 @@ export default {
       for (const disk of disks) {
         const rvid = disk.volume
         const computer = getComputer(disk)
-        console.log('RVID:', rvid, disk)
-        // const [letter, uuid, label] = rvid.split('.')
         const match = rvid.match(/^(?<letter>.)\.(?<uuid>[^.]+)\.(?<label>.+)\.(.+)\.(?<fs>.+)$/)
         if (!match) continue
         const { letter, uuid, label, fs } = match.groups
-        const index = this.disks.findIndex(e => e.uuid === uuid && sameComputer(e.computer, computer))
+        const index = this.disks.findIndex(e => e.uuid === uuid && e.isOnComputer(computer))
         if (index >= 0) {
           const d = { ...this.disks[index], computer, rvid, letter, uuid, label, fs }
-          const id = getId(d)
-          this.disks.splice(index, 1, { ...d, id }) // as requested by Vue reactiveness
+          this.disks.splice(index, 1, new Disk(d)) // as requested by Vue reactiveness
         } else {
           const d = { computer, name: letter, rvid, letter, uuid, label, fs }
-          const id = getId(d)
-          this.disks.push({ ...d, id })
+          this.disks.push(new Disk(d))
         }
       }
-      // console.log('Disks:', this.disks)
     },
     refreshRemoteDisks () {
-      this.disks = this.localDisks
+      this.disks = this.localDisks // Only leave local disks
       this.getDisksOnBackup()
     },
     async getLocalDisks () {
@@ -250,45 +235,28 @@ export default {
       const computer = this.computer
 
       for (const disk of disks) {
-        console.log('Local disk:', disk)
-        const pattern = disk.replace(/\|(?=\|)/g, '|_') // replace all the sequences '||' by '|_|'
+        const pattern = disk.replace(/\|(?=\|)/g, '|_') // replace showAll the sequences '||' by '|_|'
         const [mountpoint, label, uuid, fs] = pattern.split(/\|/)
         const name = mountpoint
         const letter = mountpoint.substring(0, 1)
-        const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label && sameComputer(e.computer, computer))
+        const index = this.disks.findIndex(e => e.uuid === uuid && e.label === label && e.isOnComputer(computer))
         if (index >= 0) {
           const d = { ...this.disks[index], name, letter, mountpoint, label, uuid, fs, computer }
-          const id = getId(d)
-          this.disks.splice(index, 1, { ...d, id }) // as requested by Vue reactiveness
+          this.disks.splice(index, 1, new Disk(d)) // as requested by Vue reactiveness
         } else {
           const d = { name, mountpoint, letter, label, uuid, fs, computer }
-          const id = getId(d)
-          this.disks.push({ ...d, id })
+          this.disks.push(new Disk(d))
         }
       }
     },
-    // restore (resource) {
-    //   // resource.options.push('--dry-run')
-    //   this.restores.push(resource)
-    // },
-    // ecover (resource) {
-    // resource.options.push('--dry-run')
-    // this.restores.push(resource)
-    // },
-    // backup (path, done) {
-    //   this.backups.push({ path, done })
-    // },
     destroy_restore (index) {
       this.restores.splice(index, 1)
     },
-    // destroy_backup (index) {
-    //   this.backups.splice(index, 1)
-    //   console.log('Destroy', index, this.backups)
-    // },
     async load () {
       this.loading = true
       await this.getLocalDisks()
       await this.getDisksOnBackup()
+      // console.log('disk.names', this.disks.map(d => d.diskname))
       this.loading = false
     }
   },
@@ -297,23 +265,6 @@ export default {
     this.computer = { ...computer, user }
     this.setCurrentClient(this.computer)
     this.load()
-  },
-  beforeRouteEnter (to, from, next) {
-    // console.log('beforeRouteEnter', to)
-    next()
-    // called before the route that renders this component is confirmed.
-    // does NOT have access to `this` component instance,
-    // because it has not been created yet when this guard is called!
-  },
-  beforeRouteUpdate (to, from, next) {
-    // console.log('beforeRouteUpdate', to)
-    next()
-    // called when the route that renders this component has changed,
-    // but this component is reused in the new route.
-    // For example, for a route with dynamic params `/foo/:id`, when we
-    // navigate between `/foo/1` and `/foo/2`, the same `Foo` component instance
-    // will be reused, and this hook will be called when that happens.
-    // has access to `this` component instance.
   }
 }
 </script>

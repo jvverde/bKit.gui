@@ -46,3 +46,20 @@ export const compareDisks = (a, b) => {
 
 export const getId = d => [d.mountpoint, d.uuid, d.rvid, d.computer.uuid, d.computer.name, d.computer.domain, d.computer.user].join('>')
 export const isSameDisk = (a, b) => a && b && a.id === b.id
+
+export class Disk {
+  constructor (obj) {
+    Object.assign(this, obj)
+    this.id = getId(this)
+  }
+  isOnComputer (a) {
+    const b = this.computer || {}
+    return a.uuid === b.uuid && a.user === b.user && a.name === b.name && a.domain === b.domain
+  }
+  get diskname () {
+    return this.name.replace(/\\$/, '').replace(/^_$/, this.label) // remove ending backslash
+  }
+  get hasLetter () {
+    return this.name !== '_'
+  }
+}
