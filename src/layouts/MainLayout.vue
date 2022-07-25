@@ -33,13 +33,11 @@
           <q-btn v-show="!empty" color="button" icon="cloud_circle" dense flat @click="toggle"/>
         </div>
         <clients class="q-mr-md q-my-xs"/>
-        <div>
-          <span v-html="user"/> @ {{hostname}} | v{{version}}
-          <!--span>{{currentClient.user}}@{{currentClient.name}}</span-->
-        </div>
-        <div style="margin-right: 1em;">
+        <user/>
+        <div style="margin-left: 1em;">
           <q-btn icon="home" dense flat @click="$router.push({ name: 'home' })"/>
         </div>
+        <info/>
       </q-toolbar>
     </q-header>
     <q-drawer v-model="leftDrawerOpen" bordered content-class="bg-menu">
@@ -60,18 +58,17 @@
 </template>
 
 <script>
-const os = require('os')
-const username = os.userInfo().username
 
-const { ipcRenderer, remote: { app } } = require('electron')
+const { ipcRenderer } = require('electron')
 // import info from 'src/helpers/info'
-import { pInfo } from 'src/boot/computer'
 import { catched } from 'src/helpers/notify'
 import { mapGetters, mapMutations, mapActions } from 'vuex'
 import bkitmenu from './components/Menu'
 import backupProgress from './components/BackupProgress'
 import restoreProgress from './components/RestoreProgress'
 import clients from './components/Clients'
+import user from './components/User'
+import info from './components/Info'
 
 // import { colors } from 'quasar'
 
@@ -102,30 +99,13 @@ export default {
   data () {
     return {
       msg: undefined,
-      leftDrawerOpen: false,
-      localUser: undefined,
-      version: app.getVersion(),
-      hostname: os.hostname(),
-      computer: {
-        name: undefined,
-        domain: undefined,
-        uuid: undefined,
-        user: undefined
-      },
-      selectedClient: null
+      leftDrawerOpen: false
     }
   },
   computed: {
     ...mapGetters('accounts', ['account', 'currentProfiles']),
     ...mapGetters('backups', ['empty']),
     loading () { return this.msg && this.msg.length > 0 },
-    user () {
-      return this.localUser
-        ? this.localUser === username
-          ? username
-          : `${username}<i> as </i>${this.localUser}`
-        : `<i>${username}</i>`
-    },
     accounts () {
       return [...this.currentProfiles].sort(compare)
     }
@@ -141,7 +121,9 @@ export default {
     bkitmenu,
     backupProgress,
     restoreProgress,
-    clients
+    clients,
+    user,
+    info
   },
   methods: {
     ...mapActions('accounts', ['setCurrentAccount']),
@@ -158,16 +140,6 @@ export default {
     }
   },
   async mounted () {
-    try {
-      this.msg = 'Get local computer'
-      const { computer, localUser: user } = await pInfo
-      this.localUser = user
-      this.computer = { ...computer, user }
-    } catch (err) {
-      catched(err)
-    } finally {
-      this.msg = undefined
-    }
   }
 }
 </script>

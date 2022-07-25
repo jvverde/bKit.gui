@@ -52,7 +52,7 @@ import { Disk, isSameDisk } from 'src/helpers/disks'
 const lastPaths = {}
 
 export default {
-  name: 'localexplorer',
+  name: 'explorer',
   data () {
     return {
       verticalSplitter: 25,
@@ -97,9 +97,9 @@ export default {
     disk: {
       immediate: true,
       handler (d) {
-        console.log('SET DISK:', d)
+        console.log('Set disk:', d)
         this.setDisk(d)
-        console.log('Switch to computer ', d.computer)
+        console.log('Switch to computer:', d.computer)
         this.setCurrentClient(d.computer)
       }
     },
