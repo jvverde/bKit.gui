@@ -14,7 +14,7 @@
           <tooltip label="Number of files"/>
         </q-badge>
         <q-badge class="q-ml-sm shadow-1" color="badger-1" v-if="isRunning && cntfiles">
-          {{cntfiles}}
+          {{cntfiles}} of {{totalfiles}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
           <tooltip label="Number of files so far"/>
         </q-badge>
@@ -35,7 +35,7 @@
         {{currentline}}
       </q-item-label>
     </q-item-section>
-    <q-item-section side v-if="isRunning && sizepercent">
+    <q-item-section side v-if="isRunning">
       <q-circular-progress
         show-value
         font-size="9px"
@@ -43,12 +43,12 @@
         size="55px"
         :thickness="0.22"
         color="bkit"
-        track-color="grey-3"
+        track-color="yellow-1"
         class="q-ma-md">
         {{ sizepercent }}% size
       </q-circular-progress>
     </q-item-section>
-    <q-item-section side v-if="isRunning && filespercent">
+    <q-item-section side v-if="isRunning">
       <q-circular-progress
         show-value
         font-size="9px"
@@ -56,7 +56,7 @@
         size="55px"
         :thickness="0.22"
         color="bkit"
-        track-color="grey-3"
+        track-color="yellow-1"
         class="q-ma-md">
         {{ filespercent }}% files
       </q-circular-progress>
@@ -136,7 +136,7 @@ export default {
       return !this.isDone && !this.isCanceled
     },
     filespercent () {
-      return this.totalfiles ? Math.trunc(100 * (this.cntfiles / this.totalfiles)) : 0
+      return this.totalfiles ? Math.trunc(1000 * (this.cntfiles / this.totalfiles)) / 10 : 0
     },
     sizepercent () {
       return this.currentpercent
@@ -182,7 +182,7 @@ export default {
       console.log('resource', this.resource)
       const { path, options: o, rsyncoptions: r, snap, rvid } = this.resource
       const options = [...o] // Resource came from VUEX and shoudn't be modified outside a mutation
-      const rsyncoptions = [...r]
+      const rsyncoptions = [...r, '--delay-updates']
       options.push(
         `--snap=${snap}`,
         `--rvid=${rvid}`
@@ -220,8 +220,8 @@ export default {
           this.currentsize = size
           this.currentrate = rate
         },
-        ontotalfiles: (n) => { this.totalfiles = Number(n) }, // Not fired without rsync '--delay-updates'
-        ontotalsize: (val) => { this.totalsize = val }
+        ontotalfiles: n => { this.totalfiles = Number(n) }, // Not fired without rsync '--delay-updates'
+        ontotalsize: val => { this.totalsize = val }
       }).then(code => {
         console.log('Restore Done with code', code)
         this.done(this.path)

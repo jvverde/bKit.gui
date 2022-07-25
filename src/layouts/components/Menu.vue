@@ -58,6 +58,15 @@
         <q-item-label caption>Show Backup List</q-item-label>
       </q-item-section>
     </q-item>
+    <q-item clickable @click="showRestoreList">
+      <q-item-section avatar>
+        <q-icon color="menu" name="las la-list-alt"/>
+      </q-item-section>
+      <q-item-section>
+        <q-item-label>Restores in Progress</q-item-label>
+        <q-item-label caption>Show Restores List</q-item-label>
+      </q-item-section>
+    </q-item>
     <q-item clickable @click="terminal">
       <q-item-section avatar>
         <q-icon color="menu" name="las la-terminal" />
@@ -110,6 +119,7 @@ export default {
   },
   methods: {
     ...mapMutations('backups', { showBackupList: 'show' }),
+    ...mapMutations('restore', { showRestoreList: 'show' }),
     terminal () {
       shell()
     },

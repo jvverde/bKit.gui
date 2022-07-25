@@ -13,6 +13,7 @@ export function getLastCompleted (state) {
 export function show (state) {
   return state.show
 }
+
 export function empty (state) {
   return state.list.length === 0
 }

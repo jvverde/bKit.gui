@@ -59,7 +59,7 @@ export default {
     }
   },
   methods: {
-    ...mapMutations('backups', ['show', 'hide', 'add2backup'])
+    ...mapMutations('backups', ['hide', 'add2backup'])
   },
   async mounted () {
     const { backupList = [] } = (await getPreferences()) || {}

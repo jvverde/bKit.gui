@@ -11,6 +11,7 @@ export function add2restore (state, resource) {
     state.list.push(resource)
   }
 }
+
 export function rmResource (state, resource) {
   const i = state.list.findIndex(e => same(e, resource))
   if (i >= 0) state.list.splice(i, 1)
@@ -23,4 +24,16 @@ export function done (state, path) {
     console.info(`Add Path ${path} to done list`)
     state.done.push(path)
   }
+}
+
+export function show (state) {
+  state.show = true
+}
+
+export function hide (state) {
+  state.show = false
+}
+
+export function toggle (state) {
+  state.show = !state.show
 }

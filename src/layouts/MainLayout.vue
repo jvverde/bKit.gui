@@ -30,7 +30,10 @@
           </div>
         </q-toolbar-title>
         <div style="margin-left:auto">
-          <q-btn v-show="!empty" color="button" icon="cloud_circle" dense flat @click="toggle"/>
+          <q-btn v-show="!bempty" color="button" icon="cloud_circle" dense flat @click="btoggle"/>
+        </div>
+        <div style="margin-left:auto">
+          <q-btn v-show="!rempty" color="button" icon="restore_page" dense flat @click="rtoggle"/>
         </div>
         <clients class="q-mr-md q-my-xs"/>
         <user/>
@@ -104,7 +107,8 @@ export default {
   },
   computed: {
     ...mapGetters('accounts', ['account', 'currentProfiles']),
-    ...mapGetters('backups', ['empty']),
+    ...mapGetters('backups', { bempty: 'empty' }),
+    ...mapGetters('restore', { rempty: 'empty' }),
     loading () { return this.msg && this.msg.length > 0 },
     accounts () {
       return [...this.currentProfiles].sort(compare)
@@ -127,7 +131,8 @@ export default {
   },
   methods: {
     ...mapActions('accounts', ['setCurrentAccount']),
-    ...mapMutations('backups', ['show', 'hide', 'toggle']),
+    ...mapMutations('backups', { btoggle: 'toggle' }),
+    ...mapMutations('restore', { rtoggle: 'toggle' }),
     async changeserver (account) {
       try {
         this.msg = `Change to account ${account.user}@${account.servername}`
