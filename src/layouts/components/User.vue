@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <span v-html="user"/> @ {{hostname}}
-    <!--span>{{currentClient.user}}@{{currentClient.name}}</span-->
+  <div class="column no-wrap items-center">
+    <div><span v-html="user"/> @ {{hostname}}</div>
+    <div v-if="onBehalf" class="onbehalf">On behalf of {{onBehalf}}</div>
   </div>
 </template>
 
@@ -13,9 +13,10 @@ import { pInfo } from 'src/boot/computer'
 import { catched } from 'src/helpers/notify'
 import { mapGetters } from 'vuex'
 
+const isSameComputer = (a, b) => a.name === b.name && a.domain === b.domain && a.uuid === b.uuid && a.user === b.user
+
 export default {
   name: 'User',
-
   data () {
     return {
       hostname: os.hostname(),
@@ -35,6 +36,11 @@ export default {
           ? username
           : `${username}<i> as </i>${this.localUser}`
         : `<i>${username}</i>`
+    },
+    onBehalf () {
+      const current = this.getCurrentClient
+      const answer = !current.uuid || isSameComputer(this.computer, current) ? false : `${current.user}@${current.name}`
+      return answer
     }
   },
   watch: {
@@ -59,4 +65,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
+  @import 'src/css/app.scss';
+  .onbehalf {
+    color: $foreign
+  }
 </style>
