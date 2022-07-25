@@ -150,7 +150,7 @@ export default {
       return disk => {
         if (disk.onBothSides) {
           return 'ok'
-        } else if (disk.isBackup && this.amIselectedClient) {
+        } else if (disk.isBackup && this.isCurrentClient(disk.computer)) {
           return 'missing'
         } else if (disk.isBackup) {
           return 'foreign'
