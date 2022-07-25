@@ -62,4 +62,24 @@ export class Disk {
   get hasLetter () {
     return this.name !== '_'
   }
+  isNot (d) {
+    return !isSameDisk(this, d)
+  }
+  get fulllabel () {
+    const { computer, labelname } = this
+    return `${labelname} of [${computer.user}@${computer.name}.${computer.domain}]`
+  }
+  get labelname () {
+    // console.log(disk.label, disk.name)
+    if (this.label && this.label !== '_') {
+      return this.label
+    } else if (this.name && this.name !== '_') {
+      return this.name
+    } else return this.uuid
+  }
+  get isLocal () { return this.mountpoint }
+  get isBackup () { return this.rvid }
+  get onlyBackup () { return this.isBackup && !this.isLocal }
+  get onlyLocal () { return this.isLocal && !this.isBackup }
+  get onBothSides () { return this.isLocal && !this.isBackup }
 }

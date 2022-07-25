@@ -30,7 +30,7 @@
             <svg v-else viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg" width="5vw">
               <text  x="50%" y="50%">{{disk.diskname}}</text>
             </svg>
-            <tooltip v-if="disklabel(disk)" :label="disklabel(disk)"/>
+            <tooltip :label="disklabel(disk)"/>
           </q-tab>
         </q-tabs>
         <q-btn icon="sync" size="xs" flat color="bkit" @click="load"/>
@@ -141,30 +141,18 @@ export default {
         this.mark = 100 - val
       }
     },
-    appendDomain () {
-      return disk => {
-        const { computer, mountpoint } = disk
-        if (mountpoint) return ''
-        return this.isCurrentClient(computer) ? '' : ` [${computer.user}@${computer.name}.${computer.domain}]`
-      }
-    },
     disklabel () {
       return disk => {
-        // console.log(disk.label, disk.name)
-        if (disk.label && disk.label !== '_') {
-          return disk.label + this.appendDomain(disk)
-        } else if (disk.name && disk.name !== '_') {
-          return disk.name + this.appendDomain(disk)
-        } else return disk.uuid + this.appendDomain(disk)
+        return this.isCurrentClient(disk.computer) ? disk.labelname : disk.fulllabel
       }
     },
     color () {
       return disk => {
-        if (disk.rvid && disk.mountpoint) {
+        if (disk.onBothSides) {
           return 'ok'
-        } else if (disk.rvid && this.amIcurrentClient) {
+        } else if (disk.isBackup && this.amIselectedClient) {
           return 'missing'
-        } else if (disk.rvid) {
+        } else if (disk.isBackup) {
           return 'foreign'
         } else return 'initial'
       }
