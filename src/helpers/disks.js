@@ -81,5 +81,5 @@ export class Disk {
   get isBackup () { return this.rvid }
   get onlyBackup () { return this.isBackup && !this.isLocal }
   get onlyLocal () { return this.isLocal && !this.isBackup }
-  get onBothSides () { return this.isLocal && !this.isBackup }
+  get onBothSides () { return this.isLocal && this.isBackup }
 }
