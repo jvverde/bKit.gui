@@ -1,6 +1,6 @@
 <template>
   <div v-if="show">
-    <q-select
+    <!-- q-select
       v-model="selectedClient"
       :options="clientsList"
       option-label="fullUserName"
@@ -21,7 +21,7 @@
           unchecked-icon="clear"
         />
       </template>
-    </q-select>
+    </q-select-->
   </div>
 </template>
 

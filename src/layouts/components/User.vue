@@ -1,7 +1,7 @@
 <template>
   <div class="column no-wrap items-center">
     <div><span v-html="user"/> @ {{hostname}}</div>
-    <div v-if="onBehalf" class="onbehalf">On behalf of {{onBehalf}}</div>
+    <div v-if="onBehalf" class="onbehalf">on behalf of {{onBehalf}}</div>
   </div>
 </template>
 
