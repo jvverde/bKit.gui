@@ -65,7 +65,17 @@ import tooltip from 'src/components/tooltip'
 import { mapMutations } from 'vuex'
 import { warn } from 'src/helpers/notify'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
-import { dismissed } from 'src/helpers/queue'
+
+const _CANCELREQUEST = 'Cancel Request'
+const _DONE = 'Done'
+const _CANCELED = 'Canceled'
+const _ERROR = 'Error'
+const _ENQUEUED = 'Enqueued'
+const _STARTING = 'Starting'
+const _RUNNING = 'Running'
+const _DEQUEUED = 'Dequeued'
+const _LAUNCHING = 'Launching'
+const _DEQUEUING = 'dequeuing'
 
 const depth = 20
 const watchOptions = { ...chokidarOptions, depth }
@@ -84,6 +94,8 @@ class Counter {
 }
 
 const _DELTA = 300000 // 5min
+
+const nill = () => null
 
 export default {
   name: 'Backup',
@@ -108,9 +120,8 @@ export default {
       cnterrors: 0,
       currentline: '',
       errorline: '',
-      process: undefined,
       pid: undefined,
-      dequeued: () => null,
+      dequeued: nill,
       deleted: false,
       dryrun: false,
       needBackup: 0,
@@ -128,19 +139,22 @@ export default {
       return this.isFinished || this.status === undefined
     },
     isStarting () {
-      return this.status === 'Starting'
+      return this.status === _STARTING
     },
     isRunning () {
-      return this.status === 'Running' && !this.isFinished
+      return this.status === _RUNNING && !this.isFinished
     },
     isDone () {
-      return this.status === 'Done' && this.isFinished
+      return this.status === _DONE && this.isFinished
     },
     isCanceled () {
-      return this.status === 'Canceled' || this.status === 'Dequeued'
+      return this.status === _CANCELED || this.status === _DEQUEUED
     },
     onQueue () {
-      return this.status === 'Enqueued'
+      return this.status === _ENQUEUED
+    },
+    isDequeued () {
+      return this.status === _DEQUEUED
     },
     isCancelable () {
       return this.status && !this.isDone && !this.isCanceled && !this.isOnError
@@ -155,7 +169,19 @@ export default {
       return this.status && this.isStopped
     },
     isOnError () {
-      return this.status === 'Error'
+      return this.status === _ERROR
+    },
+    isCanceling () {
+      return this.status === _CANCELREQUEST
+    },
+    isOnCancelProcess () {
+      return this.isCanceling || this.isCanceled
+    },
+    isDequeuing () {
+      return this.status === _DEQUEUING
+    },
+    isOnDequeuProcess () {
+      return this.isDequeued || this.isDequeuing
     }
   },
   components: {
@@ -221,20 +247,24 @@ export default {
     },
     formatBytes,
     async cancel () {
-      this.status = 'Cancel Requested'
       try {
+        console.log('Cancel on status', this.status)
         if (this.pid) {
+          this.status = _CANCELREQUEST
+          console.log('Call Killtree.sh')
           await killtree(this.pid)
           this.pid = undefined
         }
         if (this.onQueue && this.dequeued instanceof Function) {
-          console.log('Dequeued')
+          this.status = _CANCELREQUEST
+          console.log(_DEQUEUED)
           this.dequeued()
         }
       } catch (err) {
         console.error(`Cancel catch an error for [${this.pid}] ${this.path}`, err)
       } finally {
-        this.status = 'Canceled'
+        console.log(_CANCELED)
+        this.status = _CANCELED
       }
     },
     sent ({
@@ -245,7 +275,7 @@ export default {
       size = Number(size)
       bytes = Number(bytes)
       this.$nextTick(() => {
-        this.status = 'Running'
+        this.status = _RUNNING
         this.currentline = line
         this.errorline = ''
         console.log(line)
@@ -284,32 +314,40 @@ export default {
         sent: this.sent,
         newphase: ({ phase, msg }) => {
           console.log('Phase', phase, msg)
-          this.status = 'Running'
+          this.status = _RUNNING
           this.phase = 0 | phase
           this.phasemsg = msg
           this.currentline = ''
         },
         oncedone: code => {
           console.log('Done bKit with code', code)
-          this.status = 'Done'
-          this.phase = this.process = undefined
+          if (code === 0) this.status = _DONE
+          this.phase = undefined
           this.currentline = ''
         },
         saved: endpoint => {
           console.log('Your data is saved on', endpoint)
         },
         start: ({ pid }) => {
-          this.status = 'Starting'
+          this.status = _STARTING
           this.pid = pid
           console.log(`Starting with pid ${pid}`)
         },
         enqueued: (item) => {
-          this.status = 'Enqueued'
-          this.dequeued = item.dismiss
+          this.status = _ENQUEUED
+          console.log(_ENQUEUED)
+          this.dequeued = () => {
+            this.status = _DEQUEUING
+            console.log(_DEQUEUING)
+            item.dismiss()
+            this.status = _DEQUEUED
+            this.dequeued = nill
+            console.log(_DEQUEUED)
+          }
         },
         oncespawn: fd => {
-          console.log('Launching', fd)
-          this.status = 'Launching'
+          console.log(_LAUNCHING, fd)
+          this.status = _LAUNCHING
         },
         stderr: (line) => {
           console.warn(line)
@@ -320,19 +358,18 @@ export default {
       }).then(code => {
         console.log('Backup Done with code', code)
         this.ok = true
-        this.status = 'Done'
+        // this.status = _DONE
         const { path, endpoint } = this
         this.backupDone({ path, endpoint })
       }).catch(e => {
-        if (e === dismissed) {
-          this.status = 'Dequeued'
-        } else if (this.status === 'Cancel Requested') {
-          console.warn('Catch error', e, 'on cancel for', this.path)
-          this.status = 'Canceled'
+        if (this.isOnDequeuProcess) {
+          console.info('Catch', e, 'on dequeued for', this.path)
+        } else if (this.isOnCancelProcess) {
+          console.info('Catch', e, 'on cancel for', this.path)
         } else {
           console.error('Backup catch error', e, 'for', this.path)
           this.error = e
-          this.status = 'Error'
+          this.status = _ERROR
         }
       }).finally(() => {
         this.finished = true

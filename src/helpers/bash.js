@@ -112,10 +112,11 @@ function _bash (name, args = [], events = {}, done = nill) {
   })
   rl.on('close', () => {
     console.log('Readline close', scriptname)
-    doneOnce(0)
+    doneOnce(undefined)
+    resettimeout()
   })
   fd.stderr.on('data', err => {
-    // console.warn(`Read on stderr from ${scriptname}: ${err}`)
+    console.warn(`Read on stderr from ${scriptname}: ${err}`)
     const error = `${err}`
     const result = stderr(error)
     if (result === 'stop') { // if receive a stop from upper layers
