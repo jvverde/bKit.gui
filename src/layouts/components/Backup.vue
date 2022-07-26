@@ -144,7 +144,7 @@ export default {
       return this.status === 'Enqueued'
     },
     isCancelable () {
-      return this.status && !this.isDone && !this.isCanceled
+      return this.status && !this.isDone && !this.isCanceled && !this.isOnError
     },
     isDryRun () {
       return this.status && this.dryrun
@@ -154,6 +154,9 @@ export default {
     },
     isRemovable () {
       return this.status && this.isStopped
+    },
+    isOnError () {
+      return this.status === 'Error'
     }
   },
   components: {
@@ -219,10 +222,11 @@ export default {
     },
     formatBytes,
     async cancel () {
+      this.status = 'Cancel Requested'
       try {
-        if (this.pid) {
-          await killtree(this.pid)
-          this.pid = undefined
+        if (this.pgid) {
+          await killtree(this.pgid)
+          this.pgid = undefined
         }
         if (this.onQueue && this.dequeued instanceof Function) {
           console.log('Dequeued')
@@ -287,7 +291,7 @@ export default {
           this.currentline = ''
         },
         done: msg => {
-          console.log('Done bkit')
+          console.log('Done bkit', msg)
           this.status = 'Done'
           this.phase = this.process = undefined
           this.currentline = ''
@@ -305,7 +309,7 @@ export default {
           this.status = 'Enqueued'
           this.dequeued = item.dismiss
         },
-        oncespawn: (fd) => {
+        oncespawn: fd => {
           console.log('Launching', fd)
           this.status = 'Launching'
         },
@@ -324,8 +328,11 @@ export default {
       }).catch(e => {
         if (e === dismissed) {
           this.status = 'Dequeued'
+        } else if (this.status === 'Cancel Requested') {
+          console.warn('Catch error', e, 'on cancel for', this.path)
+          this.status = 'Canceled'
         } else {
-          console.error('Backup catch error', e, this.path)
+          console.error('Backup catch error', e, 'for', this.path)
           this.error = e
           this.status = 'Error'
         }

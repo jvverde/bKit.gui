@@ -29,7 +29,7 @@ export function show (msg) {
 }
 
 export function error (msg, detail = '') {
-  console.error(msg)
+  console.error(msg, detail)
   Notify.create({
     message: msg,
     caption: detail,

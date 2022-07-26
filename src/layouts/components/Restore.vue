@@ -103,6 +103,7 @@ export default {
       deleted: false,
       currentsizeinbytes: 0,
       pid: undefined,
+      pgid: undefined,
       dequeued: () => null,
       watch: null
     }
@@ -158,10 +159,11 @@ export default {
   methods: {
     formatBytes,
     cancel () {
-      if (this.pid) {
-        killtree(this.pid)
+      if (this.pgid) {
+        killtree(this.pgid)
           .then(() => {
             this.pid = undefined
+            this.gpid = undefined
             this.status = 'Canceled'
           })
           .catch(err => console.error(err))
@@ -192,10 +194,11 @@ export default {
           this.status = 'Enqueued'
           this.dequeued = item.dismiss
         },
-        onstart: ({ pid }) => {
+        onstart: ({ pid, pgid }) => {
           this.status = 'Starting'
           this.pid = pid
-          console.log(`Starting rKit [pid:${pid}]`)
+          this.pgid = pgid
+          console.log(`Starting rKit [${pid}:${pgid}]`)
         },
         oncespawn: () => {
           this.status = 'Launching'
@@ -231,13 +234,21 @@ export default {
         this.error = e
       }).finally(() => {
         this.finished = true
+        this.pid = undefined
+        if (this.pgid) killtree(this.pgid)
+        this.pgid = undefined
       })
+    },
+    async beforeWindowUnload () {
+      if (this.pgid) await killtree(this.pgid)
     }
   },
   mounted () {
+    window.addEventListener('beforeunload', this.beforeWindowUnload)
     this.restore()
   },
   beforeDestroy () {
+    window.removeEventListener('beforeunload', this.beforeWindowUnload)
     /* console.log('Destroy')
     if (this.watch) this.watch.close().then(() => console.log('Watcher closed')) */
   }

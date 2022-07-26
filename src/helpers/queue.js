@@ -63,9 +63,9 @@ export default class Queue {
     this.workingOnPromise++
     item.promise()
       .then(value => this._resolve(item, value))
-      .catch(value => {
-        console.warn(`Queue catch error: ${value} -`, value)
-        this._reject(item, value)
+      .catch(err => {
+        console.warn(`Queue catch error: `, err)
+        this._reject(item, err)
       })
       .finally(() => {
         this.workingOnPromise--

@@ -6,8 +6,9 @@ const readline = require('readline')
 import { ipcRenderer } from 'electron'
 
 const nill = () => null
+const _timeout = 1000 * 60 * 60 * 24 // 1day
 
-import { warn } from './notify'
+import { warn, catched } from './notify'
 
 export const username = require('os').userInfo().username
 
@@ -32,8 +33,8 @@ export function shell () {
 function _bash (name, args = [], events = {}, done = nill) {
   const scriptname = typeof name === 'object' ? name.script : name
   const warn = (err) => console.warn(`Received on stderr from script ${scriptname}: ${err}`)
-
-  const { onreadline = nill, onerror = nill, stderr = warn, oncespawn = nill } = events
+  console.log('Events', events)
+  const { onreadline = nill, onerror = catched, stderr = warn, oncespawn = nill } = events
   let doneOnce = code => {
     try {
       doneOnce = nill
@@ -43,9 +44,9 @@ function _bash (name, args = [], events = {}, done = nill) {
       // if (fd.pid) process.kill(`-${pid}`)
       fd.kill()
     } catch (err) {
-      console.warn(`When try to kill family of ${name} [${pid}] ${args}`, err, fd)
+      console.warn('When try to kill', fd, err)
     } finally {
-      console.log('Done', scriptname, ...args)
+      console.log('DoneOnce', scriptname, ...args)
       done(code)
     }
   }
@@ -59,7 +60,6 @@ function _bash (name, args = [], events = {}, done = nill) {
     // [scriptname, ...args],
     options
   )
-  const pid = fd.pid
   console.log('Spawned', scriptname, ...args)
 
   const mytimeout = () => {
@@ -70,32 +70,32 @@ function _bash (name, args = [], events = {}, done = nill) {
   const stoptimeout = () => {
     if (fd._timeout) clearTimeout(fd._timeout)
   }
-  const inittimeout = (timeout = 600000) => {
+  const inittimeout = (timeout = _timeout) => {
     fd._timeout = setTimeout(mytimeout, timeout)
   }
-  const resettimeout = (timeout = 600000) => {
+  const resettimeout = (timeout = _timeout) => {
     stoptimeout()
     inittimeout(timeout)
   }
 
-  inittimeout(6000000) // 100 minutos
+  inittimeout(_timeout) // 24h
 
   fd.on('close', (code) => {
-    console.log('Done spawn', scriptname, ...args)
-    if (code) console.warn(`Return code ${code} is NOT ok`)
+    console.log('Close', scriptname, ...args)
+    if (code) console.warn(`Return code ${code} is NOT ok for ${scriptname}`)
     doneOnce(code)
   })
 
   fd.on('error', onerror)
 
   fd.on('exit', err => {
-    console.log(`Receive exit for spawn ${scriptname} with value ${err}`)
     err = 0 | err
+    console.log(`Exit ${scriptname} with value ${err}`)
     if (err !== 0) {
       const params = args.join(' ')
       onerror(`Call to '${scriptname} ${params}' exit with code ${err}`)
     }
-    doneOnce(0)
+    doneOnce(err)
   })
 
   fd.on('disconnect', err => {
@@ -146,10 +146,10 @@ export function asyncBash (name, args = [], events = {}) {
   })
 }
 
-export function killtree (pid) {
-  console.log('Kill tree of process', pid)
+export function killtree (pgid) {
+  console.log('Kill tree of process', pgid)
   return new Promise((resolve, reject) => {
-    _bash('./killtree.sh', [pid], { onerror: reject }, resolve)
+    _bash('./killtree.sh', [-pgid], { onerror: reject }, resolve)
   })
 }
 
