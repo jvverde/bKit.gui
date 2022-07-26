@@ -63,7 +63,7 @@ import { killtree } from 'src/helpers/bash'
 import { formatBytes } from 'src/helpers/utils'
 import tooltip from 'src/components/tooltip'
 import { mapMutations } from 'vuex'
-import { warn } from 'src/helpers/notify'
+import { error } from 'src/helpers/notify'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
 
 const _CANCELREQUEST = 'Cancel Request'
@@ -231,7 +231,7 @@ export default {
       this.watcher.on('all', (event, path) => {
         this.needBackup++
         console.log(`Event ${event} on ${path}`)
-      }).on('error', error => warn(`Watcher error: ${error} on path ${this.path}`, false))
+      }).on('error', error => console.warn(`Watcher error: ${error} on path ${this.path}`))
     },
     async stopWatch () {
       try {
@@ -240,31 +240,31 @@ export default {
           console.log(`Whatcher on ${this.fullpath} closed`)
         }
       } catch (err) {
-        warn(err, false)
+        console.warn(err)
       } finally {
         this.watcher = undefined
       }
     },
     formatBytes,
     async cancel () {
-      try {
-        console.log('Cancel on status', this.status)
-        if (this.pid) {
-          this.status = _CANCELREQUEST
-          console.log('Call Killtree.sh')
+      if (this.pid) {
+        this.status = _CANCELREQUEST
+        console.log(_CANCELREQUEST, this.path)
+        try {
           await killtree(this.pid)
           this.pid = undefined
+          this.status = _CANCELED
+          console.log(_CANCELED, this.path)
+        } catch (err) {
+          console.error(`Cancel catch an error for [${this.pid}] ${this.path}`)
+          error(err)
+          this.status = _ERROR
+          this.error = err
         }
-        if (this.onQueue && this.dequeued instanceof Function) {
-          this.status = _CANCELREQUEST
-          console.log(_DEQUEUED)
-          this.dequeued()
-        }
-      } catch (err) {
-        console.error(`Cancel catch an error for [${this.pid}] ${this.path}`, err)
-      } finally {
-        console.log(_CANCELED)
-        this.status = _CANCELED
+      } else if (this.onQueue && this.dequeued instanceof Function) {
+        this.dequeued()
+      } else {
+        error(`Invalid state(${this.status}) to cancel`)
       }
     },
     sent ({
@@ -335,14 +335,18 @@ export default {
         },
         enqueued: (item) => {
           this.status = _ENQUEUED
-          console.log(_ENQUEUED)
+          console.log(_ENQUEUED, this.path)
           this.dequeued = () => {
             this.status = _DEQUEUING
-            console.log(_DEQUEUING)
-            item.dismiss()
-            this.status = _DEQUEUED
-            this.dequeued = nill
-            console.log(_DEQUEUED)
+            console.log(_DEQUEUING, this.path)
+            try {
+              item.dismiss()
+              this.dequeued = nill
+              this.status = _DEQUEUED
+              console.log(_DEQUEUED, this.path)
+            } catch (err) {
+              error(err)
+            }
           }
         },
         oncespawn: fd => {
@@ -363,9 +367,9 @@ export default {
         this.backupDone({ path, endpoint })
       }).catch(e => {
         if (this.isOnDequeuProcess) {
-          console.info('Catch', e, 'on dequeued for', this.path)
+          console.info('Catch', e, 'on Dequeued Process for', this.path)
         } else if (this.isOnCancelProcess) {
-          console.info('Catch', e, 'on cancel for', this.path)
+          console.info('Catch', e, 'on Cancel Process for', this.path)
         } else {
           console.error('Backup catch error', e, 'for', this.path)
           this.error = e
