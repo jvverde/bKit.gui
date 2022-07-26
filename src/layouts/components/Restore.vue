@@ -103,7 +103,6 @@ export default {
       deleted: false,
       currentsizeinbytes: 0,
       pid: undefined,
-      pgid: undefined,
       dequeued: () => null,
       watch: null
     }
@@ -159,11 +158,10 @@ export default {
   methods: {
     formatBytes,
     cancel () {
-      if (this.pgid) {
-        killtree(this.pgid)
+      if (this.pid) {
+        killtree(this.pid)
           .then(() => {
             this.pid = undefined
-            this.gpid = undefined
             this.status = 'Canceled'
           })
           .catch(err => console.error(err))
@@ -194,11 +192,10 @@ export default {
           this.status = 'Enqueued'
           this.dequeued = item.dismiss
         },
-        onstart: ({ pid, pgid }) => {
+        onstart: ({ pid }) => {
           this.status = 'Starting'
           this.pid = pid
-          this.pgid = pgid
-          console.log(`Starting rKit [${pid}:${pgid}]`)
+          console.log(`Starting rKit [${pid}:${pid}]`)
         },
         oncespawn: () => {
           this.status = 'Launching'
@@ -235,12 +232,12 @@ export default {
       }).finally(() => {
         this.finished = true
         this.pid = undefined
-        if (this.pgid) killtree(this.pgid)
-        this.pgid = undefined
+        if (this.pid) killtree(this.pid)
+        this.pid = undefined
       })
     },
     async beforeWindowUnload () {
-      if (this.pgid) await killtree(this.pgid)
+      if (this.pid) await killtree(this.pid)
     }
   },
   mounted () {

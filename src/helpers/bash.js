@@ -33,11 +33,11 @@ export function shell () {
 function _bash (name, args = [], events = {}, done = nill) {
   const scriptname = typeof name === 'object' ? name.script : name
   const warn = (err) => console.warn(`Received on stderr from script ${scriptname}: ${err}`)
-  console.log('Events', events)
-  const { onreadline = nill, onerror = catched, stderr = warn, oncespawn = nill } = events
+  const { onreadline = nill, onerror = catched, stderr = warn, oncespawn = nill, oncedone = nill } = events
   let doneOnce = code => {
     try {
       doneOnce = nill
+      oncedone(code)
       stoptimeout()
       if (fd.stdin) fd.stdin.pause()
       // console.log('Kill process Family of', pid, fd)
@@ -112,14 +112,14 @@ function _bash (name, args = [], events = {}, done = nill) {
   })
   rl.on('close', () => {
     console.log('Readline close', scriptname)
-    doneOnce()
+    doneOnce(0)
   })
   fd.stderr.on('data', err => {
     // console.warn(`Read on stderr from ${scriptname}: ${err}`)
     const error = `${err}`
     const result = stderr(error)
     if (result === 'stop') { // if receive a stop from upper layers
-      doneOnce() // send a empty done
+      doneOnce(err) // send a empty done
       // fd.kill() // also kill the process
     }
   })
@@ -146,10 +146,10 @@ export function asyncBash (name, args = [], events = {}) {
   })
 }
 
-export function killtree (pgid) {
-  console.log('Kill tree of process', pgid)
+export function killtree (pid) {
+  console.log('Kill tree of process', pid)
   return new Promise((resolve, reject) => {
-    _bash('./killtree.sh', [-pgid], { onerror: reject }, resolve)
+    _bash('./killtree.sh', [pid], { onerror: reject }, resolve)
   })
 }
 

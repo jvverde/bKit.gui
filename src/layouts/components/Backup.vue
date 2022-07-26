@@ -110,7 +110,6 @@ export default {
       errorline: '',
       process: undefined,
       pid: undefined,
-      pgid: undefined,
       dequeued: () => null,
       deleted: false,
       dryrun: false,
@@ -224,9 +223,9 @@ export default {
     async cancel () {
       this.status = 'Cancel Requested'
       try {
-        if (this.pgid) {
-          await killtree(this.pgid)
-          this.pgid = undefined
+        if (this.pid) {
+          await killtree(this.pid)
+          this.pid = undefined
         }
         if (this.onQueue && this.dequeued instanceof Function) {
           console.log('Dequeued')
@@ -290,8 +289,8 @@ export default {
           this.phasemsg = msg
           this.currentline = ''
         },
-        done: msg => {
-          console.log('Done bkit', msg)
+        oncedone: code => {
+          console.log('Done bKit with code', code)
           this.status = 'Done'
           this.phase = this.process = undefined
           this.currentline = ''
@@ -299,11 +298,10 @@ export default {
         saved: endpoint => {
           console.log('Your data is saved on', endpoint)
         },
-        start: ({ pid, pgid }) => {
+        start: ({ pid }) => {
           this.status = 'Starting'
           this.pid = pid
-          this.pgid = pgid
-          console.log(`Starting with pid ${pid} and pgid ${pgid}`)
+          console.log(`Starting with pid ${pid}`)
         },
         enqueued: (item) => {
           this.status = 'Enqueued'
@@ -339,15 +337,14 @@ export default {
       }).finally(() => {
         this.finished = true
         this.needBackup = 0
-        this.pid = undefined
         this.lastRun = Date.now()
         this.waiting = undefined
-        if (this.pgid) killtree(this.pgid)
-        this.pgid = undefined
+        if (this.pid) killtree(this.pid)
+        this.pid = undefined
       })
     },
     async beforeWindowUnload () {
-      if (this.pgid) await killtree(this.pgid)
+      if (this.pid) await killtree(this.pid)
     }
   },
   mounted () {
