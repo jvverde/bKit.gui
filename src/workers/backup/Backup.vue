@@ -65,17 +65,7 @@ import tooltip from 'src/components/tooltip'
 import { mapMutations } from 'vuex'
 import { error } from 'src/helpers/notify'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
-
-const _CANCELREQUEST = 'Cancel Request'
-const _DONE = 'Done'
-const _CANCELED = 'Canceled'
-const _ERROR = 'Error'
-const _ENQUEUED = 'Enqueued'
-const _STARTING = 'Starting'
-const _RUNNING = 'Running'
-const _DEQUEUED = 'Dequeued'
-const _LAUNCHING = 'Launching'
-const _DEQUEUING = 'Dequeuing'
+import state, { _CANCELREQUEST, _CANCELED, _RUNNING, _DONE, _ERROR } from './mixins/state'
 
 const depth = 20
 const watchOptions = { ...chokidarOptions, depth }
@@ -111,18 +101,7 @@ export default {
       files: new Counter(),
       specials: new Counter(),
       devices: new Counter(),
-      phase: undefined,
-      phasemsg: '',
-      status: undefined,
-      error: null,
       finished: false,
-      cnterrors: 0,
-      currentline: '',
-      errorline: '',
-      pid: undefined,
-      dequeued: nill,
-      deleted: false,
-      dryrun: false,
       needBackup: 0,
       watcher: undefined,
       lastRun: Date.now(),
@@ -133,54 +112,6 @@ export default {
   computed: {
     isFinished () {
       return this.finished === true
-    },
-    isIdle () {
-      return this.isFinished || this.status === undefined
-    },
-    isStarting () {
-      return this.status === _STARTING
-    },
-    isRunning () {
-      return this.status === _RUNNING && !this.isFinished
-    },
-    isDone () {
-      return this.status === _DONE && this.isFinished
-    },
-    isCanceled () {
-      return this.status === _CANCELED || this.status === _DEQUEUED
-    },
-    onQueue () {
-      return this.status === _ENQUEUED
-    },
-    isDequeued () {
-      return this.status === _DEQUEUED
-    },
-    isCancelable () {
-      return this.status && !this.isDone && !this.isCanceled && !this.isOnError
-    },
-    isDryRun () {
-      return this.status && this.dryrun
-    },
-    isStopped () {
-      return this.isCanceled || this.isFinished
-    },
-    isRemovable () {
-      return this.status && this.isStopped
-    },
-    isOnError () {
-      return this.status === _ERROR
-    },
-    isCanceling () {
-      return this.status === _CANCELREQUEST
-    },
-    isOnCancelProcess () {
-      return this.isCanceling || this.isCanceled
-    },
-    isDequeuing () {
-      return this.status === _DEQUEUING
-    },
-    isOnDequeuProcess () {
-      return this.isDequeued || this.isDequeuing
     }
   },
   components: {
@@ -211,6 +142,7 @@ export default {
       }
     }
   },
+  mixins: [state],
   methods: {
     ...mapMutations('backups', { backupDone: 'done' }),
     ...mapMutations('backups', ['rmPath']),
@@ -313,54 +245,6 @@ export default {
         this.YX(X, Y)(size, bytes, Y)
       })
     },
-    newphase ({ phase, msg }) {
-      console.log('Phase', phase, msg)
-      this.status = _RUNNING
-      this.phase = 0 | phase
-      this.phasemsg = msg
-      this.currentline = ''
-    },
-    saved (endpoint) {
-      console.log('Your data is saved on', endpoint)
-    },
-    enqueued (item) {
-      this.status = _ENQUEUED
-      console.log(_ENQUEUED, this.path)
-      this.dequeued = () => {
-        this.status = _DEQUEUING
-        console.log(_DEQUEUING, this.path)
-        try {
-          item.dismiss()
-          this.dequeued = nill
-          this.status = _DEQUEUED
-          console.log(_DEQUEUED, this.path)
-        } catch (err) {
-          error(err)
-        }
-      }
-    },
-    start ({ pid }) {
-      this.status = _STARTING
-      this.pid = pid
-      console.log(`Starting with pid ${pid}`)
-    },
-    stderr (line) {
-      console.warn(line)
-      this.errorline = line
-      this.currentline = ''
-      this.cnterrors++
-    },
-    oncedone (code) {
-      console.log('Done bKit with code', code)
-      if (code === 0) this.status = _DONE
-      this.phase = undefined
-      this.currentline = ''
-    },
-    oncespawn (fd) {
-      console.log(_LAUNCHING, fd)
-      this.status = _LAUNCHING
-    },
-
     async backup () {
       this.error = null
       this.finished = false
