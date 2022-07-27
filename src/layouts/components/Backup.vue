@@ -215,6 +215,7 @@ export default {
   methods: {
     ...mapMutations('backups', { backupDone: 'done' }),
     ...mapMutations('backups', ['rmPath']),
+    formatBytes,
     remove () {
       this.rmPath(this.path)
     },
@@ -245,7 +246,6 @@ export default {
         this.watcher = undefined
       }
     },
-    formatBytes,
     async cancel () {
       if (this.pid) {
         this.status = _CANCELREQUEST
@@ -267,6 +267,38 @@ export default {
         error(`Invalid state(${this.status}) to cancel`)
       }
     },
+    getXY (x, y) {
+      const error = () => {
+        throw new Error(`Itemize YXcstpoguax with wrong value on X=${x}`)
+      }
+      const dispatch = {
+        d: (size, bytes) => this.dirs.add(size, bytes),
+        L: (size, bytes) => this.slinks.add(size, bytes),
+        S: (size, bytes) => this.specials.add(size, bytes),
+        D: (size, bytes) => this.devices.add(size, bytes),
+        f: (size, bytes) => {
+          this.total.add(size, bytes)
+          this.getY(y)(size, bytes)
+        }
+      }
+      return dispatch[x] || error
+    },
+    getY (y) {
+      const dispatch = {
+        '<': (size, bytes) => {
+          this.transferred.add(size, bytes)
+          if (this.phase === 1) this.files.add(size, bytes)
+        },
+        '.': (size, bytes) => {
+          this.updated.add(size, bytes)
+          if (this.phase === 1) this.files.add(size, bytes)
+        },
+        h: (size, bytes) => this.hlinks.add(size, bytes),
+        c: (size, bytes) => this.created.add(size, bytes)
+      }
+      return dispatch[y] || nill
+    },
+
     sent ({
       // YXcstpoguax
       // <Y><X><s><t><poguax><file><BS><bytes><size><time>
@@ -278,33 +310,11 @@ export default {
         this.status = _RUNNING
         this.currentline = line
         this.errorline = ''
-        console.log(line)
-        if (X === 'f') {
-          this.total.add(size, bytes)
-          if (Y === '<') {
-            this.transferred.add(size, bytes)
-            if (this.phase === 1) this.files.add(size, bytes)
-          } else if (Y === '.') {
-            this.updated.add(size, bytes)
-            if (this.phase === 1) this.files.add(size, bytes)
-          } else if (Y === 'h') {
-            this.hlinks.add(size, bytes)
-          } else if (Y === 'c') {
-            this.created.add(size, bytes)
-          }
-        } else if (X === 'd') {
-          this.dirs.add(size, bytes)
-        } else if (X === 'L') {
-          this.slinks.add(size, bytes)
-        } else if (X === 'S') {
-          this.specials.add(size, bytes)
-        } else if (X === 'D') {
-          this.devices.add(size, bytes)
-        } else {
-          throw new Error(`Itemize YXcstpoguax with wrong value on X=${X}`)
-        }
+        // console.log('Line:', line)
+        this.getXY(X, Y)(size, bytes, Y)
       })
     },
+
     async backup () {
       this.error = null
       this.finished = false
