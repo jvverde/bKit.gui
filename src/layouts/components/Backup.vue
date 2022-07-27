@@ -323,54 +323,59 @@ export default {
     saved (endpoint) {
       console.log('Your data is saved on', endpoint)
     },
+    enqueued (item) {
+      this.status = _ENQUEUED
+      console.log(_ENQUEUED, this.path)
+      this.dequeued = () => {
+        this.status = _DEQUEUING
+        console.log(_DEQUEUING, this.path)
+        try {
+          item.dismiss()
+          this.dequeued = nill
+          this.status = _DEQUEUED
+          console.log(_DEQUEUED, this.path)
+        } catch (err) {
+          error(err)
+        }
+      }
+    },
+    start ({ pid }) {
+      this.status = _STARTING
+      this.pid = pid
+      console.log(`Starting with pid ${pid}`)
+    },
+    stderr (line) {
+      console.warn(line)
+      this.errorline = line
+      this.currentline = ''
+      this.cnterrors++
+    },
+    oncedone (code) {
+      console.log('Done bKit with code', code)
+      if (code === 0) this.status = _DONE
+      this.phase = undefined
+      this.currentline = ''
+    },
+    oncespawn (fd) {
+      console.log(_LAUNCHING, fd)
+      this.status = _LAUNCHING
+    },
 
     async backup () {
       this.error = null
       this.finished = false
-      const { sent, newphase, saved } = this
+      const { enqueued, start, oncespawn, sent, newphase, saved, stderr, oncedone } = this
       // this.dryrun = true
       return bKit(this.path, {
         // rsyncoptions: ['--dry-run'],
+        enqueued,
+        start,
+        oncespawn,
         sent,
         newphase,
         saved,
-        oncedone: code => {
-          console.log('Done bKit with code', code)
-          if (code === 0) this.status = _DONE
-          this.phase = undefined
-          this.currentline = ''
-        },
-        start: ({ pid }) => {
-          this.status = _STARTING
-          this.pid = pid
-          console.log(`Starting with pid ${pid}`)
-        },
-        enqueued: (item) => {
-          this.status = _ENQUEUED
-          console.log(_ENQUEUED, this.path)
-          this.dequeued = () => {
-            this.status = _DEQUEUING
-            console.log(_DEQUEUING, this.path)
-            try {
-              item.dismiss()
-              this.dequeued = nill
-              this.status = _DEQUEUED
-              console.log(_DEQUEUED, this.path)
-            } catch (err) {
-              error(err)
-            }
-          }
-        },
-        oncespawn: fd => {
-          console.log(_LAUNCHING, fd)
-          this.status = _LAUNCHING
-        },
-        stderr: (line) => {
-          console.warn(line)
-          this.errorline = line
-          this.currentline = ''
-          this.cnterrors++
-        }
+        stderr,
+        oncedone
       }).then(code => {
         console.log('Backup Done with code', code)
         if (this.isRunning) this.status = _DONE // Only in case other cases have not occurred
