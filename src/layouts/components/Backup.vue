@@ -75,7 +75,7 @@ const _STARTING = 'Starting'
 const _RUNNING = 'Running'
 const _DEQUEUED = 'Dequeued'
 const _LAUNCHING = 'Launching'
-const _DEQUEUING = 'dequeuing'
+const _DEQUEUING = 'Dequeuing'
 
 const depth = 20
 const watchOptions = { ...chokidarOptions, depth }
@@ -115,7 +115,6 @@ export default {
       phasemsg: '',
       status: undefined,
       error: null,
-      ok: undefined,
       finished: false,
       cnterrors: 0,
       currentline: '',
@@ -267,7 +266,7 @@ export default {
         error(`Invalid state(${this.status}) to cancel`)
       }
     },
-    getXY (x, y) {
+    YX (x, y) { // Dispatch a action for each possible XY values of rsync loging format (YXcstpoguax)
       const error = () => {
         throw new Error(`Itemize YXcstpoguax with wrong value on X=${x}`)
       }
@@ -278,12 +277,12 @@ export default {
         D: (size, bytes) => this.devices.add(size, bytes),
         f: (size, bytes) => {
           this.total.add(size, bytes)
-          this.getY(y)(size, bytes)
+          this.Y(y)(size, bytes)
         }
       }
       return dispatch[x] || error
     },
-    getY (y) {
+    Y (y) { // Dispatch an action for each possible Y value of rsync loging format
       const dispatch = {
         '<': (size, bytes) => {
           this.transferred.add(size, bytes)
@@ -311,32 +310,35 @@ export default {
         this.currentline = line
         this.errorline = ''
         // console.log('Line:', line)
-        this.getXY(X, Y)(size, bytes, Y)
+        this.YX(X, Y)(size, bytes, Y)
       })
+    },
+    newphase ({ phase, msg }) {
+      console.log('Phase', phase, msg)
+      this.status = _RUNNING
+      this.phase = 0 | phase
+      this.phasemsg = msg
+      this.currentline = ''
+    },
+    saved (endpoint) {
+      console.log('Your data is saved on', endpoint)
     },
 
     async backup () {
       this.error = null
       this.finished = false
+      const { sent, newphase, saved } = this
       // this.dryrun = true
       return bKit(this.path, {
         // rsyncoptions: ['--dry-run'],
-        sent: this.sent,
-        newphase: ({ phase, msg }) => {
-          console.log('Phase', phase, msg)
-          this.status = _RUNNING
-          this.phase = 0 | phase
-          this.phasemsg = msg
-          this.currentline = ''
-        },
+        sent,
+        newphase,
+        saved,
         oncedone: code => {
           console.log('Done bKit with code', code)
           if (code === 0) this.status = _DONE
           this.phase = undefined
           this.currentline = ''
-        },
-        saved: endpoint => {
-          console.log('Your data is saved on', endpoint)
         },
         start: ({ pid }) => {
           this.status = _STARTING
@@ -371,8 +373,7 @@ export default {
         }
       }).then(code => {
         console.log('Backup Done with code', code)
-        this.ok = true
-        // this.status = _DONE
+        if (this.isRunning) this.status = _DONE // Only in case other cases have not occurred
         const { path, endpoint } = this
         this.backupDone({ path, endpoint })
       }).catch(e => {

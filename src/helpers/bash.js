@@ -34,9 +34,8 @@ function _bash (name, args = [], events = {}, done = nill) {
   const scriptname = typeof name === 'object' ? name.script : name
   const warn = (err) => console.warn(`Received on stderr from script ${scriptname}: ${err}`)
   const { onreadline = nill, onerror = catched, stderr = warn, oncespawn = nill, oncedone = nill } = events
-  let doneOnce = code => {
+  const close = code => {
     try {
-      doneOnce = nill
       oncedone(code)
       stoptimeout()
       if (fd.stdin) fd.stdin.pause()
@@ -46,9 +45,13 @@ function _bash (name, args = [], events = {}, done = nill) {
     } catch (err) {
       console.warn('When try to kill', fd, err)
     } finally {
-      console.log('DoneOnce', scriptname, ...args)
       done(code)
     }
+  }
+  let closeOnce = code => {
+    closeOnce = nill
+    console.log('closeOnce', scriptname, ...args)
+    close(code)
   }
   const bKitPath = getbkitlocation()
   console.log(`Try spawn ${scriptname} on ${bKitPath} `)
@@ -83,7 +86,7 @@ function _bash (name, args = [], events = {}, done = nill) {
   fd.on('close', (code) => {
     console.log('Close', scriptname, ...args)
     if (code) console.warn(`Return code ${code} is NOT ok for ${scriptname}`)
-    doneOnce(code)
+    closeOnce(code)
   })
 
   fd.on('error', onerror)
@@ -95,12 +98,12 @@ function _bash (name, args = [], events = {}, done = nill) {
       const params = args.join(' ')
       onerror(`Call to '${scriptname} ${params}' exit with code ${err}`)
     }
-    doneOnce(err)
+    closeOnce(err)
   })
 
   fd.on('disconnect', err => {
     console.error('Disconnect', err)
-    doneOnce(err)
+    closeOnce(err)
   })
   const rl = readline.createInterface({
     input: fd.stdout,
@@ -112,7 +115,7 @@ function _bash (name, args = [], events = {}, done = nill) {
   })
   rl.on('close', () => {
     console.log('Readline close', scriptname)
-    doneOnce(undefined)
+    closeOnce(undefined)
     resettimeout()
   })
   fd.stderr.on('data', err => {
@@ -120,7 +123,7 @@ function _bash (name, args = [], events = {}, done = nill) {
     const error = `${err}`
     const result = stderr(error)
     if (result === 'stop') { // if receive a stop from upper layers
-      doneOnce(err) // send a empty done
+      closeOnce(err) // ...
       // fd.kill() // also kill the process
     }
   })
@@ -141,7 +144,7 @@ export function asyncBash (name, args = [], events = {}) {
   const lines = []
   const { onreadline = line => lines.push(line) } = events
   return new Promise((resolve, reject) => {
-    const done = () => resolve(lines)
+    const done = code => resolve(lines.length > 0 ? lines : code)
     const onerror = reject
     _bash(name, args, { ...events, onreadline, onerror }, done)
   })
