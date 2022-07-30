@@ -46,7 +46,6 @@
         </q-btn>
       </q-item-label>
     </q-item-section>
-    <q-item-section side v-if="dryrun">[DRY-RUN]</q-item-section>
     <q-item-section side>
       <q-item-label>
         <q-btn flat round icon="backup" color="backup" size="sm" @click.stop="backup" :disable="!isStopped"  :class="{inactive: !isStopped}"/>
@@ -60,12 +59,13 @@
 <script>
 import { bKit } from 'src/helpers/bkit'
 import { killtree } from 'src/helpers/bash'
-import { formatBytes } from 'src/helpers/utils'
+import { formatBytes } from 'src/utils/misc'
 import tooltip from 'src/components/tooltip'
 import { mapMutations } from 'vuex'
-import { error } from 'src/helpers/notify'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
-import state, { _CANCELREQUEST, _CANCELED, _DONE, _ERROR } from './mixins/state'
+import events from './mixins/events'
+import state from 'src/workers/mixins/state'
+import { _DONE, _ERROR } from 'src/utils/states'
 import stats from './mixins/stats'
 
 const depth = 20
@@ -118,7 +118,7 @@ export default {
       }
     }
   },
-  mixins: [state, stats],
+  mixins: [state, events, stats],
   methods: {
     ...mapMutations('backups', { backupDone: 'done' }),
     ...mapMutations('backups', ['rmPath']),
@@ -151,27 +151,6 @@ export default {
         console.warn(err)
       } finally {
         this.watcher = undefined
-      }
-    },
-    async cancel () {
-      if (this.pid) {
-        this.status = _CANCELREQUEST
-        console.log(_CANCELREQUEST, this.path)
-        try {
-          await killtree(this.pid)
-          this.pid = undefined
-          this.status = _CANCELED
-          console.log(_CANCELED, this.path)
-        } catch (err) {
-          console.error(`Cancel catch an error for [${this.pid}] ${this.path}`)
-          error(err)
-          this.status = _ERROR
-          this.error = err
-        }
-      } else if (this.onQueue && this.dequeued instanceof Function) {
-        this.dequeued()
-      } else {
-        error(`Invalid state(${this.status}) to cancel`)
       }
     },
     async backup () {

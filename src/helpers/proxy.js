@@ -1,6 +1,6 @@
 'use strict'
 import { Store } from 'src/store'
-import { deepFreeze } from './utils'
+import { deepFreeze } from 'src/utils/misc'
 
 const servername = () => Store.getters['accounts/accountServerURL']
 

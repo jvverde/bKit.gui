@@ -1,4 +1,4 @@
-import { _RUNNING } from './state'
+import { _RUNNING } from 'src/utils/states'
 
 class Counter {
   constructor () {

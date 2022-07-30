@@ -74,10 +74,16 @@
 <script>
 import { rKit } from 'src/helpers/bkit'
 import { Resource } from 'src/helpers/types'
-import { formatBytes } from 'src/helpers/utils'
+import { formatBytes } from 'src/utils/misc'
 import { killtree } from 'src/helpers/bash'
+import { error } from 'src/helpers/notify'
 
 import tooltip from 'src/components/tooltip'
+
+import state from 'src/workers/mixins/state'
+import events from './mixins/events'
+import { _CANCELREQUEST, _CANCELED, _DONE, _ERROR } from 'src/utils/states'
+import stats from './mixins/stats'
 
 const isDryRun = (element) => element.match(/^--dry-run/) instanceof Array
 export default {
@@ -87,59 +93,25 @@ export default {
       fd: null,
       fullpath: undefined,
       recoverydir: undefined,
-      status: undefined,
       error: null,
-      ok: undefined,
       finished: false,
-      totalfiles: 0,
-      cntfiles: 0,
       needatencion: 0,
       updated: 0,
-      totalsize: 0,
-      currentpercent: 0,
-      currentline: null,
-      currentrate: '',
-      currentsize: 0,
       deleted: false,
-      currentsizeinbytes: 0,
       pid: undefined,
-      dequeued: () => null,
       watch: null
     }
   },
   components: {
     tooltip
   },
+  mixins: [state, events, stats],
   computed: {
     path () {
       return this.resource.path
     },
     isFinished () {
       return this.finished === true
-    },
-    isRunning () {
-      return this.status === 'Running' && !this.isFinished
-    },
-    isDone () {
-      return this.status === 'Done' && this.isFinished
-    },
-    isCanceled () {
-      return this.status === 'Canceled'
-    },
-    isDismissible () {
-      return this.isDone || this.isCanceled
-    },
-    onQueue () {
-      return this.status === 'Enqueued'
-    },
-    isCancelable () {
-      return !this.isDone && !this.isCanceled
-    },
-    filespercent () {
-      return this.totalfiles ? Math.trunc(1000 * (this.cntfiles / this.totalfiles)) / 10 : 0
-    },
-    sizepercent () {
-      return this.currentpercent
     },
     isDryRun () {
       return this.resource.rsyncoptions.some(isDryRun) || this.resource.options.some(isDryRun)
@@ -157,19 +129,25 @@ export default {
   },
   methods: {
     formatBytes,
-    cancel () {
+    async cancel () {
       if (this.pid) {
-        killtree(this.pid)
-          .then(() => {
-            this.pid = undefined
-            this.status = 'Canceled'
-          })
-          .catch(err => console.error(err))
-      }
-
-      if (this.onQueue && this.dequeued instanceof Function) {
-        console.log('Dequeued')
+        this.status = _CANCELREQUEST
+        console.log(_CANCELREQUEST, this.path)
+        try {
+          await killtree(this.pid)
+          this.pid = undefined
+          this.status = _CANCELED
+          console.log(_CANCELED, this.path)
+        } catch (err) {
+          console.error(`Cancel catch an error for [${this.pid}] ${this.path}`)
+          error(err)
+          this.status = _ERROR
+          this.error = err
+        }
+      } else if (this.onQueue && this.dequeued instanceof Function) {
         this.dequeued()
+      } else {
+        error(`Invalid state(${this.status}) to cancel`)
       }
     },
     destroy () {
@@ -177,7 +155,7 @@ export default {
       this.$emit('destroy')
     },
     restore () {
-      this.totalfiles = this.totalsize = this.cntfiles = 0
+      this.initCounters()
       this.error = null
       console.log('resource', this.resource)
       const { path, options: o, rsyncoptions: r, snap, rvid } = this.resource
@@ -187,51 +165,33 @@ export default {
         `--snap=${snap}`,
         `--rvid=${rvid}`
       )
+      const { enqueued, onstart, oncespawn, stderr, onfinish, onrecvfile, onprogress, ontotalfiles, ontotalsize } = this
       rKit(path, options, rsyncoptions, {
-        enqueued: (item) => {
-          this.status = 'Enqueued'
-          this.dequeued = item.dismiss
-        },
-        onstart: ({ pid }) => {
-          this.status = 'Starting'
-          this.pid = pid
-          console.log(`Starting rKit [${pid}:${pid}]`)
-        },
-        oncespawn: () => {
-          this.status = 'Launching'
-        },
-        stderr: (line) => {
-          console.warn(line)
-          this.currentline = line
-          this.cnterrors++
-        },
-        onfinish: () => {
-          this.status = 'Done'
-        },
-        onrecvfile: ({ size }, line) => {
-          this.status = 'Running'
-          this.cntfiles++
-          this.currentline = line
-          this.currentsizeinbytes += Number(size)
-        },
-        onprogress: ({ size, percent, rate }) => {
-          this.status = 'Running'
-          this.currentpercent = Number(percent)
-          this.currentsize = size
-          this.currentrate = rate
-        },
-        ontotalfiles: n => { this.totalfiles = Number(n) }, // Not fired without rsync '--delay-updates'
-        ontotalsize: val => { this.totalsize = val }
+        enqueued,
+        onstart,
+        oncespawn,
+        stderr,
+        onfinish,
+        onrecvfile,
+        onprogress,
+        ontotalfiles,
+        ontotalsize
       }).then(code => {
         console.log('Restore Done with code', code)
+        if (this.isRunning) this.status = _DONE // Only in case other cases have not occurred
         this.done(this.path)
-        this.ok = true
       }).catch(e => {
-        console.error('Restore catch error', e, this.path)
-        this.error = e
+        if (this.isOnDequeuProcess) {
+          console.info('Catch', e, 'on Dequeued Process for', this.path)
+        } else if (this.isOnCancelProcess) {
+          console.info('Catch', e, 'on Cancel Process for', this.path)
+        } else {
+          console.error('Restore catch error', e, 'for', this.path)
+          this.error = e
+          this.status = _ERROR
+        }
       }).finally(() => {
         this.finished = true
-        this.pid = undefined
         if (this.pid) killtree(this.pid)
         this.pid = undefined
       })

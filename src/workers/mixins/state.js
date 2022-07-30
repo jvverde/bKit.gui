@@ -1,15 +1,18 @@
 import { error } from 'src/helpers/notify'
+import { killtree } from 'src/helpers/bash'
 
-export const _CANCELREQUEST = 'Cancel Request'
-export const _DONE = 'Done'
-export const _CANCELED = 'Canceled'
-export const _ERROR = 'Error'
-export const _ENQUEUED = 'Enqueued'
-export const _STARTING = 'Starting'
-export const _RUNNING = 'Running'
-export const _DEQUEUED = 'Dequeued'
-export const _LAUNCHING = 'Launching'
-export const _DEQUEUING = 'Dequeuing'
+import {
+  _CANCELED,
+  _CANCELREQUEST,
+  _DEQUEUED,
+  _DEQUEUING,
+  _DONE,
+  _ENQUEUED,
+  _ERROR,
+  // _LAUNCHING,
+  _RUNNING,
+  _STARTING
+} from 'src/utils/states'
 
 const nill = () => null
 
@@ -18,15 +21,9 @@ export default {
   data () {
     return {
       pid: undefined,
-      phase: undefined,
-      phasemsg: '',
       status: undefined,
       error: null,
-      cnterrors: 0,
-      currentline: '',
-      errorline: '',
-      dequeued: nill,
-      dryrun: false
+      dequeued: nill
     }
   },
   computed: {
@@ -80,17 +77,6 @@ export default {
     }
   },
   methods: {
-    /* Called by events */
-    newphase ({ phase, msg }) {
-      console.log('Phase', phase, msg)
-      this.status = _RUNNING
-      this.phase = 0 | phase
-      this.phasemsg = msg
-      this.currentline = ''
-    },
-    saved (endpoint) {
-      console.log('Your data is saved on', endpoint)
-    },
     enqueued (item) {
       this.status = _ENQUEUED
       console.log(_ENQUEUED)
@@ -107,27 +93,26 @@ export default {
         }
       }
     },
-    start ({ pid }) {
-      this.status = _STARTING
-      this.pid = pid
-      console.log(`Starting with pid ${pid}`)
-    },
-    stderr (line) {
-      console.warn(line)
-      this.errorline = line
-      this.currentline = ''
-      this.cnterrors++
-    },
-    oncedone (code) {
-      console.log('Done bKit with code', code)
-      if (code === 0) this.status = _DONE
-      this.phase = undefined
-      this.currentline = ''
-    },
-    oncespawn (fd) {
-      console.log(_LAUNCHING, fd)
-      this.status = _LAUNCHING
+    async cancel () {
+      if (this.pid) {
+        this.status = _CANCELREQUEST
+        console.log(_CANCELREQUEST, this.path)
+        try {
+          await killtree(this.pid)
+          this.pid = undefined
+          this.status = _CANCELED
+          console.log(_CANCELED, this.path)
+        } catch (err) {
+          console.error(`Cancel catch an error for [${this.pid}] ${this.path}`)
+          error(err)
+          this.status = _ERROR
+          this.error = err
+        }
+      } else if (this.onQueue && this.dequeued instanceof Function) {
+        this.dequeued()
+      } else {
+        error(`Invalid state(${this.status}) to cancel`)
+      }
     }
-    /* Set by uper layer action */
   }
 }
