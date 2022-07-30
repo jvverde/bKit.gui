@@ -80,10 +80,10 @@ import { error } from 'src/helpers/notify'
 
 import tooltip from 'src/components/tooltip'
 
-import state from 'src/workers/mixins/state'
-import events from './mixins/events'
 import { _CANCELREQUEST, _CANCELED, _DONE, _ERROR } from 'src/utils/states'
-import stats from './mixins/stats'
+import state from '../mixins/state'
+import events from '../mixins/restoreEvents'
+import stats from '../mixins/restoreStats'
 
 const isDryRun = (element) => element.match(/^--dry-run/) instanceof Array
 export default {

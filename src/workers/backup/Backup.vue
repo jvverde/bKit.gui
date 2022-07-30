@@ -63,10 +63,11 @@ import { formatBytes } from 'src/utils/misc'
 import tooltip from 'src/components/tooltip'
 import { mapMutations } from 'vuex'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
-import events from './mixins/events'
-import state from 'src/workers/mixins/state'
+
 import { _DONE, _ERROR } from 'src/utils/states'
-import stats from './mixins/stats'
+import state from '../mixins/state'
+import events from '../mixins/backupEvents'
+import stats from '../mixins/backupStats'
 
 const depth = 20
 const watchOptions = { ...chokidarOptions, depth }
