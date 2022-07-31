@@ -42,17 +42,17 @@ export default {
     isCanceled () {
       return this.status === _CANCELED || this.status === _DEQUEUED
     },
-    onQueue () {
-      return this.status === _ENQUEUED
+    isCanceling () {
+      return this.status === _CANCELREQUEST
     },
-    isDequeued () {
-      return this.status === _DEQUEUED
+    isOnCancelProcess () {
+      return this.isCanceling || this.isCanceled
     },
     isCancelable () {
       return this.status && !this.isDone && !this.isCanceled && !this.isOnError
     },
-    isDryRun () {
-      return this.status && this.dryrun
+    isDismissible () {
+      return this.isDone || this.isCanceled
     },
     isStopped () {
       return this.isCanceled || this.isFinished
@@ -60,20 +60,23 @@ export default {
     isRemovable () {
       return this.status && this.isStopped
     },
-    isOnError () {
-      return this.status === _ERROR
+    onQueue () {
+      return this.status === _ENQUEUED
     },
-    isCanceling () {
-      return this.status === _CANCELREQUEST
-    },
-    isOnCancelProcess () {
-      return this.isCanceling || this.isCanceled
+    isDequeued () {
+      return this.status === _DEQUEUED
     },
     isDequeuing () {
       return this.status === _DEQUEUING
     },
     isOnDequeuProcess () {
       return this.isDequeued || this.isDequeuing
+    },
+    isDryRun () {
+      return this.status && this.dryrun
+    },
+    isOnError () {
+      return this.status === _ERROR
     }
   },
   methods: {
