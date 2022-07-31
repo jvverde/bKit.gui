@@ -62,11 +62,12 @@
       </q-circular-progress>
     </q-item-section>
     <q-item-section side v-if="isDryRun">[DRY-RUN]</q-item-section>
-    <q-item-section side v-if="isDismissible">
-      <q-btn flat round icon="close" color="dismmiss" size="xs" @click.stop="deleted = true"/>
-    </q-item-section>
-    <q-item-section side v-if="isCancelable">
-      <q-btn flat round icon="stop" color="cancel" size="xs" @click.stop="cancel"/>
+    <q-item-section side>
+      <q-item-label>
+        <q-btn flat round icon="restore" color="restore" size="sm" @click.stop="restore" :disable="!isStopped"  :class="{inactive: !isStopped}"/>
+        <q-btn flat round icon="pause" color="cancel" size="sm" @click.stop="cancel" :disable="!isCancelable"  :class="{inactive: !isCancelable}"/>
+        <q-btn flat round icon="close" color="dismiss" size="sm" @click.stop="remove" :disable="!isRemovable" :class="{inactive: !isRemovable}"/>
+      </q-item-label>
     </q-item-section>
   </q-item>
 </template>
@@ -76,11 +77,11 @@ import { rKit } from 'src/helpers/bkit'
 import { Resource } from 'src/helpers/types'
 import { formatBytes } from 'src/utils/misc'
 import { killtree } from 'src/helpers/bash'
-import { error } from 'src/helpers/notify'
+import { mapMutations } from 'vuex'
 
 import tooltip from 'src/components/tooltip'
 
-import { _CANCELREQUEST, _CANCELED, _DONE, _ERROR } from 'src/utils/states'
+import { _DONE, _ERROR } from 'src/utils/states'
 import state from '../mixins/state'
 import events from '../mixins/restoreEvents'
 import stats from '../mixins/restoreStats'
@@ -120,34 +121,15 @@ export default {
     }
   },
   methods: {
+    ...mapMutations('restore', ['rmResource']),
     formatBytes,
-    async cancel () {
-      if (this.pid) {
-        this.status = _CANCELREQUEST
-        console.log(_CANCELREQUEST, this.path)
-        try {
-          await killtree(this.pid)
-          this.pid = undefined
-          this.status = _CANCELED
-          console.log(_CANCELED, this.path)
-        } catch (err) {
-          console.error(`Cancel catch an error for [${this.pid}] ${this.path}`)
-          error(err)
-          this.status = _ERROR
-          this.error = err
-        }
-      } else if (this.onQueue && this.dequeued instanceof Function) {
-        this.dequeued()
-      } else {
-        error(`Invalid state(${this.status}) to cancel`)
-      }
-    },
-    destroy () {
-      this.$emit('destroy')
+    remove () {
+      this.rmResource(this.resource)
     },
     restore () {
       this.initCounters()
       this.error = null
+      this.finished = false
       console.log('resource', this.resource)
       const { path, options: o, rsyncoptions: r, snap, rvid } = this.resource
       const options = [...o] // Resource came from VUEX and shoudn't be modified outside a mutation
@@ -193,3 +175,10 @@ export default {
   }
 }
 </script>
+
+<style scoped lang="scss">
+  .inactive {
+    color: transparent !important;
+    pointer-events: none;
+  }
+</style>
