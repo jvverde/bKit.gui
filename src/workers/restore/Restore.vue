@@ -87,19 +87,11 @@ import stats from '../mixins/restoreStats'
 
 const isDryRun = (element) => element.match(/^--dry-run/) instanceof Array
 export default {
-  // name: 'ComponentName',
+  name: 'Restore',
   data () {
     return {
-      fd: null,
-      fullpath: undefined,
-      recoverydir: undefined,
-      error: null,
       finished: false,
-      needatencion: 0,
-      updated: 0,
-      deleted: false,
-      pid: undefined,
-      watch: null
+      deleted: false
     }
   },
   components: {
@@ -151,7 +143,6 @@ export default {
       }
     },
     destroy () {
-      // bkit.stop(this.fd)
       this.$emit('destroy')
     },
     restore () {
@@ -195,19 +186,10 @@ export default {
         if (this.pid) killtree(this.pid)
         this.pid = undefined
       })
-    },
-    async beforeWindowUnload () {
-      if (this.pid) await killtree(this.pid)
     }
   },
   mounted () {
-    window.addEventListener('beforeunload', this.beforeWindowUnload)
     this.restore()
-  },
-  beforeDestroy () {
-    window.removeEventListener('beforeunload', this.beforeWindowUnload)
-    /* console.log('Destroy')
-    if (this.watch) this.watch.close().then(() => console.log('Watcher closed')) */
   }
 }
 </script>

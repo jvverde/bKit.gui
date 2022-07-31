@@ -234,9 +234,6 @@ export default {
         }
       }
     },
-    destroy_restore (index) {
-      this.restores.splice(index, 1)
-    },
     async load () {
       this.loading = true
       await this.getLocalDisks()

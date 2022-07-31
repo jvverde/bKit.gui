@@ -192,21 +192,10 @@ export default {
         if (this.pid) killtree(this.pid)
         this.pid = undefined
       })
-    },
-    async beforeWindowUnload () {
-      if (this.pid) await killtree(this.pid)
     }
   },
   mounted () {
-    window.addEventListener('beforeunload', this.beforeWindowUnload)
     this.backup()
-  },
-  beforeUpdate () {
-    // console.log('beforeUpdate', this.path)
-  },
-  beforeDestroy () {
-    this.stopWatch()
-    window.removeEventListener('beforeunload', this.beforeWindowUnload)
   }
 }
 </script>

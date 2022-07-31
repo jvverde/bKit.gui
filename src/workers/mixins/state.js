@@ -113,6 +113,15 @@ export default {
       } else {
         error(`Invalid state(${this.status}) to cancel`)
       }
+    },
+    async beforeWindowUnload () {
+      if (this.pid) await killtree(this.pid)
     }
+  },
+  mounted () {
+    window.addEventListener('beforeunload', this.beforeWindowUnload)
+  },
+  beforeDestroy () {
+    window.removeEventListener('beforeunload', this.beforeWindowUnload)
   }
 }
