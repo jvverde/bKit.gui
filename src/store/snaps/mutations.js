@@ -6,6 +6,7 @@ export function useLastSnap (state) {
 }
 
 export function setCurrentSnap (state, snap) {
+  console.log('Set currentSnap', snap)
   state.currentSnap = snap
 }
 

@@ -85,3 +85,14 @@ export const listRemoteDir = async (rvid, snap, path) => {
     }
   }
 }
+
+export const getChanges = async (rvid, snap, filename) => {
+  if (!snap || !rvid) throw new Error(`The parametera (rvid, snap) on listPath can't be ('${rvid}', '${snap}')`)
+  const { computer, localUser } = await pInfo
+  const { uuid, name, domain, user } = { ...computer, user: localUser, ...getCurrentClient() }
+  // format: /list/:uuid/:name/:domain/:profile/:volume/:snap
+  const { data: response } = await axios.get(`/v1/user/changes/${uuid}/${name}/${domain}/${user}/${rvid}`, {
+    params: { filename }
+  })
+  return response
+}

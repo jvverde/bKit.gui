@@ -1,3 +1,5 @@
+import { relative, normalize, sep, posix } from 'path'
+
 export const formatBytes = (bytes, decimal = 2) => {
   const KB = 1024
   const MB = KB * KB
@@ -27,4 +29,9 @@ export function deepFreeze (object) {
   }
 
   return Object.freeze(object)
+}
+
+export const bkitPath = (base, fullpath) => {
+  let upath = base ? relative(base, fullpath) : fullpath
+  return normalize(upath).split(sep).join(posix.sep)
 }

@@ -23,6 +23,34 @@
       <div class="bkit-text" @click="debug">
         {{name}}
       </div>
+      <div v-if="onbackup"
+        style="margin-top:auto"
+        class="row text-weight-light no-wrap">
+        <q-btn-dropdown no-caps flat no-wrap
+          icon="assignment"
+          :color="hasversions ? 'versions' : 'noversions'"
+          label="Versions"
+          class="text-weight-light"
+          :loading="loading"
+          strech
+          dense
+          size="sm"
+          @click="getVersions"
+          >
+          <q-list separator class="q-pa-xd" >
+            <q-item dense
+              clickable
+              v-close-popup
+              @click="onVersionClick(version)"
+              v-for="version in versions"
+              :key="version.t">
+              <q-item-section>
+                {{version.date}}
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
+      </div>
       <q-menu auto-close context-menu fit anchor="bottom start" self="top left" v-if="isdir">
         <q-list dense style="min-width: 100px">
           <q-item clickable v-close-popup @click="open">
@@ -81,7 +109,9 @@
 // import { getVersions } from 'src/helpers/bkit'
 import tooltip from 'src/components/tooltip'
 import entry from 'src/mixins/entry'
+import { getChanges } from 'src/helpers/api'
 import { mapMutations, mapGetters } from 'vuex'
+import { bkitPath } from 'src/utils/misc'
 
 // const path = require('path')
 
@@ -101,18 +131,40 @@ export default {
     tooltip
   },
   computed: {
-    ...mapGetters('view', ['getview'])
+    ...mapGetters('view', ['getview']),
+    ...mapGetters('snaps', ['getCurrentSnap']),
+    hasversions () { return this.versions.length > 0 }
   },
   methods: {
     ...mapMutations('view', ['setView']),
+    ...mapMutations('snaps', ['setCurrentSnap']),
     open () {
       const view = { ...this.getview, path: this.path }
       console.log('Set view on open to ', view)
       this.setView(view)
     },
-    onVersionClick (snap) {
-      console.log('Version snap', snap)
-      this.$emit('usesnap', snap)
+    onVersionClick (v) {
+      console.log('Version snap', v)
+      const cur = this.getCurrentSnap
+      this.setCurrentSnap({ ...cur, snap: v.t })
+      // this.$emit('usesnap', snap)
+    },
+    async getVersions () {
+      const versions = []
+      this.loading = true
+      const { rvid, snap, fullpath, mountpoint, isdir } = this
+      const upath = bkitPath(mountpoint, fullpath)
+      console.log('getChanges for', rvid, snap, upath)
+      try {
+        const entries = await getChanges(rvid, snap, isdir ? `${upath}/` : upath)
+        console.log('Version:', entries)
+        entries.forEach(e => versions.push({ ...e, date: moment.utc(e.t.substring(5), 'YYYY.MM.DD-HH.mm.ss').local() }))
+      } catch (err) {
+        console.error('Catch in getChanges', err)
+      } finally {
+        this.loading = false
+        this.versions = versions
+      }
     },
     debug () {
       console.log(this)
