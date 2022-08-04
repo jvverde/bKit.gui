@@ -57,6 +57,12 @@ export default {
     onlocal () {
       return !!this.entry.onlocal
     },
+    error () {
+      return this.entry.err
+    },
+    errorString () {
+      return `${this.entry.err}`
+    },
     isForbidden () {
       return this.entry.err !== undefined
     },

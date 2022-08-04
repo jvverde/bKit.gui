@@ -6,27 +6,21 @@
         <q-icon name="hourglass_empty" color="red" v-else-if="isStarting"/>
         <q-icon name="view_timeline" color="red" v-else-if="onQueue"/>
         <q-icon name="check" color="green" v-else-if="isDone"/>
-        <q-icon name="warning" color="warning" v-else-if="error">
-          <tooltip :label="error"/>
-        </q-icon>
+        <b-icon name="warning" color="warning" v-else-if="error" :hint="error"/>
         <span>{{status}} backup of {{path}}</span>
-        <q-badge class="q-ml-xs shadow-1" color="badger" v-show="files.files">
+        <b-badge class="q-ml-xs shadow-1" color="badger" v-show="files.files" hint="Files uploaded/updated">
           {{files.files}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
-          <tooltip label="Files uploaded/updated"/>
-        </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="badger-2" v-show="files.size">
+        </b-badge>
+        <b-badge class="q-ml-sm shadow-1" color="badger-2" v-show="files.size" hint="Size of files uploaded/updated">
           {{formatBytes(files.size)}}
-          <tooltip label="Size of files uploaded/updated"/>
-        </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="badger-1" v-show="total.bytes">
+        </b-badge>
+        <b-badge class="q-ml-sm shadow-1" color="badger-1" v-show="total.bytes" hint="Bytes transferred">
           {{formatBytes(total.bytes)}}
-          <tooltip label="Bytes transferred"/>
-        </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="warning" v-show="cnterrors">
+        </b-badge>
+        <b-badge class="q-ml-sm shadow-1" color="warning" v-show="cnterrors" hint="Number of errors">
           {{cnterrors}}
-          <tooltip label="Number of errors"/>
-        </q-badge>
+        </b-badge>
       </q-item-label>
       <q-item-label caption v-if="isRunning">
         <span class="q-pl-lg">Phase {{phase}}: {{phasemsg}}</span>
@@ -38,12 +32,8 @@
     </q-item-section>
     <q-item-section>
       <q-item-label>
-        <q-btn v-if="!watcher" flat round icon="track_changes" color="active" size="sm" @click.stop="watch">
-          <tooltip label="Track changes"/>
-        </q-btn>
-        <q-btn v-else flat round icon="track_changes" color="notactive" size="sm" @click.stop="stopWatch">
-          <tooltip label="Stop Tracking changes"/>
-        </q-btn>
+        <b-btn v-if="!watcher" flat round icon="track_changes" color="active" size="sm" @click.stop="watch" hint="Track changes"/>
+        <b-btn v-else flat round icon="track_changes" color="notactive" size="sm" @click.stop="stopWatch" hint="Stop Tracking changes"/>
       </q-item-label>
     </q-item-section>
     <q-item-section side>
@@ -60,7 +50,8 @@
 import { bKit } from 'src/helpers/bkit'
 import { killtree } from 'src/helpers/bash'
 import { formatBytes } from 'src/utils/misc'
-import tooltip from 'src/components/tooltip'
+// import tooltip from 'src/components/tooltip'
+import { bBadge, bBtn } from 'src/components/wrapper'
 import { mapMutations } from 'vuex'
 import { chokidar, chokidarOptions } from 'src/helpers/chockidar'
 
@@ -92,7 +83,8 @@ export default {
     }
   },
   components: {
-    tooltip
+    bBadge,
+    bBtn
   },
   props: {
     path: {

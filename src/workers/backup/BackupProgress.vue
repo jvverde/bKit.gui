@@ -4,16 +4,7 @@
       <q-card class="bg-secondary text-white">
         <q-bar>
           <q-space />
-
-          <!-- q-btn dense flat icon="minimize" @click="maximizedToggle = false" :disable="!maximizedToggle">
-            <q-tooltip v-if="maximizedToggle" content-class="bg-white text-primary">Minimize</q-tooltip>
-          </q-btn>
-          <q-btn dense flat icon="crop_square" @click="maximizedToggle = true" :disable="maximizedToggle">
-            <q-tooltip v-if="!maximizedToggle" content-class="bg-white text-primary">Maximize</q-tooltip>
-          </q-btn -->
-          <q-btn dense flat icon="close" @click="hide()">
-            <q-tooltip content-class="bg-white text-primary">Close</q-tooltip>
-          </q-btn>
+          <b-btn dense flat icon="close" @click="hide()" hint="Close"/>
         </q-bar>
 
         <q-card-section class="q-pt-xs q-pb-xs">
@@ -37,6 +28,7 @@
 <script>
 
 import backup from './Backup'
+import { bBtn } from 'src/components/wrapper'
 import { mapGetters, mapMutations } from 'vuex'
 import { getPreferences, setPreferences } from 'src/helpers/preferences'
 
@@ -48,7 +40,8 @@ export default {
     }
   },
   components: {
-    backup
+    backup,
+    bBtn
   },
   computed: {
     ...mapGetters('backups', { paths2Backup: 'getList', showProgress: 'show' })

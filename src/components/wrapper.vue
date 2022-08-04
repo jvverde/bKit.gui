@@ -8,6 +8,7 @@
 
 <script>
 import tooltip from './tooltip'
+
 const wrap = {
   name: 'hint',
   components: {
@@ -37,8 +38,13 @@ export const bIcon = {
   template: '<wrap type="q-icon" v-bind="$attrs" v-on="$listeners"><slot/></wrap>'
 }
 
+export const bBadge = {
+  name: 'bkitBadge',
+  components: {
+    wrap
+  },
+  inheritAttrs: false,
+  template: '<wrap type="q-badge" v-bind="$attrs" v-on="$listeners"><slot/></wrap>'
+}
+
 </script>
-
-<style scoped lang="scss">
-
-</style>

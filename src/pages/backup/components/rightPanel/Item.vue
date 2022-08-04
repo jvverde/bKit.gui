@@ -1,11 +1,13 @@
 <template>
   <div class="q-pa-xs bkit-item row">
-    <div class="column no-wrap items-left">
-      <q-icon v-if="isForbidden"
-        class="bkit-icon self-start"
+    <div class="column no-wrap items-start">
+      <b-icon v-if="isForbidden"
+        :hint="errorString"
+        size="xs"
+        class="bkit-icon self-center"
         name="block"
         color="error">
-      </q-icon>
+      </b-icon>
       <b-icon v-else-if="isdir"
         :hint="description"
         class="bkit-icon self-start"
@@ -107,8 +109,6 @@
 </template>
 
 <script>
-// import { getVersions } from 'src/helpers/bkit'
-// import tooltip from 'src/components/tooltip'
 import wrap, { bBtn, bIcon } from 'src/components/wrapper'
 import entry from 'src/mixins/entry'
 import { getChanges } from 'src/helpers/api'
@@ -188,7 +188,7 @@ export default {
     .bkit-text{
       max-width: 1 * $bkitsize;
       overflow-wrap: break-word;
-      text-align:center;
+      text-align: center;
       font-size: small;
     }
     .bkit-icon{
