@@ -49,7 +49,7 @@ module.exports = function (ctx) {
       //            (not treeshaking Quasar; biggest bundle size; convenient)
       all: 'auto',
 
-      components: [],
+      components: ['QBtn'],
       directives: [],
 
       // Quasar plugins
@@ -64,6 +64,7 @@ module.exports = function (ctx) {
       env: {
         MYVAR: '"myvar"'
       },
+      vueCompiler: true, // Just because we want to use bBtn, bIcon ,etc (they have inline templates)
       scopeHoisting: true,
       vueRouterMode: 'hash', // available values: 'hash', 'history'
       showProgress: true,
