@@ -6,7 +6,7 @@
         <q-icon name="hourglass_empty" color="red" v-else-if="isStarting"/>
         <q-icon name="view_timeline" color="red" v-else-if="onQueue"/>
         <q-icon name="check" color="green" v-else-if="isDone"/>
-        <b-icon name="warning" color="warning" v-else-if="error" :hint="error"/>
+        <b-icon name="warning" color="warning" v-else-if="error" :hint="errorString"/>
         <span>{{status}} backup of {{path}}</span>
         <b-badge class="q-ml-xs shadow-1" color="badger" v-show="files.files" hint="Files uploaded/updated">
           {{files.files}}
@@ -38,9 +38,12 @@
     </q-item-section>
     <q-item-section side>
       <q-item-label>
-        <q-btn flat round icon="backup" color="backup" size="sm" @click.stop="backup" :disable="!isStopped"  :class="{inactive: !isStopped}"/>
-        <q-btn flat round icon="pause" color="cancel" size="sm" @click.stop="cancel" :disable="!isCancelable"  :class="{inactive: !isCancelable}"/>
-        <q-btn flat round icon="close" color="dismiss" size="sm" @click.stop="remove" :disable="!isRemovable" :class="{inactive: !isRemovable}"/>
+        <b-btn flat round icon="backup" color="backup" size="sm" @click.stop="backup" :disable="!isStopped"  :class="{inactive: !isStopped}"
+          hint="Star backup again"/>
+        <b-btn flat round icon="pause" color="cancel" size="sm" @click.stop="cancel" :disable="!isCancelable"  :class="{inactive: !isCancelable}"
+          hint="Cancel operation or request"/>
+        <b-btn flat round icon="close" color="dismiss" size="sm" @click.stop="remove" :disable="!isRemovable" :class="{inactive: !isRemovable}"
+          hint="Remove from backup list"/>
       </q-item-label>
     </q-item-section>
   </q-item>
@@ -80,6 +83,9 @@ export default {
   computed: {
     isFinished () {
       return this.finished === true
+    },
+    errorString () {
+      return `${this.error}`
     }
   },
   components: {
