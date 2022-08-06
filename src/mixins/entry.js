@@ -39,33 +39,15 @@ export default {
       return undefined
     },
     description () { return nameOf[this.status] },
-    getcolor () {
-      return this.status === 'updated' && !this.isLastSnap ? 'older' : this.status
-    },
-    path () {
-      return this.entry.path
-    },
-    fullpath () {
-      return this.entry.fullpath
-    },
-    name () {
-      return this.entry.name
-    },
-    onbackup () {
-      return !!this.entry.onbackup
-    },
-    onlocal () {
-      return !!this.entry.onlocal
-    },
-    error () {
-      return this.entry.err
-    },
-    errorString () {
-      return `${this.entry.err}`
-    },
-    isForbidden () {
-      return this.entry.err !== undefined
-    },
+    getcolor () { return this.status === 'updated' && !this.isLastSnap ? 'older' : this.status },
+    path () { return this.entry.path },
+    fullpath () { return this.entry.fullpath },
+    name () { return this.entry.name },
+    onbackup () { return !!this.entry.onbackup },
+    onlocal () { return !!this.entry.onlocal },
+    error () { return this.entry.err },
+    errorString () { return `${this.entry.err}` },
+    isForbidden () { return this.entry.err !== undefined },
     onlyBackup () { return this.entry.onlyBackup === true },
     // isfiltered () { return !!this.entry.isfiltered },
     onlyLocal () { return this.entry.onlyLocal === true },
