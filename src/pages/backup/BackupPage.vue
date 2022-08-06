@@ -16,7 +16,8 @@
           style="background-color: ghostwhite; max-height: 86%"
           indicator-color="active"
           active-bg-color="grey-3">
-          <q-tab
+          <b-tab
+            :hint="disklabel(disk)"
             v-for="disk in sortDisks"
             :key="disk.id"
             :name="disk.id"
@@ -30,8 +31,7 @@
             <svg v-else viewBox="0 0 100 20" xmlns="http://www.w3.org/2000/svg" width="5vw">
               <text  x="50%" y="50%">{{disk.diskname}}</text>
             </svg>
-            <tooltip :label="disklabel(disk)"/>
-          </q-tab>
+          </b-tab>
         </q-tabs>
         <q-btn icon="sync" size="xs" flat color="bkit" @click="load"/>
       </div>
@@ -58,7 +58,9 @@
 import explorer from './components/Explorer'
 // import restore from './components/Restore'
 // import backup from './components/Backup'
-import tooltip from 'src/components/tooltip'
+// import tooltip from 'src/components/tooltip'
+import { bTab } from 'src/components/wrapper'
+
 import { listLocalDisks } from 'src/helpers/bkit'
 import { listDisksOnBackup, listAllDisksOnBackup } from 'src/helpers/api'
 // n
@@ -193,7 +195,7 @@ export default {
   },
   components: {
     explorer,
-    tooltip
+    bTab
   },
   methods: {
     ...mapMutations('clients', ['setCurrentClient', 'setClients']),

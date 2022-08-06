@@ -95,11 +95,11 @@ const backupQueue = new Queue() // Dedicated queue for restore requests
 function _Queue (name, args, events = {}, queue = restoreQueue) {
   const { enqueued = nill } = events
   const key = Date.now() + Math.random().toString(36).slice(1) + accountName()
+  const promise = queue.enqueue(() => asyncBash(name, args, events), key)
   enqueued({
     dismiss: () => queue.dismiss(key),
     position: () => queue.position(key)
   })
-  const promise = queue.enqueue(() => asyncBash(name, args, events), key)
   return promise
 }
 

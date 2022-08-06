@@ -47,4 +47,13 @@ export const bBadge = {
   template: '<wrap type="q-badge" v-bind="$attrs" v-on="$listeners"><slot/></wrap>'
 }
 
+export const bTab = {
+  name: 'bkitTab',
+  components: {
+    wrap
+  },
+  inheritAttrs: false,
+  template: '<wrap type="q-tab" v-bind="$attrs" v-on="$listeners"><slot/></wrap>'
+}
+
 </script>

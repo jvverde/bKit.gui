@@ -30,14 +30,7 @@ export default class Queue {
   }
 
   position (key) {
-    if (!key) return []
-    const result = []
-    for (let i = 0; i < this.queue.length; i++) {
-      if (this.queue[i].key === key) {
-        result.push(i)
-      }
-    }
-    return result
+    return this.queue.findIndex(e => e.key === key)
   }
 
   dismiss (key) {

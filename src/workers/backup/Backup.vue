@@ -39,7 +39,7 @@
     <q-item-section side>
       <q-item-label>
         <b-btn flat round icon="backup" color="backup" size="sm" @click.stop="backup" :disable="!isStopped"  :class="{inactive: !isStopped}"
-          hint="Star backup again"/>
+          hint="Backup it (again)"/>
         <b-btn flat round icon="pause" color="cancel" size="sm" @click.stop="cancel" :disable="!isCancelable"  :class="{inactive: !isCancelable}"
           hint="Cancel operation or request"/>
         <b-btn flat round icon="close" color="dismiss" size="sm" @click.stop="remove" :disable="!isRemovable" :class="{inactive: !isRemovable}"

@@ -1,10 +1,10 @@
 <template>
   <div v-show="showProgress" class="fixed-full fullscreen row justify-center items-center content-center capa">
-    <vue-draggable-resizable :w="400" :h="300">
-      <q-card class="bg-secondary text-white">
+    <vue-draggable-resizable :w="600" :h="'auto'">
+      <q-card class="bg-blue-grey-8 text-white fit column no-wrap">
         <q-bar>
           <q-space />
-          <b-btn dense flat icon="close" @click="hide()" hint="Close"/>
+          <b-btn dense flat icon="close" @click="hide" hint="Close"/>
         </q-bar>
 
         <q-card-section class="q-pt-xs q-pb-xs">

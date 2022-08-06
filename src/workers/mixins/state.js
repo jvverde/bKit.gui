@@ -27,6 +27,7 @@ export default {
     }
   },
   computed: {
+    errorString () { return `${this.error}` },
     isIdle () {
       return this.isFinished || this.status === undefined
     },
@@ -82,7 +83,7 @@ export default {
   methods: {
     enqueued (item) {
       this.status = _ENQUEUED
-      console.log(_ENQUEUED)
+      console.log(_ENQUEUED, item.position())
       this.dequeued = () => {
         this.status = _DEQUEUING
         console.log(_DEQUEUING)

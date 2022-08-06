@@ -4,32 +4,25 @@
       <q-item-label>
         <q-spinner-ios color="loader" v-if="isRunning"/>
         <q-icon name="check" color="done" v-if="isDone"/>
-        <q-icon name="warning" color="warning" v-if="error">
-          <tooltip :label="error"/>
-        </q-icon>
+        <b-icon name="warning" color="warning" v-if="error" :hint="errorString"/>
         <span>{{status}} restore of {{path}}</span>
-        <q-badge class="q-ml-xs shadow-1" color="badger" v-if="totalfiles">
+        <b-badge class="q-ml-xs shadow-1" color="badger" v-if="totalfiles" hint="Number of files">
           {{totalfiles}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
-          <tooltip label="Number of files"/>
-        </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="badger-1" v-if="isRunning && cntfiles">
+        </b-badge>
+        <b-badge class="q-ml-sm shadow-1" color="badger-1" v-if="isRunning && cntfiles" hint="Number of files so far">
           {{cntfiles}} of {{totalfiles}}
           <q-icon name="description" color="white" class="q-ml-xs"/>
-          <tooltip label="Number of files so far"/>
-        </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="badger-2" v-if="totalsize">
+        </b-badge>
+        <b-badge class="q-ml-sm shadow-1" color="badger-2" v-if="totalsize" hint="Size of transferred files">
           {{totalsize}}
-          <tooltip label="Size of transferred files"/>
-        </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="badger-3" v-if="isRunning && currentsize">
+        </b-badge>
+        <b-badge class="q-ml-sm shadow-1" color="badger-3" v-if="isRunning && currentsize" hint="Total size so far">
           {{currentsize}}
-          <tooltip label="Total size so far"/>
-        </q-badge>
-        <q-badge class="q-ml-sm shadow-1" color="badger-4" v-if="isRunning && currentrate">
+        </b-badge>
+        <b-badge class="q-ml-sm shadow-1" color="badger-4" v-if="isRunning && currentrate" hint="Actual download rate">
           {{currentrate}}
-          <tooltip label="Actual download rate"/>
-        </q-badge>
+        </b-badge>
       </q-item-label>
       <q-item-label caption v-if="isRunning && currentline">
         {{currentline}}
@@ -64,9 +57,12 @@
     <q-item-section side v-if="isDryRun">[DRY-RUN]</q-item-section>
     <q-item-section side>
       <q-item-label>
-        <q-btn flat round icon="restore" color="restore" size="sm" @click.stop="restore" :disable="!isStopped"  :class="{inactive: !isStopped}"/>
-        <q-btn flat round icon="pause" color="cancel" size="sm" @click.stop="cancel" :disable="!isCancelable"  :class="{inactive: !isCancelable}"/>
-        <q-btn flat round icon="close" color="dismiss" size="sm" @click.stop="remove" :disable="!isRemovable" :class="{inactive: !isRemovable}"/>
+        <b-btn flat round icon="restore" color="restore" size="sm" @click.stop="restore" :disable="!isStopped"  :class="{inactive: !isStopped}"
+          hint="Restore it (again)"/>
+        <b-btn flat round icon="pause" color="cancel" size="sm" @click.stop="cancel" :disable="!isCancelable"  :class="{inactive: !isCancelable}"
+          hint="Cancel operation or request"/>
+        <b-btn flat round icon="close" color="dismiss" size="sm" @click.stop="remove" :disable="!isRemovable" :class="{inactive: !isRemovable}"
+          hint="Remove from restore list"/>
       </q-item-label>
     </q-item-section>
   </q-item>
@@ -79,7 +75,8 @@ import { formatBytes } from 'src/utils/misc'
 import { killtree } from 'src/helpers/bash'
 import { mapMutations } from 'vuex'
 
-import tooltip from 'src/components/tooltip'
+// import tooltip from 'src/components/tooltip'
+import { bBadge, bBtn, bIcon } from 'src/components/wrapper'
 
 import { _DONE, _ERROR } from 'src/utils/states'
 import state from '../mixins/state'
@@ -96,7 +93,9 @@ export default {
     }
   },
   components: {
-    tooltip
+    bBadge,
+    bIcon,
+    bBtn
   },
   mixins: [state, events, stats],
   computed: {
