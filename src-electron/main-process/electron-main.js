@@ -36,10 +36,9 @@ import fs from 'fs'
 import { autoUpdater } from 'electron-updater'
 import windowStateKeeper from 'electron-window-state'
 import statics from './statics'
-import { pki } from 'node-forge'
 import setTray from './tray'
 
-import rootCA from './cert/ca'
+import setVerifyProc from './cert/setVerifyProc'
 
 say.log('bkit starting...')
 say.log('is Elevated:', app.commandLine.hasSwitch('elevated'))
@@ -89,33 +88,8 @@ function createWindow () {
 
   mainWindow.loadURL(process.env.APP_URL)
 
-  try {
-    // console.log('rootCA', rootCA)
-    const caStore = pki.createCaStore(rootCA)
-    mainWindow.webContents.session.setCertificateVerifyProc(async (request, callback) => {
-      // https://www.electronjs.org/docs/api/session
-      // console.log('setCertificateVerifyProc', request)
-      try {
-        const certdata = request.certificate.data
-        // console.log('certdata', certdata)
-        const cert = pki.certificateFromPem(certdata)
-        // console.log('cert', cert)
-        if (pki.verifyCertificateChain(caStore, [ cert ])) {
-          say.log('Certicate verified!')
-          callback(0)
-        } else {
-          say.error('Failed due to some unknown reason', e.message || e)
-          callback(-3)
-        }
-      } catch (e) {
-        say.error('Failed to verify certificate', e.message || e)
-        callback(-3)
-      }
-      return
-    })
-  } catch (e) {
-    say.error('Failed to verify certificate', e.message || e)
-  }
+  const session = mainWindow.webContents.session 
+  setVerifyProc({ session })
   
   mainWindow.on('closed', () => {
     say.log('mainWindow closed')
