@@ -1,4 +1,5 @@
 import {
+  app,
   Tray,
   Menu
 } from 'electron'
@@ -9,14 +10,22 @@ import { join } from 'path'
 
 let isQuiting = false
 
-export default ({ app, mainWindow }) => {
+app.on('before-quit', () => {
+  say.log('Before quit on Tray')
+  isQuiting = true
+})
+
+export default ({ mainWindow }) => {
+
   const menu = Menu.buildFromTemplate([
     {
-      label: 'Show bKit', click: function () {
+      label: 'Show bKit',
+      click: () => {
         mainWindow.show()
       }
     }, {
-      label: 'Quit', click: function () {
+      label: 'Quit',
+      click: () => {
         isQuiting = true
         app.quit()
       }
@@ -30,7 +39,7 @@ export default ({ app, mainWindow }) => {
 
     tray.setContextMenu(menu)
     mainWindow.on('close', event => {
-      say.log('Close catch')
+      say.log(`Close catch while isQuiting = ${isQuiting}`)
       if (!isQuiting) {
         event.preventDefault()
         mainWindow.hide()

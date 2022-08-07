@@ -3,10 +3,8 @@
 
 import {
   app,
-  BrowserWindow,
   nativeTheme,
-  ipcMain,
-  session
+  ipcMain
 } from 'electron'
 
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
@@ -37,6 +35,7 @@ import { autoUpdater } from 'electron-updater'
 import windowStateKeeper from 'electron-window-state'
 import statics from './statics'
 import setTray from './tray'
+import createWindow from './createWindow'
 
 import setVerifyProc from './cert/setVerifyProc'
 
@@ -52,65 +51,8 @@ try {
 
 const root = {
   tray: null,
-  app,
   mainWindow: null
-} // prevent gc to keep tray from https://stackoverflow.com/a/64204975
-
-let mainWindow
-
-function createWindow () {
-  const mainWindowState = windowStateKeeper({
-    defaultWidth: 1000,
-    defaultHeight: 800
-  })
-
-  mainWindow = new BrowserWindow({
-    // backgroundColor: '#2e2c29',
-    width: mainWindowState.width,
-    height: mainWindowState.height,
-    x: mainWindowState.x,
-    y: mainWindowState.y,
-    // useContentSize: true,
-    webPreferences: {
-      // Change from /quasar.conf.js > electron > nodeIntegration;
-      // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration
-      nodeIntegration: QUASAR_NODE_INTEGRATION,
-      webSecurity: false,
-      enableRemoteModule: true
-
-      // More info: /quasar-cli/developing-electron-apps/electron-preload-script
-      // preload: path.resolve(__dirname, 'electron-preload.js')
-    }
-  })
-
-  // const splash = new BrowserWindow({width: 810, height: 610, transparent: true, frame: false, alwaysOnTop: true});
-  // splash.loadURL(`file://${__dirname}/splash.html`);
-
-  mainWindow.loadURL(process.env.APP_URL)
-
-  const session = mainWindow.webContents.session 
-  setVerifyProc({ session })
-  
-  mainWindow.on('closed', () => {
-    say.log('mainWindow closed')
-    mainWindow = null
-  })
-  mainWindow.on('beforeunload ', () => {
-    say.log('beforeunload')
-  })
-  mainWindow.onbeforeunload = e => {
-    say.log('onbeforeunload')    
-  }
-  mainWindow.on('close', event => {
-    say.log('mainWindow is going to close')
-  })
-  mainWindow.webContents.on('destroyed', () => {
-    say.log('webContents Was destroyed')
-  })
-
-  mainWindowState.manage(mainWindow)
-  return mainWindow
-}
+} // prevent gc to keep tray. Idea from https://stackoverflow.com/a/64204975
 
 app.on('ready', async () => {
   say.log('App is ready')
@@ -129,6 +71,10 @@ app.on('ready', async () => {
   }
   root.mainWindow = createWindow()
   root.tray = setTray(root)
+
+  const session = root.mainWindow.webContents.session 
+  setVerifyProc({ session })
+
   check4updates()
   installExtension(VUEJS_DEVTOOLS)
     .then(name => say.log(`Added Extension:  ${name}`))
@@ -155,7 +101,7 @@ app.on('window-all-closed', event => {
 })
 
 app.on('activate', () => {
-  if (mainWindow === null) {
+  if (root.mainWindow === null) {
     createWindow()
   }
 })
@@ -164,20 +110,27 @@ app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
 
 ipcMain.on('debug', (event, arg) => {
   if (arg === 'on'){
-    mainWindow.webContents.openDevTools()
+    root.mainWindow.webContents.openDevTools()
   } else {
-    mainWindow.webContents.closeDevTools()
+    root.mainWindow.webContents.closeDevTools()
   }
 })
 
 // Workaround to close all processes / sub-processes after closing the app
 // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
-// app.once('window-all-closed', app.quit)
+app.once('window-all-closed', () => {
+  say.log('window-all-closed')
+  app.quit()
+})
 
-app.once('before-quit', () => {
+app.on('before-quit', () => {
   say.log('Before quit')
   save_config()
-  save_preferences() 
+  save_preferences()
+})
+
+app.once('before-quit', () => {
+  say.log('I do it once Before quit')
   // Workaround to close all processes / sub-processes after closing the app
   // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
   window.removeAllListeners('close')
