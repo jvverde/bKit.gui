@@ -102,19 +102,11 @@ app.on('window-all-closed', event => {
 
 app.on('activate', () => {
   if (root.mainWindow === null) {
-    createWindow()
+    root.mainWindow = createWindow()
   }
 })
 
 app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
-
-ipcMain.on('debug', (event, arg) => {
-  if (arg === 'on'){
-    root.mainWindow.webContents.openDevTools()
-  } else {
-    root.mainWindow.webContents.closeDevTools()
-  }
-})
 
 // Workaround to close all processes / sub-processes after closing the app
 // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
@@ -134,6 +126,14 @@ app.once('before-quit', () => {
   // Workaround to close all processes / sub-processes after closing the app
   // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
   window.removeAllListeners('close')
+})
+
+ipcMain.on('debug', (event, arg) => {
+  if (arg === 'on'){
+    root.mainWindow.webContents.openDevTools()
+  } else {
+    root.mainWindow.webContents.closeDevTools()
+  }
 })
 
 ipcMain.on('getbkitPath', (event) => {

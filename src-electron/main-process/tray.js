@@ -24,6 +24,11 @@ export default ({ mainWindow }) => {
         mainWindow.show()
       }
     }, {
+      label: 'Hide',
+      click: () => {
+        mainWindow.hide()
+      }
+    }, {
       label: 'Quit',
       click: () => {
         isQuiting = true
@@ -37,7 +42,11 @@ export default ({ mainWindow }) => {
     say.log(`Load icon from ${icon}`)
     const tray = new Tray(icon)
 
+    tray.setToolTip('bKit App')
     tray.setContextMenu(menu)
+    tray.on('click', () => {
+        mainWindow.show()      
+    })
     mainWindow.on('close', event => {
       say.log(`Close catch while isQuiting = ${isQuiting}`)
       if (!isQuiting) {
