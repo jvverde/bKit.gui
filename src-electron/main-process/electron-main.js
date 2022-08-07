@@ -37,6 +37,7 @@ import { autoUpdater } from 'electron-updater'
 import windowStateKeeper from 'electron-window-state'
 import statics from './statics'
 import { pki } from 'node-forge'
+import setTray from './tray'
 
 import rootCA from './cert/ca'
 
@@ -49,6 +50,12 @@ try {
     fs.unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'))
   }
 } catch (_) { }
+
+const root = {
+  tray: null,
+  app,
+  mainWindow: null
+} // prevent gc to keep tray from https://stackoverflow.com/a/64204975
 
 let mainWindow
 
@@ -109,7 +116,7 @@ function createWindow () {
   } catch (e) {
     say.error('Failed to verify certificate', e.message || e)
   }
-
+  
   mainWindow.on('closed', () => {
     say.log('mainWindow closed')
     mainWindow = null
@@ -120,7 +127,7 @@ function createWindow () {
   mainWindow.onbeforeunload = e => {
     say.log('onbeforeunload')    
   }
-  mainWindow.on('close', () => {
+  mainWindow.on('close', event => {
     say.log('mainWindow is going to close')
   })
   mainWindow.webContents.on('destroyed', () => {
@@ -128,6 +135,7 @@ function createWindow () {
   })
 
   mainWindowState.manage(mainWindow)
+  return mainWindow
 }
 
 app.on('ready', async () => {
@@ -145,11 +153,13 @@ app.on('ready', async () => {
       say.warn('bKit client not found')
     }
   }
-  createWindow()
+  root.mainWindow = createWindow()
+  root.tray = setTray(root)
   check4updates()
   installExtension(VUEJS_DEVTOOLS)
     .then(name => say.log(`Added Extension:  ${name}`))
     .catch(err => say.warn('An error occurred: ', err))
+
 })
 
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
@@ -164,7 +174,7 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
   }
 })
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', event => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
@@ -188,12 +198,12 @@ ipcMain.on('debug', (event, arg) => {
 
 // Workaround to close all processes / sub-processes after closing the app
 // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
-app.once('window-all-closed', app.quit)
+// app.once('window-all-closed', app.quit)
 
 app.once('before-quit', () => {
+  say.log('Before quit')
   save_config()
   save_preferences() 
-
   // Workaround to close all processes / sub-processes after closing the app
   // https://stackoverflow.com/questions/42141191/electron-and-node-on-windows-kill-a-spawned-process
   window.removeAllListeners('close')

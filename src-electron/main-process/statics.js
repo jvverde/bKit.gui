@@ -4,6 +4,9 @@
  */
 import path from 'path'
 
+console.log('__statics', __statics)
+console.log('__dirname', __dirname)
+
 if (process.env.PROD) {
   global.__statics = path.join(__dirname, 'statics').replace(/\\/g, '\\\\')
 }

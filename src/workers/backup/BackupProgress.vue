@@ -1,6 +1,6 @@
 <template>
-  <div v-show="showProgress" class="fixed-full fullscreen row justify-center items-center content-center capa">
-    <vue-draggable-resizable :w="600" :h="'auto'">
+  <div v-show="showProgress" class="fixed-full fullscreen row justify-center items-center content-center capa" @click.self="hide">
+    <vue-draggable-resizable :w="600" :h="'auto'"  @resizestop="resizestop">
       <q-card class="bg-blue-grey-8 text-white fit column no-wrap">
         <q-bar>
           <q-space />
@@ -52,7 +52,13 @@ export default {
     }
   },
   methods: {
-    ...mapMutations('backups', ['hide', 'add2backup'])
+    ...mapMutations('backups', ['hide', 'show', 'add2backup']),
+    resizestop () {
+      const hide = this.hide
+      this.hide = () => {
+        this.hide = hide
+      }
+    }
   },
   async mounted () {
     const { backupList = [] } = (await getPreferences()) || {}
