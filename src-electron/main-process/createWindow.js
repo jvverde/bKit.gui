@@ -3,7 +3,7 @@ import { BrowserWindow } from 'electron'
 import say from './say'
 import windowStateKeeper from 'electron-window-state'
 import statics from './statics'
-import { join } from 'path'
+import { resolve } from 'path'
 
 
 export default () => {
@@ -19,7 +19,7 @@ export default () => {
     x: mainWindowState.x,
     y: mainWindowState.y,
     // useContentSize: true,
-    icon: join(statics, 'icons/favicon.ico'),
+    icon: resolve(__dirname, '../icons/favicon.ico'),
     webPreferences: {
       // Change from /quasar.conf.js > electron > nodeIntegration;
       // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration

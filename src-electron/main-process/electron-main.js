@@ -4,6 +4,7 @@
 import {
   app,
   nativeTheme,
+  dialog,
   ipcMain
 } from 'electron'
 
@@ -54,30 +55,40 @@ const root = {
 } // prevent gc to keep tray. Idea from https://stackoverflow.com/a/64204975
 
 app.on('ready', async () => {
-  say.log('App is ready')
-  load_config()
-  const client = bkitPath()
-  say.log('Check if client is run at', client)
-  if(!client || !fs.existsSync(client) || !isbkitok(client)) {
-    try {
-      const location = await findbkit(client) //
-      say.log('Found bkit client at', location)
-      bkitPath(location)
-      load_config()
-    } catch (err) {
-      say.warn('bKit client not found')
+  try {
+    say.log('App is ready')
+    load_config()
+    const client = bkitPath()
+    say.log('Check if client is run at', client)
+    if(!client || !fs.existsSync(client) || !isbkitok(client)) {
+      try {
+        const location = await findbkit(client) //
+        say.log('Found bkit client at', location)
+        bkitPath(location)
+        load_config()
+      } catch (err) {
+        say.warn('bKit client not found')
+      }
     }
+    root.mainWindow = createWindow()
+    root.tray = setTray(root)
+
+    const session = root.mainWindow.webContents.session 
+    setVerifyProc({ session })
+
+    check4updates()
+    installExtension(VUEJS_DEVTOOLS)
+      .then(name => say.log(`Added Extension:  ${name}`))
+      .catch(err => say.warn('An error occurred: ', err))
+  } catch (e) {
+    say.error('On App Ready error', e)
+    dialog.showMessageBox({
+      title: 'Error on start window',
+      buttons: ['Dismiss'],
+      type: 'warning',
+      message: `${e}`
+    })
   }
-  root.mainWindow = createWindow()
-  root.tray = setTray(root)
-
-  const session = root.mainWindow.webContents.session 
-  setVerifyProc({ session })
-
-  check4updates()
-  installExtension(VUEJS_DEVTOOLS)
-    .then(name => say.log(`Added Extension:  ${name}`))
-    .catch(err => say.warn('An error occurred: ', err))
   
 })
 
