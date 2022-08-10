@@ -4,3 +4,5 @@ npm outdated
 
 https://github.com/iffy/electron-updater-example
 https://www.electron.build/configuration/publish.html
+
+npm version patch -m "Upgrade to %s for reason..."
