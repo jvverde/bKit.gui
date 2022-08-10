@@ -38,11 +38,9 @@ import setTray from './tray'
 import createWindow from './createWindow'
 
 import setVerifyProc from './cert/setVerifyProc'
-import AutoLaunch from 'auto-launch'
 
 say.log('bkit starting...')
 say.log('is Elevated:', app.commandLine.hasSwitch('elevated'))
-
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
@@ -80,20 +78,7 @@ app.on('ready', async () => {
   installExtension(VUEJS_DEVTOOLS)
     .then(name => say.log(`Added Extension:  ${name}`))
     .catch(err => say.warn('An error occurred: ', err))
-
-  try {
-    const exe = app.getPath('exe')
-    say.log('App path = ', exe)
-
-    const autoLaunch = new AutoLaunch({
-      name: 'bKit App',
-      path: exe
-    })
-    const isLaunched = await autoLaunch.isEnabled()
-    if (!isLaunched) autoLaunch.enable()
-  } catch(e) {
-    say.error('AutoLaunch Error:', e)
-  }
+  
 })
 
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
