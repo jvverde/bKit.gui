@@ -19,7 +19,7 @@ export default () => {
     x: mainWindowState.x,
     y: mainWindowState.y,
     // useContentSize: true,
-    icon: resolve(__dirname, '../icons/favicon.ico'),
+    icon: resolve(statics, 'bkit-icons/bkit-128x128.png'),
     webPreferences: {
       // Change from /quasar.conf.js > electron > nodeIntegration;
       // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration
