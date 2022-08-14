@@ -144,7 +144,7 @@ export function asyncBash (name, args = [], events = {}) {
   const lines = []
   const { onreadline = line => lines.push(line) } = events
   return new Promise((resolve, reject) => {
-    const done = code => resolve(lines.length > 0 ? lines : code)
+    const done = code => resolve(lines)
     const onerror = reject
     _bash(name, args, { ...events, onreadline, onerror }, done)
   })

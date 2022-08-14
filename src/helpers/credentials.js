@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron'
 
 export const getAccounts = async () => {
-  const credentials = ipcRenderer.sendSync('findCredentials')
+  const credentials = ipcRenderer.sendSync('findCredentials') || []
   return credentials.map(c => c.account)
 }
 export const deleteAccount = async (name) => {

@@ -39,6 +39,7 @@ export function loadCredentials ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
       const credentials = await getCredentials()
+      console.log('[loadCredentials]', credentials)
       const accounts = credentials.map(name => {
         console.info('Found credentials for:', name)
         const [user, serverURL] = name.split('@')
@@ -70,8 +71,10 @@ export function loadAccounts ({ commit, getters }) {
   return new Promise(async (resolve, reject) => {
     try {
       const serversList = await listServers('-f')
-      const accounts = serversList.map(server => parseAccount(server))
+      console.log('[loadAccounts]', serversList)
+      const accounts = (serversList || []).map(server => parseAccount(server))
       commit('updateAccounts', accounts)
+      console.log('getters.getAccountsOf({ profile: true })', getters.getAccountsOf({ profile: true }))
       resolve(getters.getAccountsOf({ profile: true })) // Resolve to all accounts with a profile
     } catch (e) {
       reject(e)

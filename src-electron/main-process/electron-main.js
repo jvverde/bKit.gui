@@ -169,14 +169,24 @@ const keytar = require('keytar')
 
 ipcMain.on('findCredentials', async (event) => {
   say.log('findCredentials')
-  const credentials = await keytar.findCredentials('bKit')
-  event.returnValue = credentials
+  try {
+    const credentials = await keytar.findCredentials('bKit')
+    event.returnValue = credentials
+  } catch (e) {
+    say.error('[findCredentials]', e)
+    event.returnValue = []
+  }
 })
 
 ipcMain.on('setPassword', async (event, account, password) => {
-  say.log('setPassword', account)
-  keytar.setPassword('bKit', account, password)
-  event.returnValue = true
+  try {
+    say.log('setPassword', account)
+    keytar.setPassword('bKit', account, password)
+    event.returnValue = true
+  } catch (e) {
+    say.error('[setPassword]', e)
+    event.returnValue = false
+  }
 })
 
 ipcMain.on('getPassword', async (event, account) => {
