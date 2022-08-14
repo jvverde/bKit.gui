@@ -39,42 +39,42 @@ export async function listLocalDisks () {
 }
 
 export async function getComputerInfo () {
-  const infos = await enqueue2bash('./lib/computer.sh', [], queue4Local) // Always returns an array
-  return (infos || [])[0]
+  const infos = await enqueue2bash('./lib/computer.sh', [], queue4Local) || [] // Always returns an array
+  return infos[0]
 }
 
 export async function getDiskName (uuid) {
-  return enqueue2bash('./lib/getdev.sh', [uuid], queue4Local)
+  return enqueue2bash('./lib/getdev.sh', [uuid], queue4Local) || []
 }
 
 export async function getServer (...args) {
-  const servers = await enqueue2bash('./server.sh', ['-r', ...args])
+  const servers = await enqueue2bash('./server.sh', ['-r', ...args]) || []
   return servers[0]
 }
 
 export async function getUser () {
-  const users = await enqueue2bash('./lib/getUSER.sh')
+  const users = await enqueue2bash('./lib/getUSER.sh') || []
   return users[0]
 }
 
 export async function changeServer (server) {
-  const servers = await enqueue2bash('./server.sh', ['--no-ask', '-s', '-f', '-u', server.user, server.servername, server.iport])
+  const servers = await enqueue2bash('./server.sh', ['--no-ask', '-s', '-f', '-u', server.user, server.servername, server.iport]) || []
   return servers[0]
 }
 export async function deleteServer (server) {
-  const servers = await enqueue2bash('./server.sh', ['--no-ask', '--delete', '-f', '-u', server.user, server.servername])
+  const servers = await enqueue2bash('./server.sh', ['--no-ask', '--delete', '-f', '-u', server.user, server.servername]) || []
   return servers[0]
 }
 export async function initServer (server, pass) {
   const servers = await enqueue2bash({
     script: './server.sh',
     env: { BKIT_PASSWORD: pass }
-  }, ['--no-ask', '-f', '-u', server.user, server.servername, server.iport])
+  }, ['--no-ask', '-f', '-u', server.user, server.servername, server.iport]) || []
   return servers[0]
 }
 
 export async function listServers (...args) {
-  return enqueue2bash('./listservers.sh', [...args])
+  return enqueue2bash('./listservers.sh', [...args]) || []
 }
 
 /* *************************** create task related *************************** */

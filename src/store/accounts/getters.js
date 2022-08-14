@@ -1,5 +1,5 @@
 export function currentAccount (state) {
-  return state.accounts.filter(s => s.current === true)[0]
+  return state.accounts.filter(s => s.current === true)[0] || {}
 }
 export function account (state) {
   return currentAccount(state) || {}

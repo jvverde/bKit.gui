@@ -22,12 +22,6 @@ import {
   load_config
 } from './bkitClient'
 
-import {
-  get_preferences,
-  set_preferences,
-  save_preferences
-} from './preferences'
-
 import { check4updates, getUpdates } from './auto-update'
 import say from './say'
 import path from 'path'
@@ -37,6 +31,7 @@ import windowStateKeeper from 'electron-window-state'
 import statics from './statics'
 import setTray from './tray'
 import createWindow from './createWindow'
+import setHandlers from './handlers'
 
 import setVerifyProc from './cert/setVerifyProc'
 
@@ -128,7 +123,6 @@ app.once('window-all-closed', () => {
 app.on('before-quit', () => {
   say.log('Before quit')
   save_config()
-  save_preferences()
 })
 
 app.once('before-quit', () => {
@@ -146,74 +140,7 @@ ipcMain.on('debug', (event, arg) => {
   }
 })
 
-ipcMain.on('getbkitPath', (event) => {
-  const location = bkitPath()
-  say.log('getbkitPath', location)
-  event.returnValue = location || findbkit()
-})
-
-ipcMain.on('getStatics', (event) => {
-  say.log('getStatics', statics)
-  event.returnValue = statics
-})
-
-ipcMain.on('app_version', (event) => {
-  event.returnValue = app.getVersion()
-})
-
-ipcMain.on('getPath', (event, name) => {
-  event.returnValue = app.getPath(name)
-})
-
-const keytar = require('keytar')
-
-ipcMain.on('findCredentials', async (event) => {
-  say.log('findCredentials')
-  try {
-    const credentials = await keytar.findCredentials('bKit')
-    event.returnValue = credentials
-  } catch (e) {
-    say.error('[findCredentials]', e)
-    event.returnValue = []
-  }
-})
-
-ipcMain.on('setPassword', async (event, account, password) => {
-  try {
-    say.log('setPassword', account)
-    keytar.setPassword('bKit', account, password)
-    event.returnValue = true
-  } catch (e) {
-    say.error('[setPassword]', e)
-    event.returnValue = false
-  }
-})
-
-ipcMain.on('getPassword', async (event, account) => {
-  say.log('getPassword', account)
-  const pass = await keytar.getPassword('bKit', account)
-  event.returnValue = pass
-})
-
-ipcMain.on('deletePassword', async (event, account) => {
-  say.log('deletePassword', account)
-  const result = await keytar.deletePassword('bKit', account)
-  event.returnValue = result
-})
-
-say.log('GET PREFERENCES', get_preferences())
-
-ipcMain.on('setPreferences', async (event, prefs) => {
-  // say.log('set_preferences', prefs)
-  set_preferences(prefs)
-  event.returnValue = true
-})
-
-ipcMain.on('getPreferences', async (event) => {
-  // say.log('preferences', get_preferences())
-  event.returnValue = get_preferences()
-})
-
+setHandlers()
 menu()
 
 say.log('bkit started')
