@@ -59,7 +59,7 @@ import { hash } from 'src/helpers/secrets'
 import { LoginError } from 'src/helpers/errors'
 
 export default {
-  name: 'Login',
+  name: 'Login_Signin',
   components: {
   },
   data () {

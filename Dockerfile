@@ -11,7 +11,7 @@ RUN apt update && apt install \
     -yq --no-install-suggests --no-install-recommends \
     libdrm2 libgbm1 \
     rsync sudo netcat \
-    dbus dbus-x11 dbus-tests gnome-keyring
+    dbus dbus-x11 dbus-tests gnome-keyring xterm
     # && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 
@@ -32,4 +32,4 @@ RUN chmod 4755 /app/node_modules/electron/dist/chrome-sandbox
 
 USER docker
 
-CMD bash
+CMD bash ./key-tar-workaround.sh

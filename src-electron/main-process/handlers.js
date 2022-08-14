@@ -2,7 +2,7 @@
 // https://stackoverflow.com/questions/44391448/electron-require-is-not-defined
 
 import { app, ipcMain } from 'electron'
-import { bkitPath } from './bkitClient'
+import { bkitPath, findbkit } from './bkitClient'
 import { get_preferences, set_preferences, save_preferences } from './preferences'
 import say from './say'
 
@@ -14,68 +14,65 @@ ipcMain.on('getbkitPath', (event) => {
   event.returnValue = location || findbkit()
 })
 
-ipcMain.on('getStatics', (event) => {
+ipcMain.handle('getStatics', (event) => {
   say.log('getStatics', statics)
-  event.returnValue = statics
+  return statics
 })
 
-ipcMain.on('app_version', (event) => {
-  event.returnValue = app.getVersion()
+ipcMain.handle('app_version', (event) => {
+  return app.getVersion()
 })
 
-ipcMain.on('getPath', (event, name) => {
-  event.returnValue = app.getPath(name)
+ipcMain.handle('getPath', (event, name) => {
+  return app.getPath(name)
 })
 
+/* credentials */
 const keytar = require('keytar')
 
-ipcMain.on('findCredentials', async (event) => {
+ipcMain.handle('findCredentials', async (event) => {
   say.log('findCredentials')
   try {
-    const credentials = await keytar.findCredentials('bKit')
-    event.returnValue = credentials
+    return await keytar.findCredentials('bKit')
   } catch (e) {
     say.error('[findCredentials]', e)
-    event.returnValue = []
+    return []
   }
 })
 
-ipcMain.on('setPassword', async (event, account, password) => {
+ipcMain.handle('setPassword', async (event, account, password) => {
   try {
     say.log('setPassword', account)
     keytar.setPassword('bKit', account, password)
-    event.returnValue = true
+    return true
   } catch (e) {
     say.error('[setPassword]', e)
-    event.returnValue = false
+    return false
   }
 })
 
-ipcMain.on('getPassword', async (event, account) => {
+ipcMain.handle('getPassword', async (event, account) => {
   try {
     say.log('getPassword', account)
-    const pass = await keytar.getPassword('bKit', account)
-    event.returnValue = pass
+    return await keytar.getPassword('bKit', account)
   } catch (e) {
     say.error('[getPassword]', e)
-    event.returnValue = undefined
+    return undefined
   }
 })
 
-ipcMain.on('deletePassword', async (event, account) => {
+ipcMain.handle('deletePassword', async (event, account) => {
   try {
     say.log('deletePassword', account)
-    const result = await keytar.deletePassword('bKit', account)
-    event.returnValue = result
+    return await keytar.deletePassword('bKit', account)
   } catch (e) {
     say.error('[deletePassword]', e)
-    event.returnValue = undefined
+    return undefined
   }
 })
 
 /* Preferences */
-
-ipcMain.on('setPreferences', async (event, prefs) => {
+ipcMain.handle('setPreferences', async (event, prefs) => {
   try {
     // say.log('set_preferences', prefs)
     set_preferences(prefs)
@@ -86,7 +83,7 @@ ipcMain.on('setPreferences', async (event, prefs) => {
   }
 })
 
-ipcMain.on('getPreferences', async (event) => {
+ipcMain.handle('getPreferences', async (event) => {
   try {
     // say.log('preferences', get_preferences())
     event.returnValue = get_preferences()

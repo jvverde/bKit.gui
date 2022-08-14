@@ -3,7 +3,7 @@
 
 import { Store } from 'src/store'
 
-const account = () => Store.getters['accounts/account']
+const getServerURL = () => Store.getters['accounts/accountServerURL']
 
 const routes = [
   {
@@ -20,7 +20,7 @@ const routes = [
         component: () => import('pages/backup/BackupPage.vue'),
         name: 'backup',
         beforeEnter: (to, from, next) => {
-          if (account()) { // Currently this do nothing as account() always returns an object
+          if (getServerURL()) { // don't go head if server url is not defined
             next()
           } else {
             next({ name: 'servers', params: { back: 'backup' } })
@@ -32,7 +32,14 @@ const routes = [
         path: 'login/:user?',
         name: 'login',
         props: true,
-        component: () => import('pages/servers/accounts/Signin.vue')
+        component: () => import('pages/servers/accounts/Signin.vue'),
+        beforeEnter: (to, from, next) => {
+          if (getServerURL()) {
+            next()
+          } else {
+            next({ name: 'servers', params: { back: 'login' } })
+          }
+        }
       },
       {
         path: 'servers',
