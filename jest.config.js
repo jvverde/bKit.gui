@@ -18,7 +18,7 @@ module.exports = {
     "<rootDir>/src/**/*.jsx",
   ],
   // Needed in JS codebases too because of feature flags
-  coveragePathIgnorePatterns: ["/node_modules/", ".d.ts$"],
+  coveragePathIgnorePatterns: ["/node_modules/", ".d.ts$", "/dist/", "./quasar/"],
   coverageThreshold: {
     global: {
       //  branches: 50,
@@ -28,7 +28,7 @@ module.exports = {
     },
   },
   testMatch: [
-    "<rootDir>/test/jest/__tests__/**/*.(spec|test).js",
+    "<rootDir>/test/jest/__tests__/**/*.(spec|test).js|**/__tests__/*.(js|jsx|ts|tsx)",
     "<rootDir>/src/**/*.jest.(spec|test).js",
   ],
   moduleFileExtensions: ["vue", "js", "jsx", "json"],
