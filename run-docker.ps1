@@ -1,3 +1,4 @@
+#First tiem use winget install VcXsr
 $myip=(Test-Connection $env:COMPUTERNAME -Count 1).IPV4Address.IPAddressToString
 
 docker run --privileged -e DISPLAY="$myip":0.0 `
