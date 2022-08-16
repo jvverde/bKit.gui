@@ -10,7 +10,7 @@ module.exports = {
   // cache: false,
   // verbose: true,
   // watch: true,
-  collectCoverage: true,
+  collectCoverage: false,
   coverageDirectory: "<rootDir>/test/jest/coverage",
   collectCoverageFrom: [
     "<rootDir>/src/**/*.vue",
@@ -28,7 +28,7 @@ module.exports = {
     },
   },
   testMatch: [
-    "<rootDir>/test/jest/__tests__/**/*.(spec|test).js|**/__tests__/*.(js|jsx|ts|tsx)",
+    "<rootDir>/test/jest/__tests__/**/*.(spec|test).js",
     "<rootDir>/src/**/*.jest.(spec|test).js",
   ],
   moduleFileExtensions: ["vue", "js", "jsx", "json"],

@@ -20,10 +20,6 @@ export default {
       type: [String, Number],
       default: ''
     }
-  },
-  methods: {
-  },
-  mounted () {
   }
 }
 </script>
