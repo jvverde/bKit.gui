@@ -15,9 +15,7 @@ const bkitPath = (base, path, isdir = true) => {
 
 import { mapGetters, mapMutations } from 'vuex'
 import { Resource } from 'src/helpers/types'
-
-const { dialog, app } = require('electron').remote
-let download = app.getPath('downloads') || app.getPath('temp')
+import { ipcRenderer } from 'electron'
 
 export default {
   props: {
@@ -79,31 +77,18 @@ export default {
       // const rsyncoptions = ['--no-p', '--no-g', '--chmod=ugo=rwX']
       this.add2restore(new Resource({ path, snap, rvid }))
     },
-    recover () {
+    async recover () {
       let { path, name, snap, rvid, mountpoint, isdir } = this
       path = bkitPath(mountpoint, path, isdir)
-      dialog.showOpenDialog({
-        title: 'Where do you want to recover your data',
-        defaultPath: download,
-        buttonLabel: 'Recover to here',
-        properties: ['openDirectory', 'promptToCreate']
-      }).then((result) => {
-        if (result.filePaths instanceof Array) {
-          download = result.filePaths[0]
-          if (download !== null) {
-            const dir = isdir ? `/${name}/` : ''
-            // --no-p --no-g --chmod=ugo=rwX
-            const options = [`--dst=${download}${dir}`]
-            // const rsyncoptions = ['--no-p', '--no-g', '--chmod=ugo=rwX']
-            this.add2restore(new Resource({ path, snap, rvid, options }))
-          }
-        }
-      }).catch((err) => {
-        download = null
-        console.error('Catch on showOpenDialog', err)
-      }).finally(() => {
-        // console.log('')
-      })
+      const download = await ipcRenderer.invoke('askUser4Location2recovery')
+      console.log('Download to', download)
+      if (download) {
+        const dir = isdir ? `/${name}/` : ''
+        // --no-p --no-g --chmod=ugo=rwX
+        const options = [`--dst=${download}${dir}`]
+        // const rsyncoptions = ['--no-p', '--no-g', '--chmod=ugo=rwX']
+        this.add2restore(new Resource({ path, snap, rvid, options }))
+      }
     }
   }
 }

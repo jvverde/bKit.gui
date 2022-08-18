@@ -1,7 +1,7 @@
 // SEE this when possible
 // https://stackoverflow.com/questions/44391448/electron-require-is-not-defined
 
-import { app, ipcMain } from 'electron'
+import { app, ipcMain, dialog } from 'electron'
 import { bkitPath, findbkit } from './bkitClient'
 import { get_preferences, set_preferences, save_preferences } from './preferences'
 import say from './say'
@@ -76,10 +76,10 @@ ipcMain.handle('setPreferences', async (event, prefs) => {
   try {
     // say.log('set_preferences', prefs)
     set_preferences(prefs)
-    event.returnValue = true
+    return true
   } catch (e) {
     say.error('[setPreferences]', e)
-    event.returnValue = false
+    return false
   }
 })
 
@@ -89,7 +89,7 @@ ipcMain.handle('getPreferences', async (event) => {
     event.returnValue = get_preferences()
   } catch (e) {
     say.error('[getPreferences]', e)
-    event.returnValue = {}
+    return {}
   }
 })
 
@@ -97,3 +97,27 @@ app.on('before-quit', () => {
   say.log('Save preferences before quit') 
   save_preferences()
 })
+ /***/
+ipcMain.handle('askUser4Location2recovery', async (event) => {
+  try { 
+    const download = app.getPath('downloads') || app.getPath('temp')
+    const result = await dialog.showOpenDialog({
+      title: 'Where do you want to recover your data',
+      defaultPath: download,
+      buttonLabel: 'Recover to here',
+      properties: ['openDirectory', 'promptToCreate']
+    })
+    return result && result.filePaths instanceof Array ? result.filePaths[0] : undefined
+  } catch (err) {
+    say.error('Catch on showOpenDialog', err)
+    return undefined
+  }
+})
+
+ipcMain.on('getApp', (event) => {
+  event.returnValue = {
+    version: app.getVersion(),
+    name: app.getName()    
+  }
+})
+

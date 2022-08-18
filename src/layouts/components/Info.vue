@@ -5,15 +5,13 @@
 </template>
 
 <script>
-const { remote: { app } } = require('electron')
 
+import { ipcRenderer } from 'electron'
+const app = ipcRenderer.sendSync('getApp')
 export default {
   name: 'Info',
   data () {
-    return {
-      version: app.getVersion(),
-      name: app.getName()
-    }
+    return app
   }
 }
 </script>

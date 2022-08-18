@@ -24,6 +24,7 @@ export default () => {
       // Change from /quasar.conf.js > electron > nodeIntegration;
       // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration
       nodeIntegration: QUASAR_NODE_INTEGRATION,
+      contextIsolation: false,
       webSecurity: false,
       enableRemoteModule: true
 
