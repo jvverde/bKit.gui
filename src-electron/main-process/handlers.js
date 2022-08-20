@@ -97,7 +97,9 @@ app.on('before-quit', () => {
   say.log('Save preferences before quit') 
   save_preferences()
 })
- /***/
+
+/*****************************************************************************************/
+// after read https://github.com/electron/electron/issues/9920#issuecomment-575839738
 ipcMain.handle('askUser4Location2recovery', async (event) => {
   try { 
     const download = app.getPath('downloads') || app.getPath('temp')
