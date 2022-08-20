@@ -28,7 +28,7 @@ import path from 'path'
 import fs from 'fs'
 import { autoUpdater } from 'electron-updater'
 import windowStateKeeper from 'electron-window-state'
-import statics from './statics'
+
 import setTray from './tray'
 import createWindow from './createWindow'
 import setHandlers from './handlers'

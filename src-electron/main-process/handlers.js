@@ -16,7 +16,8 @@ ipcMain.on('getbkitPath', (event) => {
 
 ipcMain.handle('getStatics', (event) => {
   say.log('getStatics', statics)
-  return statics
+  // return statics
+  return __dirname
 })
 
 ipcMain.handle('app_version', (event) => {

@@ -74,7 +74,8 @@ const checkRights = (dst) => {
 
 const _getList = () => {
   try {
-    const depends = path.join(statics, '/depends.lst')
+    // const depends = path.join(statics, '/depends.lst')
+    const depends = path.join('', 'depends.lst')
     const result = readFileSync(depends, 'utf8')
     return result.split(/\r*\n+/).filter(e => e.match(/\.sh$/))
   } catch (err) {

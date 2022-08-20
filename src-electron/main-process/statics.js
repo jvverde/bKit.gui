@@ -6,10 +6,11 @@
 import say from './say'
 import { join } from 'path'
 
-say.log('process.env.PROD', process.env.PROD)
+// say.log('process.env.PROD', process.env.PROD)
 
 if (process.env.PROD) {
   global.__statics = join(__dirname, 'statics').replace(/\\/g, '\\\\')
+  global.__statics = __dirname
 }
 
 say.log('__statics', __statics)

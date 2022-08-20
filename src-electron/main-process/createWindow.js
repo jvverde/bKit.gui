@@ -19,11 +19,12 @@ export default () => {
     x: mainWindowState.x,
     y: mainWindowState.y,
     // useContentSize: true,
-    icon: resolve(statics, 'bkit-icons/bkit-128x128.png'),
+    // icon: resolve(statics, 'bkit-icons/bkit-128x128.png'),
+    icon: resolve('', 'bkit-icons/bkit-128x128.png'),
     webPreferences: {
       // Change from /quasar.conf.js > electron > nodeIntegration;
       // More info: https://quasar.dev/quasar-cli/developing-electron-apps/node-integration
-      nodeIntegration: QUASAR_NODE_INTEGRATION,
+      nodeIntegration: process.env.QUASAR_NODE_INTEGRATION,
       contextIsolation: false,
       webSecurity: false,
       enableRemoteModule: true

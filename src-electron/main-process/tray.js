@@ -39,6 +39,7 @@ export default ({ mainWindow }) => {
   
   try {
     const icon = join(statics,'bkit-icons','bkit-128x128.png')
+    // const icon = join('bkit-icons','bkit-128x128.png')
     say.log(`Load icon from ${icon}`)
     const tray = new Tray(icon)
 
