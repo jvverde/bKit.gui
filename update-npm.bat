@@ -1,2 +1,0 @@
-npm outdated 
-npm update 
