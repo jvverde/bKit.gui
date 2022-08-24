@@ -2,7 +2,8 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 const openShell = async () => await ipcRenderer.invoke('openShell')
 const os = async () => await ipcRenderer.invoke('os')
-const killtree = async (pid) => await ipcRenderer.invoke('killtree')
+const killtree = async (pid) => await ipcRenderer.invoke('killtree', pid)
+const debug = () => ipcRenderer.send('switchdebug')
 let count = 0
 
 contextBridge.exposeInMainWorld('electron', {
@@ -21,5 +22,6 @@ contextBridge.exposeInMainWorld('electron', {
     const result = await ipcRenderer.invoke('bash', name, args, keys, index)
     keys.forEach(e => ipcRenderer.removeAllListeners(`${e}.${index}`))
     return result
-  }
+  },
+  debug
 })

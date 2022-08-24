@@ -1,4 +1,4 @@
-import { webContents, Notification, dialog } from 'electron'
+import { Notification, dialog } from 'electron'
 
 import say from './utils/say'
 import { autoUpdater } from 'electron-updater'
@@ -33,13 +33,13 @@ export function check4updates () {
 
 export function getUpdates(channel = 'latest') {
   autoUpdater.channel = channel
-  autoUpdater.on('update-not-available', (info) => {
+  autoUpdater.on('update-not-available', () => {
     dialog.showMessageBox({
       title: 'No Updates',
       message: 'Current version is up-to-date.'
     })
   })
-  autoUpdater.on('update-downloaded', (info) => {
+  autoUpdater.on('update-downloaded', () => {
     setImmediate(() => autoUpdater.quitAndInstall())
   })
   autoUpdater.autoInstallOnAppQuit = true

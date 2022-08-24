@@ -1,5 +1,5 @@
-import {  Menu, MenuItem, app } from 'electron'
-import { check4updates, getUpdates } from './auto-update'
+import {  Menu, app } from 'electron'
+import { getUpdates } from './auto-update'
 import AutoLaunch from 'auto-launch'
 import say from './utils/say'
 

@@ -1,9 +1,9 @@
 {
-  "name": "hhhh",
-  "version": "0.0.1",
-  "description": "aaaa",
-  "productName": "aaa",
-  "author": "aaaa",
+  "name": "bkit-gui",
+  "version": "2.0.1",
+  "description": "A GUI for bKit Client",
+  "productName": "bKit-gui",
+  "author": "Serprest Lda",
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.vue ./",
@@ -11,8 +11,7 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev -m electron",
     "clean": "quasar clean",
-    "build": "quasar build -m electron",
-    "quasar:info": "quasar info"
+    "build": "quasar build -m electron"
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",

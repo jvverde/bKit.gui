@@ -4,27 +4,23 @@
 import {
   app,
   nativeTheme,
-  dialog,
-  ipcMain
+  dialog
 } from 'electron'
 
 import menu from './menu'
 
 import {
   bkitPath,
-  isbkitClintInstalled,
   isbkitok,
   findbkit,
   save_config,
   load_config
 } from './bkitClient'
 
-import { check4updates, getUpdates } from './auto-update'
+import { check4updates } from './auto-update'
 import say from './utils/say'
-import path from 'path'
 import fs from 'fs'
-import { autoUpdater } from 'electron-updater'
-import windowStateKeeper from 'electron-window-state'
+// import { autoUpdater } from 'electron-updater'
 
 // import setTray from './tray'
 import createWindow from './createWindow'
@@ -36,9 +32,11 @@ say.log('is Elevated:', app.commandLine.hasSwitch('elevated'))
 
 try {
   if (process.platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
-    fs.unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'))
+    // fs.unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'))
   }
-} catch (_) { }
+} catch (e) {
+  say.error(e)
+}
 
 const root = {
   tray: null,
@@ -92,7 +90,7 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
   }
 })
 
-app.on('window-all-closed', event => {
+app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
@@ -125,16 +123,10 @@ app.once('before-quit', () => {
   window.removeAllListeners('close')
 })
 
-ipcMain.on('debug', (event, arg) => {
-  if (arg === 'on'){
-    root.mainWindow.webContents.openDevTools()
-  } else {
-    root.mainWindow.webContents.closeDevTools()
-  }
-})
-
 menu()
 
 say.log('bkit started')
 
-import helpers from './handlers/'
+import handlers from './handlers/'
+
+say.log(handlers)

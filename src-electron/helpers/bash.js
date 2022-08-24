@@ -1,9 +1,8 @@
 // let wsList = {}
 'use strict'
-let [BASH, TERM] = ['bash', 'xterm']
+const BASH = process.platform === 'win32' ? 'bash.bat' : 'bash'
 const { spawn } = require('child_process')
 const readline = require('readline')
-import { ipcRenderer } from 'electron'
 import { getbkitPath } from '../bkitClient'
 import say  from '../utils/say'
 
@@ -14,11 +13,6 @@ const catched = e => say.error(e)
 const warn = w => say.warn(w)
 
 export const username = require('os').userInfo().username
-
-if (process.platform === 'win32') {
-  BASH = 'bash.bat'
-  TERM = BASH // for windows user bash as a terminal
-}
 
 // Spawn a bash script
 function _bash (name, args = [], events = {}, done = nill) {
@@ -135,7 +129,7 @@ export function asyncBash (name, args = [], events = {}) {
   const lines = []
   const { onreadline = line => lines.push(line) } = events
   return new Promise((resolve, reject) => {
-    const done = code => resolve(lines)
+    const done = () => resolve(lines)
     const onerror = reject
     _bash(name, args, { ...events, onreadline, onerror }, done)
   })

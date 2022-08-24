@@ -6,7 +6,7 @@ import rootCA from './ca'
 export default ({ session, ca = rootCA }) => {
   try {
     // console.log('rootCA', rootCA)
-    const caStore = pki.createCaStore(rootCA)
+    const caStore = pki.createCaStore(ca)
     session.setCertificateVerifyProc(async (request, callback) => {
       // https://www.electronjs.org/docs/api/session
       // console.log('setCertificateVerifyProc', request)
@@ -19,7 +19,7 @@ export default ({ session, ca = rootCA }) => {
           say.log('Certicate verified!')
           callback(0)
         } else {
-          say.error('Failed due to some unknown reason', e.message || e)
+          say.error('Failed due to some unknown reason')
           callback(-3)
         }
       } catch (e) {

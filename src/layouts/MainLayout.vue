@@ -63,8 +63,8 @@
 <script>
 
 // import info from 'src/helpers/info'
-// import { catched } from 'src/helpers/notify'
-import { mapGetters, mapMutations, mapActions } from 'vuex'
+import { catched } from 'src/helpers/notify'
+// import { mapGetters, mapMutations, mapActions } from 'vuex'
 import bkitmenu from './components/Menu'
 // import backupProgress from 'src/workers/backup/BackupProgress'
 // import restoreProgress from 'src/workers/restore/RestoreProgress'
@@ -139,13 +139,10 @@ export default {
     }
   },
   async mounted () {
-    console.log('MOUNTED')
-    const f = (i) => console.log('f', i)
-    const g = (i) => console.log('g', i)
+    console.log('MOUNTED', compare)
     const onreadline = (i) => console.log('readline', i)
-    await window.electron.bash('./listdisks.sh', [], { onreadline })
-    await window.electron.bash('./server.sh', ['-r'], { onreadline })
-    // console.log(result)
+    window.electron.bash('./listdisks.sh', [], { onreadline })
+    window.electron.bash('./server.sh', ['-r'], { onreadline })
   }
 }
 </script>

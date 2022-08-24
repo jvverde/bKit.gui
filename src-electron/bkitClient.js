@@ -1,6 +1,4 @@
 import {
-  readFileSync,
-  readdirSync,
   existsSync,
   mkdirSync,
   accessSync,
@@ -11,7 +9,6 @@ import { spawnSync, execSync } from 'child_process'
 import { copySync } from 'fs-extra'
 import { app, dialog } from 'electron'
 import path from 'path'
-import Shell from 'node-powershell'
 import say from './utils/say'
 import Store from 'electron-store'
 import runasAdmin from './runas'
@@ -56,8 +53,6 @@ const isAdmin = isWin && (() => {
     return false
   } 
 })()
-
-const isEmpty = (path) => readdirSync(path).length === 0
 
 const checkRights = (dst) => {
   if (!dst) return false
@@ -205,8 +200,8 @@ const recheck = async (location) => {
 
 const installBkit = async (location) => {
   say.log('Install bkit client at', location)
+  const client = path.join(app.getAppPath(), 'bkit-client')
   if (isWin && !process.env.PROD) { // Only need for windows, as we need to run setup.bat
-    const client = path.join(app.getAppPath(), 'bkit-client')
     say.log('Copy bkit to development area', client)
     if (client !== location) {
       mkdir(client)
@@ -240,7 +235,7 @@ const verify = async (location) => {
 
 const LIMIT = 100
 const findbkitLocation = (dir = app.getAppPath(), cnt = 0) => {
-  const base = dir.replace(/[\\\/]resources[\\\/].*$/i, '')
+  const base = dir.replace(/[\\/]resources[\\/].*$/i, '')
   const location = path.join(base, 'bkit-client')
   say.log('Search for bkit client at', dir)
   if (isbkitClintInstalled(location)) { 

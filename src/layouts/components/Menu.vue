@@ -104,12 +104,7 @@ export default {
       window.electron.openShell()
     },
     debug () {
-      this.tools = !this.tools
-      if (this.tools) {
-        ipcRenderer.send('debug', 'on')
-      } else {
-        ipcRenderer.send('debug', 'off')
-      }
+      window.electron.debug()
     }
   }
 }

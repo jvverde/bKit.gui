@@ -7,8 +7,7 @@ ipcMain.handle('os', () => {
   return {
     userInfo: os.userInfo(),
     platform: os.platform(),
-    hostname: os.hostname(),
-    userInfo: os.userInfo()
+    hostname: os.hostname()
   }
 })
 
