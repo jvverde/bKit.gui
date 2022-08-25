@@ -1,11 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron')
-const nodepath = require('path')
 
 const openShell = async () => await ipcRenderer.invoke('openShell')
 const os = async () => await ipcRenderer.invoke('os')
 const killtree = async (pid) => await ipcRenderer.invoke('killtree', pid)
 const debug = () => ipcRenderer.send('switchdebug')
-// const usepath = (name, ...args) => ipcRenderer.send('usepath', name, ...args)
 
 let count = 0
 const bash = async (name, args = [], events = {}) => {
@@ -30,12 +28,12 @@ const credentials = {
 }
 
 const path = {
-  relative: (...args) => nodepath.relative(...args),
-  normalize: (...args) => nodepath.normalize(...args),
-  sep: nodepath.sep,
-  posix: nodepath.posix,
-  resolve: (...args) => nodepath.resolve(...args),
-  join: (...args) => nodepath.join(...args)
+  relative: (...args) => ipcRenderer.sendSync('usepath', 'relative', ...args),
+  normalize: (...args) => ipcRenderer.sendSync('usepath', 'relative', ...args),
+  sep: ipcRenderer.sendSync('usepath', 'sep'),
+  posix: ipcRenderer.sendSync('usepath', 'posix'),
+  resolve: (...args) => ipcRenderer.sendSync('usepath', 'resolve', ...args),
+  join: (...args) => ipcRenderer.sendSync('usepath', 'join', ...args)
 }
 
 const secrets = {

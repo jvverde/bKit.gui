@@ -1,4 +1,4 @@
-const { normalize, join, sep } = window.electro.path
+const { normalize, join, sep } = window.electron.path
 
 const LIMIT = 100
 
