@@ -11,4 +11,4 @@ ipcMain.handle('bash', (event, name, args = [], actions = [], index = 0) => {
   return asyncBash(name, args, events)
 })
 
-export default {}
+export default false

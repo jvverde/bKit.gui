@@ -1,6 +1,6 @@
 // This data is not supposed to change in the program lifetime
 'use strict'
-// import { getUser, getComputerInfo } from 'src/helpers/bkit'
+import { getUser, getComputerInfo } from 'src/helpers/bkit'
 
 console.log('Get user and computer info')
 
@@ -17,8 +17,8 @@ export default async () => {
   try {
     const os = await window.electron.os()
     const username = os.userInfo.username
-    const localUser = 'uuuuu' // getUser
-    const computer = 'c|n|u' // await getComputerInfo()
+    const localUser = getUser
+    const computer = await getComputerInfo()
     const [domain, name, uuid] = computer.split('|')
     const info = {
       localUser,

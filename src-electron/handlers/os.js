@@ -11,4 +11,4 @@ ipcMain.handle('os', () => {
   }
 })
 
-export default {}
+export default false

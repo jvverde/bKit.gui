@@ -28,4 +28,4 @@ ipcMain.handle('openShell', () => {
   } 
 })
 
-export default {}
+export default false
