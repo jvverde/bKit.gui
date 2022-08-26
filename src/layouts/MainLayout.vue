@@ -10,7 +10,7 @@
           aria-label="Menu"
         />
 
-        <!-- q-toolbar-title>
+        <q-toolbar-title>
           <div v-if="account.name" class="row no-wrap">
             <span>bKit Account:</span>
              <q-btn flat dense no-caps :label="`${account.name}`" :loading="loading">
@@ -39,8 +39,8 @@
         <user/>
         <div style="margin-left: 1em;">
           <q-btn icon="home" dense flat @click="$router.push({ name: 'home' })"/>
-        </div -->
-        <!-- info/ -->
+        </div>
+        <info/>
       </q-toolbar>
     </q-header>
     <q-drawer v-model="leftDrawerOpen" bordered content-class="bg-menu">
@@ -64,13 +64,13 @@
 
 // import info from 'src/helpers/info'
 import { catched } from 'src/helpers/notify'
-// import { mapGetters, mapMutations, mapActions } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 import bkitmenu from './components/Menu'
 // import backupProgress from 'src/workers/backup/BackupProgress'
 // import restoreProgress from 'src/workers/restore/RestoreProgress'
-// import clients from './components/Clients'
-// import user from './components/User'
-// import info from './components/Info'
+import clients from './components/Clients'
+import user from './components/User'
+import info from './components/Info'
 
 // import { colors } from 'quasar'
 
@@ -100,9 +100,9 @@ export default {
     }
   },
   computed: {
-    // ...mapGetters('accounts', ['account', 'currentProfiles']),
-    // ...mapGetters('backups', { bempty: 'empty' }),
-    // ...mapGetters('restore', { rempty: 'empty' }),
+     ...mapGetters('accounts', ['account', 'currentProfiles']),
+     ...mapGetters('backups', { bempty: 'empty' }),
+     ...mapGetters('restore', { rempty: 'empty' }),
     // loading () { return this.msg && this.msg.length > 0 },
     // accounts () {
     //   return [...this.currentProfiles].sort(compare)
@@ -119,14 +119,14 @@ export default {
     bkitmenu,
     // backupProgress,
     // restoreProgress,
-    // clients,
-    // user,
-    // info
+    clients,
+    user,
+    info
   },
   methods: {
-    // ...mapActions('accounts', ['setCurrentAccount']),
-    // ...mapMutations('backups', { btoggle: 'toggle' }),
-    // ...mapMutations('restore', { rtoggle: 'toggle' }),
+    ...mapActions('accounts', ['setCurrentAccount']),
+    ...mapMutations('backups', { btoggle: 'toggle' }),
+    ...mapMutations('restore', { rtoggle: 'toggle' }),
     async changeserver (account) {
       try {
         this.msg = `Change to account ${account.user}@${account.servername}`

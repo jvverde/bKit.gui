@@ -6,8 +6,8 @@
 
 <script>
 
-import { ipcRenderer } from 'electron'
-const app = ipcRenderer.sendSync('getApp')
+const app = window.electron.app
+
 export default {
   name: 'Info',
   data () {

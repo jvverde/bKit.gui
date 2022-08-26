@@ -7,6 +7,7 @@ import bash from './bash'
 import credentials from './credentials'
 import path from './path'
 import secrets from './secrets'
+import app from './app'
 
 export default {
   os,
@@ -15,5 +16,6 @@ export default {
   killtree,
   credentials,
   path,
-  secrets
+  secrets,
+  app
 }

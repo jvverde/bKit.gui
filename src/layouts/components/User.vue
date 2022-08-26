@@ -6,8 +6,9 @@
 </template>
 
 <script>
-const os = require('os')
-const username = os.userInfo().username
+const os = window.electron.os
+console.log(os)
+const username = os.userInfo.username
 
 import { pInfo } from 'src/boot/computer'
 import { catched } from 'src/helpers/notify'
@@ -19,7 +20,7 @@ export default {
   name: 'User',
   data () {
     return {
-      hostname: os.hostname(),
+      hostname: os.hostname,
       computer: {
         name: undefined,
         domain: undefined,

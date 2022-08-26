@@ -1,9 +1,10 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 const openShell = async () => await ipcRenderer.invoke('openShell')
-const os = async () => await ipcRenderer.invoke('os')
+const os = ipcRenderer.sendSync('os')
 const killtree = async (pid) => await ipcRenderer.invoke('killtree', pid)
 const debug = () => ipcRenderer.send('switchdebug')
+const app = ipcRenderer.sendSync('getApp')
 
 let count = 0
 const bash = async (name, args = [], events = {}) => {
@@ -44,6 +45,7 @@ const secrets = {
 }
 
 contextBridge.exposeInMainWorld('electron', {
+  app,
   openShell,
   os,
   killtree,

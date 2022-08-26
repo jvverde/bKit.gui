@@ -3,8 +3,8 @@
 import os from 'os'
 import { ipcMain } from 'electron'
 
-ipcMain.handle('os', () => {
-  return {
+ipcMain.on('os', (event) => {
+  event.returnValue = {
     userInfo: os.userInfo(),
     platform: os.platform(),
     hostname: os.hostname()
