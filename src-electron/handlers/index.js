@@ -8,6 +8,8 @@ import credentials from './credentials'
 import path from './path'
 import secrets from './secrets'
 import app from './app'
+import dialog from './dialog'
+import watcher from './watcher'
 
 export default {
   os,
@@ -17,5 +19,7 @@ export default {
   credentials,
   path,
   secrets,
-  app
+  app,
+  dialog,
+  watcher
 }

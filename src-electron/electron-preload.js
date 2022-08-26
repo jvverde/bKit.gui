@@ -5,6 +5,10 @@ const os = ipcRenderer.sendSync('os')
 const killtree = async (pid) => await ipcRenderer.invoke('killtree', pid)
 const debug = () => ipcRenderer.send('switchdebug')
 const app = ipcRenderer.sendSync('getApp')
+const writeFile = async (file) => await ipcRenderer.invoke('writeFile', file)
+const readfile = async (file) => await ipcRenderer.invoke('readfile', file)
+const readdir = async (dir) => await ipcRenderer.invoke('readdir', dir)
+const askUser4Location2recovery = async () => ipcRenderer.invoke('askUser4Location2recovery')
 
 let count = 0
 const bash = async (name, args = [], events = {}) => {
@@ -20,7 +24,15 @@ const bash = async (name, args = [], events = {}) => {
   keys.forEach(e => ipcRenderer.removeAllListeners(`${e}.${index}`))
   return result
 }
-   
+
+const watchfiles = (path, callback) => {
+  ipcRenderer.on('watcherEvent', (event, ...args) => callback(...args))
+  ipcRenderer.sendSync('watchfiles', path)  
+}
+const unwatchfiles = (path, id) => {
+  ipcRenderer.send('unwatchfiles', path, id)  
+}
+
 const credentials = {
   find: async () => await ipcRenderer.invoke('findCredentials'),
   remove: async (name) => await ipcRenderer.invoke('deletePassword', name),
@@ -44,6 +56,7 @@ const secrets = {
   hash:  (...args) => ipcRenderer.sendSync('hash', ...args)
 }
 
+
 contextBridge.exposeInMainWorld('electron', {
   app,
   openShell,
@@ -53,5 +66,11 @@ contextBridge.exposeInMainWorld('electron', {
   debug,
   credentials,
   path,
-  secrets
+  secrets,
+  writeFile,
+  readfile,
+  readdir,
+  watchfiles,
+  unwatchfiles,
+  askUser4Location2recovery
 })

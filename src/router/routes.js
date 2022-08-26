@@ -1,9 +1,9 @@
 // import { getServer, getUser } from 'src/helpers/bkit'
 // today: 26-06-2022
 
-// import { Store } from 'src/store'
+import { Store } from 'src/store'
 
-// const getServerURL = () => Store.getters['accounts/accountServerURL']
+const getServerURL = () => Store.getters['accounts/accountServerURL']
 
 const routes = [
   {
@@ -15,18 +15,18 @@ const routes = [
         component: () => import('pages/HomePage.vue'),
         name: 'home'
       },
-      // {
-      //   path: 'backup',
-      //   component: () => import('pages/backup/BackupPage.vue'),
-      //   name: 'backup',
-      //   beforeEnter: (to, from, next) => {
-      //     if (getServerURL()) { // don't go head if server url is not defined
-      //       next()
-      //     } else {
-      //       next({ name: 'servers', params: { back: 'backup' } })
-      //     }
-      //   }
-      // },
+      {
+        path: 'backup',
+        component: () => import('pages/backup/BackupPage.vue'),
+        name: 'backup',
+        beforeEnter: (to, from, next) => {
+          if (getServerURL()) { // don't go head if server url is not defined
+            next()
+          } else {
+            next({ name: 'servers', params: { back: 'backup' } })
+          }
+        }
+      },
       // {
       // // This almost duplicated route is a workaround to deal with push named route
       //   path: 'login/:user?',
