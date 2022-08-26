@@ -23,8 +23,37 @@ export default route(function (/* { store, ssrContext } */) {
     // Leave this as is and make changes in quasar.conf.js instead!
     // quasar.conf.js -> build -> vueRouterMode
     // quasar.conf.js -> build -> publicPath
-    history: createHistory(process.env.MODE === 'ssr' ? void 0 : process.env.VUE_ROUTER_BASE)
+    history: createHistory(process.env.VUE_ROUTER_BASE)
   })
 
   return Router
 })
+
+/** Old way **/
+// // import Vue from 'vue'
+// import VueRouter from 'vue-router'
+
+// import routes from './routes'
+
+// // Vue.use(VueRouter)
+
+// export default function (/* { store, ssrContext } */) {
+//   const router = new VueRouter({
+//     scrollBehavior: () => ({ x: 0, y: 0 }),
+//     routes,
+
+//     // Leave these as they are and change in quasar.conf.js instead!
+//     // quasar.conf.js -> build -> vueRouterMode
+//     // quasar.conf.js -> build -> publicPath
+//     mode: process.env.VUE_ROUTER_MODE,
+//     base: process.env.VUE_ROUTER_BASE
+//   })
+
+//   router.beforeEach((to, from, next) => {
+//     console.log(`From: (${from.name}) ${from.path}`)
+//     console.log(`To: (${to.name}) ${to.path}`)
+//     next()
+//   })
+
+//   return router
+// }

@@ -152,12 +152,12 @@ module.exports = configure(function (ctx) {
       
 
       manifest: {
-        name: `aaa`,
-        short_name: `aaa`,
-        description: `aaaa`,
+        name: 'bKit Client',
+        short_name: 'bKit Client',
+        description: 'A bKit Client App',
         display: 'standalone',
-        orientation: 'portrait',
-        background_color: '#ffffff',
+        orientation: 'landscape',
+        background_color: '#fffffa',
         theme_color: '#027be3',
         icons: [
           {

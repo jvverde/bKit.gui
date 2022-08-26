@@ -46,12 +46,12 @@
     <q-drawer v-model="leftDrawerOpen" bordered content-class="bg-menu">
       <bkitmenu/>
     </q-drawer>
-    <!-- q-page-container class="bkit-container">
+    <q-page-container class="bkit-container">
       <keep-alive include="backup">
         <router-view/>
       </keep-alive>
     </q-page-container>
-    <q-inner-loading :showing="loading">
+    <!-- q-inner-loading :showing="loading">
       <q-spinner-ios size="xl" color="loader"/>
       <span>{{msg}}</span>
     </q-inner-loading>
